@@ -1,0 +1,210 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  manager
+  instructor
+  seller
+  affiliate
+  student
+  scanner
+  employee
+  tester
+  ustaz
+}
+
+enum UserStatus {
+  pending
+  active
+  inactive
+}
+
+enum Gender {
+  Female
+  Male
+}
+
+enum StudentType {
+  live
+  online
+}
+
+enum OrderStatus {
+  paid
+  unpaid
+}
+
+enum Lang {
+  am
+  en
+}
+
+enum CourseLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum TransferStatus {
+  unpaid
+  paid
+}
+
+model User {
+  id          String       @id @default(uuid())
+  role        Role
+  username    String?      @unique
+  phoneNumber String       @unique
+  password    String       @default("")
+  firstName   String       @default("")
+  fatherName  String       @default("")
+  lastName    String       @default("")
+  country     String       @default("")
+  region      String       @default("")
+  city        String       @default("")
+  idCard      String?      @db.LongText
+  gender      Gender?
+  age         Int?
+  chatId      BigInt?      @unique
+  lang        Lang         @default(am)
+  code        String       @unique @default(uuid())
+  status      UserStatus   @default(active)
+  order       Order[]
+  IncomeRate  IncomeRate[]
+  Transfer    Transfer[]
+  courses     Course[]
+  permission  Permission[]
+}
+
+model Permission {
+  id         String @id @default(uuid())
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  permission String
+}
+
+// ------------------------- Course -----------------------------
+
+model Course {
+  id             String        @id @default(uuid())
+  titleEn        String
+  titleAm        String
+  aboutEn        String        @db.Text
+  aboutAm        String        @db.Text
+  thumbnail      String
+  video          String
+  price          Decimal
+  currency       String        @default("ETB")
+  level          CourseLevel
+  language       String        @default("Amharic")
+  duration       String
+  accessEn       String        @default("Access on mobile, computer")
+  accessAm       String        @default("በሞባይል ፣ በኮምፒተር ላይ መጠቀም")
+  certificate    Boolean       @default(false)
+  instructorRate Decimal
+  sellerRate     Decimal
+  affiliateRate  Decimal
+  channel        Channel?      @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId      String?       @unique
+  instructor     User          @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  instructorId   String
+  status         Boolean       @default(true)
+  requirement    Requirement[]
+  courseFor      CourseFor[]
+  activity       Activity[]
+  order          Order[]
+  incomeRate     IncomeRate[]
+}
+
+model Requirement {
+  id            String @id @default(uuid())
+  requirementEn String
+  requirementAm String
+  course        Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId      String
+}
+
+model CourseFor {
+  id          String @id @default(uuid())
+  courseForEn String
+  courseForAm String
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String
+}
+
+model Activity {
+  id          String        @id @default(uuid())
+  titleEn     String
+  titleAm     String
+  course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String
+  subActivity SubActivity[]
+}
+
+model SubActivity {
+  id         String   @id @default(uuid())
+  titleEn    String
+  titleAm    String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId String
+}
+
+model Channel {
+  id     String  @id @default(uuid())
+  chatId BigInt  @unique
+  title  String  @default("")
+  course Course?
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+  course           Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId         String
+  date             DateTime
+  status           OrderStatus @default(unpaid)
+  totalPrice       Decimal
+  price            Decimal
+  currency         String      @default("ETB")
+  instructorIncome Decimal
+  tx_ref           String?     @unique
+  img              String      @db.LongText()
+  reference        String?
+  code             String?
+  income           Decimal?
+}
+
+model IncomeRate {
+  id       String  @id @default(uuid())
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  course   Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String
+  rate     Decimal
+}
+
+model Transfer {
+  id        String         @id @default(uuid())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  year      Int
+  month     Int
+  reference String         @default(uuid())
+  income    Int
+  status    TransferStatus @default(unpaid)
+}
+
+model otp {
+  id          String @id @default(uuid())
+  phoneNumber String
+  code        Int
+}
