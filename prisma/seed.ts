@@ -10,7 +10,8 @@ import prisma from "@/lib/db";
         fatherName: "ahmed",
         lastName: "mohammed",
         phoneNumber: "0945467891",
-        password: "$2a$12$Wt8Q9Q23DmCEiVPucCrTcOTxtYRkNUhK5MoyaJotYBc1RbJdUbk0W",
+        password:
+          "$2a$12$Wt8Q9Q23DmCEiVPucCrTcOTxtYRkNUhK5MoyaJotYBc1RbJdUbk0W",
         permission: {
           create: { permission: "manager" },
         },
@@ -24,7 +25,8 @@ import prisma from "@/lib/db";
         fatherName: "Abdurahaman",
         lastName: "Kalid",
         phoneNumber: "0910203040",
-        password: "$2a$12$MdcOCCZBmPTAfKFbke.ObOT9gED00eqsdQEfttlrQixjmjJMWR/wW",
+        password:
+          "$2a$12$MdcOCCZBmPTAfKFbke.ObOT9gED00eqsdQEfttlrQixjmjJMWR/wW",
         status: "active",
       },
     });
@@ -36,7 +38,8 @@ import prisma from "@/lib/db";
         fatherName: "ahmed",
         lastName: "mohammed",
         phoneNumber: "0945467893",
-        password: "$2a$12$MdcOCCZBmPTAfKFbke.ObOT9gED00eqsdQEfttlrQixjmjJMWR/wW",
+        password:
+          "$2a$12$MdcOCCZBmPTAfKFbke.ObOT9gED00eqsdQEfttlrQixjmjJMWR/wW",
         status: "active",
       },
     });
@@ -48,7 +51,8 @@ import prisma from "@/lib/db";
         fatherName: "ahmed",
         lastName: "mohammed",
         phoneNumber: "0933807447",
-        password: "$2a$12$XXbCwSgHeM0s63IRM4B6ROYNBWikkPxk3sHsrPRSoO0.EOl6dLvtm",
+        password:
+          "$2a$12$XXbCwSgHeM0s63IRM4B6ROYNBWikkPxk3sHsrPRSoO0.EOl6dLvtm",
         status: "active",
       },
     });
@@ -57,20 +61,23 @@ import prisma from "@/lib/db";
     const channel01 = await prisma.channel.create({
       data: { chatId: -1002346735030, title: "Quran" },
     });
-    const channel02 = await prisma.channel.create({
+    await prisma.channel.create({
       data: { chatId: -1002465362272, title: "Hadith" },
     });
 
     // Create a course (used for activity/question seeding below)
     const course = await prisma.course.create({
       data: {
-        titleEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque odio, maxime quibusdam mollitia",
+        titleEn:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Neque odio, maxime quibusdam mollitia",
         titleAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
         instructorId: instructor.id,
-        aboutEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam blanditiis, dolore quas mollitia eum asperiores saepe! Aperiam dolor distinctio fugit, ratione neque autem necessitatibus praesentium illum, corporis atque corrupti dolore.",
+        aboutEn:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam blanditiis, dolore quas mollitia eum asperiores saepe! Aperiam dolor distinctio fugit, ratione neque autem necessitatibus praesentium illum, corporis atque corrupti dolore.",
         aboutAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል ...",
         thumbnail: "https://img.youtube.com/vi/tak7aLltLuU/0.jpg",
-        video: "https://www.youtube.com/embed/tak7aLltLuU?si=pF6IhoZmLLjZdFjF&amp;controls=0",
+        video:
+          "https://www.youtube.com/embed/tak7aLltLuU?si=pF6IhoZmLLjZdFjF&amp;controls=0",
         price: 100,
         currency: "ETB",
         level: "beginner",
@@ -84,15 +91,18 @@ import prisma from "@/lib/db";
           createMany: {
             data: [
               {
-                requirementEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit",
+                requirementEn:
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit",
                 requirementAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
               },
               {
-                requirementEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit",
+                requirementEn:
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit",
                 requirementAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
               },
               {
-                requirementEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit",
+                requirementEn:
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit",
                 requirementAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
               },
             ],
@@ -102,15 +112,18 @@ import prisma from "@/lib/db";
           createMany: {
             data: [
               {
-                courseForEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit",
+                courseForEn:
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit",
                 courseForAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
               },
               {
-                courseForEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit",
+                courseForEn:
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit",
                 courseForAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
               },
               {
-                courseForEn: "Lorem ipsum dolor sit amet consectetur adipisicing elit",
+                courseForEn:
+                  "Lorem ipsum dolor sit amet consectetur adipisicing elit",
                 courseForAm: "(ቃኢዳ) ክፍል አንድ የአረብኛ ፊደላት || ዳረል ኩብራ የቁርዐን ማዕከል",
               },
             ],
@@ -164,18 +177,16 @@ import prisma from "@/lib/db";
         activityId: activity.id,
         question: "What is 2 + 2?",
         questionOptions: {
-          create: [
-            { option: "3" },
-            { option: "4" },
-            { option: "5" },
-          ],
+          create: [{ option: "3" }, { option: "4" }, { option: "5" }],
         },
       },
       include: { questionOptions: true },
     });
 
     // Create correct answer (option '4')
-    const correctOption = question.questionOptions.find(opt => opt.option === "4");
+    const correctOption = question.questionOptions.find(
+      (opt) => opt.option === "4"
+    );
     await prisma.questionAnswer.create({
       data: {
         questionId: question.id,
@@ -184,7 +195,7 @@ import prisma from "@/lib/db";
     });
 
     // Use the manager as the student for quiz/progress
-    const studentQuiz = await prisma.studentQuiz.create({
+    await prisma.studentQuiz.create({
       data: {
         userId: manager.id,
         questionId: question.id,

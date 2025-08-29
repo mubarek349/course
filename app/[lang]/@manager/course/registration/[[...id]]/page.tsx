@@ -27,10 +27,13 @@ import {
 } from "@heroui/react";
 import { getInstructorsList } from "@/actions/manager/instuctor";
 import { CInput, CSelect, CSelectItem, CTextarea } from "@/components/heroui";
+import Player from "@/components/stream/Player";
 // import { getInstructorsList } from "@/lib/data/instructor";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id?: string[] }>(),
+  const params = useParams<{ lang: string; id: string }>();
+  const lang = params?.lang || "en";
+  const id = params?.id ?? "",
     pathname = usePathname(),
     router = useRouter(),
     { handleSubmit, register, setValue, formState, watch, getValues } =
@@ -69,7 +72,7 @@ export default function Page() {
         if (status) {
           router.push(
             `/${pathname
-              .split("/")
+              ?.split("/")
               .slice(1)
               .reverse()
               .slice(1)
@@ -133,15 +136,16 @@ export default function Page() {
                 />
               }
               {watch("video") ? (
-                <iframe
-                  src={watch("video")}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                  className={cn("w-full aspect-video rounded-xl ")}
-                />
+                // <iframe
+                //   src={watch("video")}
+                //   title="YouTube video player"
+                //   frameBorder="0"
+                //   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                //   referrerPolicy="strict-origin-when-cross-origin"
+                //   allowFullScreen
+                //   className={cn("w-full aspect-video rounded-xl ")}
+                // />
+                <Player src={watch("video")} title="Melaverse video player" />
               ) : (
                 <div
                   className={cn(

@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    serverComponentsExternalPackages: ["@prisma/client"],
+  },
+  api: {
+    bodyParser: {
+      sizeLimit: "100mb",
+    },
   },
   async redirects() {
     return [

@@ -1,17 +1,54 @@
 import { useParams } from "next/navigation";
+import Player from "./stream/Player";
+import { useEffect, useState } from "react";
+interface Video {
+  id: string;
+  titleEn: string;
+  titleAm: string;
+  video: string;
+}
 
+// interface VideoListProps {
+//   refresh: boolean;
+// }
 export default function CourseTopOverview({
   title,
   by,
   thumbnail,
-  video,
-}: {
+}: //  video,
+
+{
   title: string;
   by: string;
   thumbnail: string;
-  video: string;
+  // video: string;
 }) {
-  const { lang } = useParams<{ lang: string }>();
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
+  // const [videos, setVideos] = useState<Video[]>([]);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchVideos = async () => {
+    try {
+      const response = await fetch("/api/videos");
+      const data = await response.json();
+      // setVideos(data.videos || []);
+      setSelectedVideo(data.videos[0]);
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center p-4">Loading videos...</div>;
+  }
 
   return (
     <div className="flex gap-y-4 max-md:flex-col-reverse flex-col ">
@@ -36,7 +73,8 @@ export default function CourseTopOverview({
         </div>
       </div>
       <div className="rounded-md md:rounded-xl overflow-hidden">
-        <iframe
+        {selectedVideo && <Player src={selectedVideo?.video} type="local" />}
+        {/* <iframe
           src={video}
           title="YouTube video player"
           // frameBorder="0"
@@ -45,7 +83,7 @@ export default function CourseTopOverview({
           referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
           className="w-full aspect-video"
-        ></iframe>
+        ></iframe> */}
       </div>
     </div>
   );
