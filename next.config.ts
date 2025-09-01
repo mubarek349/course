@@ -2,31 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    optimizePackageImports: ["lucide-react"],
-    serverComponentsExternalPackages: ["@prisma/client"],
-  },
   api: {
     bodyParser: {
-      sizeLimit: "100mb",
+      sizeLimit: "100mb", // Increase as needed, e.g. "20mb"
     },
   },
-  async redirects() {
-    return [
-      // Basic redirect
-      {
-        source: "/",
-        destination: "/en",
-        permanent: true,
-      },
-      // Wildcard path matching
-      // {
-      //   source: "/blog/:slug",
-      //   destination: "/news/:slug",
-      //   permanent: true,
-      // },
-    ];
-  },
 };
+
+// Note: This only affects /pages/api routes, not /app/api
 
 export default nextConfig;

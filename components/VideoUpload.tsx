@@ -1,92 +1,96 @@
 "use client";
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 
-interface VideoUploadProps {
-  onUploadSuccess?: () => void;
+const CHUNK_SIZE = 512 * 1024; // 512KB
+
+function getTimestampUUID(ext: string) {
+  return `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
 }
 
-export default function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
-  const [uploading, setUploading] = useState(false);
-  const [titleEn, setTitleEn] = useState("");
-  const [titleAm, setTitleAm] = useState("");
+export default function VideoUpload() {
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentChunk, setCurrentChunk] = useState(0);
+  const [totalChunks, setTotalChunks] = useState(0);
+  const [uuidFilename, setUuidFilename] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
-    if (!titleEn || !titleAm) {
-      alert("Please fill in both titles");
-      return;
-    }
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    setUploading(true);
-    try {
-      const response = await fetch("/api/upload-video", {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+
+    const ext = file.name.split(".").pop() || "mp4";
+    const uuidName = getTimestampUUID(ext);
+    setUuidFilename(uuidName);
+
+    setIsUploading(true);
+    const chunkSize = CHUNK_SIZE;
+    const total = Math.ceil(file.size / chunkSize);
+    setTotalChunks(total);
+
+    for (let i = 0; i < total; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(file.size, start + chunkSize);
+      const chunk = file.slice(start, end);
+
+      const formData = new FormData();
+      formData.append("chunk", chunk);
+      formData.append("filename", uuidName);
+      formData.append("chunkIndex", i.toString());
+      formData.append("totalChunks", total.toString());
+
+      await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
-      if (response.ok) {
-        alert("Video uploaded successfully!");
-        setTitleEn("");
-        setTitleAm("");
-        (e.target as HTMLFormElement).reset();
-        onUploadSuccess?.();
-      } else {
-        alert("Upload failed");
-      }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      alert("Upload error");
-    } finally {
-      setUploading(false);
+      setUploadProgress(Math.round(((i + 1) / total) * 100));
+      setCurrentChunk(i + 1);
     }
+
+    setIsUploading(false);
+    alert("Upload complete!");
+    setCurrentChunk(0);
+    setTotalChunks(0);
+    setSelectedFile(null);
   };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Upload Video</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Title (English)</label>
-          <input
-            type="text"
-            name="titleEn"
-            value={titleEn}
-            onChange={(e) => setTitleEn(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
+      <h2 className="text-xl font-bold mb-4">Video Upload</h2>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        onChange={handleFileChange}
+        disabled={isUploading}
+        className="w-full p-2 border rounded mb-4"
+      />
+      {selectedFile && (
+        <div className="mb-2 text-sm text-gray-700">
+          <strong>Selected file:</strong> {selectedFile.name}
+        </div>
+      )}
+      {uuidFilename && (
+        <div className="mb-2 text-xs text-gray-500">
+          <strong>Upload filename:</strong> {uuidFilename}
+        </div>
+      )}
+      {isUploading && (
+        <div className="mb-2">
+          <p className="text-sm text-blue-600 font-medium">
+            Uploading: {uploadProgress}% ({currentChunk}/{totalChunks} chunks)
+          </p>
+          <progress
+            value={uploadProgress}
+            max={100}
+            className="w-full h-2 rounded bg-gray-200"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Title (Amharic)</label>
-          <input
-            type="text"
-            name="titleAm"
-            value={titleAm}
-            onChange={(e) => setTitleAm(e.target.value)}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Video File</label>
-          <input
-            type="file"
-            name="video"
-            accept="video/*"
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={uploading}
-          className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "Upload Video"}
-        </button>
-      </form>
+      )}
     </div>
   );
 }
