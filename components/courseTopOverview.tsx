@@ -1,6 +1,9 @@
 import { useParams } from "next/navigation";
 import Player from "./stream/Player";
 
+// interface VideoListProps {
+//   refresh: boolean;
+// }
 export default function CourseTopOverview({
   title,
   by,
