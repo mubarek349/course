@@ -25,7 +25,9 @@ import CourseTopOverview from "@/components/courseTopOverview";
 import { Button, useDisclosure } from "@heroui/react";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id: string }>(),
+  const params = useParams<{ lang: string; id: string }>();
+  const lang = params?.lang || "en";
+  const id = params?.id ?? "",
     searchParams = useSearchParams(),
     { data, loading } = useData({ func: getCourseForCustomer, args: [id] }),
     { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -105,7 +107,7 @@ export default function Page() {
             isOpen={isOpen}
             id={data.id}
             onOpenChange={onOpenChange}
-            affiliateCode={searchParams.get("code") || ""}
+            affiliateCode={searchParams?.get("code") || ""}
             title={lang == "en" ? data.titleEn : data.titleAm}
             price={data.price}
           />

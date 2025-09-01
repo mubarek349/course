@@ -1,7 +1,7 @@
-import { Plus, Trash } from "lucide-react";
+import { Plus, Trash, BookOpen, List } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Button, cn } from "@heroui/react";
+import { Button, cn, Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import { CInput } from "@/components/heroui";
 
 type TInput = {
@@ -28,57 +28,63 @@ export default function Activity({
   removeSubActivity: (activityIndex: number, subActivityIndex: number) => void;
   errorMessage: string;
 }) {
-  const { lang } = useParams<{ lang: string }>();
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
-    <div className={cn("space-y-2 ", errorMessage ? "bg-danger" : "")}>
-      <Add
-        add={addActivity}
-        label={lang == "en" ? "Activity" : "እንቅስቃሴ"}
-        placeHolderEn={
-          lang == "en"
-            ? "type here the activity in english"
-            : "እንቅስቃሴ በእንግሊዝኛ እዚህ ይፅፃፉ"
-        }
-        placeHolderAm={
-          lang == "en"
-            ? "type here the activity in amharic"
-            : "እንቅስቃሴ በአማርኛ  እዚህ ይፅፃፉ"
-        }
-      />
-      <div className="space-y-2 ">
-        {list.map(({ subActivity, ...value }, index) => (
-          <div
-            key={index + ""}
-            className="p-1 border border-primary-300 rounded-xl"
-          >
-            <Item value={value} remove={() => removeActivity(index)} />
-            <div className="pl-4 space-y-2">
-              <Add
-                add={(input) => addSubActivity(index, input)}
-                label={lang == "en" ? "Sub Activity" : "ንዑስ እንቅስቃሴ"}
-                placeHolderEn={
-                  lang == "en"
-                    ? "type here the sub activity in english"
-                    : "ንዑስ እንቅስቃሴ በእንግሊዝኛ እዚህ ይፅፃፉ"
-                }
-                placeHolderAm={
-                  lang == "en"
-                    ? "type here the sub activity in amharic"
-                    : "ንዑስ እንቅስቃሴ በአማርኛ  እዚህ ይፅፃፉ"
-                }
-              />
-              {subActivity.map((v, i) => (
-                <Item
-                  key={i + ""}
-                  value={v}
-                  remove={() => removeSubActivity(index, i)}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Card className={cn("w-full", errorMessage && "border-danger-300")}>
+      <CardHeader className="flex gap-3">
+        <BookOpen className="size-6 text-primary" />
+        <div className="flex flex-col">
+          <p className="text-lg font-semibold">{lang === "en" ? "Course Activities" : "የኮርስ እንቅስቃሴዎች"}</p>
+          <p className="text-sm text-default-500">{lang === "en" ? "Add modules and lessons" : "ሞጁሎች እና ትምህርቶች ይጨምሩ"}</p>
+        </div>
+      </CardHeader>
+      <Divider />
+      <CardBody className="space-y-6">
+        <Add
+          add={addActivity}
+          label={lang === "en" ? "Add New Module" : "አዲስ ሞጁል ይጨምሩ"}
+          placeHolderEn={lang === "en" ? "Module title in English" : "የሞጁል ርዕስ በእንግሊዝኛ"}
+          placeHolderAm={lang === "en" ? "Module title in Amharic" : "የሞጁል ርዕስ በአማርኛ"}
+        />
+        
+        <div className="space-y-4">
+          {list.map(({ subActivity, ...value }, index) => (
+            <Card key={index} className="border border-primary-200 shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2 w-full">
+                  <List className="size-5 text-primary" />
+                  <span className="text-sm font-medium text-primary">
+                    {lang === "en" ? "Module" : "ሞጁል"} {index + 1}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardBody className="pt-0 space-y-4">
+                <Item value={value} remove={() => removeActivity(index)} />
+                
+                <div className="ml-4 pl-4 border-l-2 border-primary-200 space-y-3">
+                  <Add
+                    add={(input) => addSubActivity(index, input)}
+                    label={lang === "en" ? "Add Lesson" : "ትምህርት ይጨምሩ"}
+                    placeHolderEn={lang === "en" ? "Lesson title in English" : "የትምህርት ርዕስ በእንግሊዝኛ"}
+                    placeHolderAm={lang === "en" ? "Lesson title in Amharic" : "የትምህርት ርዕስ በአማርኛ"}
+                    isSubItem
+                  />
+                  {subActivity.map((v, i) => (
+                    <Item
+                      key={i}
+                      value={v}
+                      remove={() => removeSubActivity(index, i)}
+                      isSubItem
+                    />
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      </CardBody>
+    </Card>
   );
 }
 
@@ -87,78 +93,104 @@ function Add({
   label,
   placeHolderEn,
   placeHolderAm,
+  isSubItem = false,
 }: {
   add: (payload: TInput) => void;
   label?: string;
   placeHolderAm?: string;
   placeHolderEn?: string;
+  isSubItem?: boolean;
 }) {
   const [input, setInput] = useState<TInput>({ am: "", en: "" });
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   return (
-    <div className="grid">
-      <p className="">{label}</p>
-      <div className="grid md:grid-cols-[1fr_auto]">
-        <div className="grid divide-y divide-primary-200">
-          <CInput
-            color="primary"
-            placeholder={placeHolderAm}
-            value={input.am}
-            onChange={({ target }) =>
-              setInput((prev) => ({
-                ...prev,
-                am: target.value,
-              }))
-            }
-            classNames={{
-              inputWrapper:
-                "rounded-bl-none max-md:rounded-br-none md:rounded-r-none",
-            }}
-          />
-          <CInput
-            color="primary"
-            placeholder={placeHolderEn}
-            value={input.en}
-            onChange={({ target }) =>
-              setInput((prev) => ({
-                ...prev,
-                en: target.value,
-              }))
-            }
-            classNames={{
-              inputWrapper:
-                "rounded-r-none rounded-tl-none max-md:rounded-bl-none",
-            }}
-          />
-        </div>
+    <div className={cn("space-y-3", isSubItem && "bg-gray-50 p-3 rounded-lg")}>
+      {!isExpanded ? (
         <Button
-          onPress={() => {
-            add(input);
-            setInput({ am: "", en: "" });
-          }}
-          color="success"
-          className="md:h-full md:aspect-square max-md:rounded-t-none md:rounded-l-none"
+          variant="bordered"
+          color="primary"
+          onPress={() => setIsExpanded(true)}
+          className="w-full justify-start"
+          startContent={<Plus className="size-4" />}
         >
-          <Plus className="size-4 " />
+          {label}
         </Button>
-      </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-sm">{label}</p>
+            <Button
+              size="sm"
+              variant="light"
+              onPress={() => {
+                setIsExpanded(false);
+                setInput({ am: "", en: "" });
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+          
+          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+            <CInput
+              size="sm"
+              placeholder={placeHolderAm}
+              value={input.am}
+              onChange={({ target }) => setInput(prev => ({ ...prev, am: target.value }))}
+              label="Amharic"
+            />
+            <CInput
+              size="sm"
+              placeholder={placeHolderEn}
+              value={input.en}
+              onChange={({ target }) => setInput(prev => ({ ...prev, en: target.value }))}
+              label="English"
+            />
+            <Button
+              color="success"
+              onPress={() => {
+                if (input.am && input.en) {
+                  add(input);
+                  setInput({ am: "", en: "" });
+                  setIsExpanded(false);
+                }
+              }}
+              isDisabled={!input.am || !input.en}
+              className="self-end"
+            >
+              <Plus className="size-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function Item({ value, remove }: { value: object; remove: () => void }) {
+function Item({ value, remove, isSubItem = false }: { value: object; remove: () => void; isSubItem?: boolean }) {
   return (
-    <div className="bg-primary/20 rounded-xl grid md:grid-cols-[1fr_auto]">
-      <div className="md:px-2 grid divide-y divide-primary/50">
+    <div className={cn(
+      "bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20",
+      "flex items-center justify-between p-3",
+      isSubItem && "bg-gradient-to-r from-secondary/10 to-secondary/5 border-secondary/20"
+    )}>
+      <div className="flex-1 space-y-1">
         {Object.values(value).map((v, i) => (
-          <p key={i + ""} className="p-2 pl-5 ">
+          <p key={i} className={cn(
+            "text-sm",
+            i === 0 ? "font-medium text-gray-800" : "text-gray-600"
+          )}>
             {v}
           </p>
         ))}
       </div>
       <Button
-        onPress={remove}
+        size="sm"
+        variant="light"
         color="danger"
-        className="md:h-full md:aspect-square max-md:rounded-t-none md:rounded-l-none"
+        onPress={remove}
+        isIconOnly
       >
         <Trash className="size-4" />
       </Button>

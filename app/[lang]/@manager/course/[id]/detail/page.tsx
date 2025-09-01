@@ -22,7 +22,9 @@ import CourseActivity from "@/components/courseActivity";
 import CourseTopOverview from "@/components/courseTopOverview";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id: string }>(),
+  const params = useParams<{ lang: string; id: string }>();
+  const lang = params?.lang || "en";
+  const id = params?.id ?? "",
     { data, loading } = useData({ func: getCourse, args: [id] });
 
   return loading ? (

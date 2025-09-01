@@ -59,29 +59,31 @@ enum TransferStatus {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  role        Role
-  username    String?      @unique
-  phoneNumber String       @unique
-  password    String       @default("")
-  firstName   String       @default("")
-  fatherName  String       @default("")
-  lastName    String       @default("")
-  country     String       @default("")
-  region      String       @default("")
-  city        String       @default("")
-  idCard      String?      @db.LongText
-  gender      Gender?
-  age         Int?
-  chatId      BigInt?      @unique
-  lang        Lang         @default(am)
-  code        String       @unique @default(uuid())
-  status      UserStatus   @default(active)
-  order       Order[]
-  IncomeRate  IncomeRate[]
-  Transfer    Transfer[]
-  courses     Course[]
-  permission  Permission[]
+  id              String            @id @default(uuid())
+  role            Role
+  username        String?           @unique
+  phoneNumber     String            @unique
+  password        String            @default("")
+  firstName       String            @default("")
+  fatherName      String            @default("")
+  lastName        String            @default("")
+  country         String            @default("")
+  region          String            @default("")
+  city            String            @default("")
+  idCard          String?           @db.LongText
+  gender          Gender?
+  age             Int?
+  chatId          BigInt?           @unique
+  lang            Lang              @default(am)
+  code            String            @unique @default(uuid())
+  status          UserStatus        @default(active)
+  order           Order[]
+  IncomeRate      IncomeRate[]
+  Transfer        Transfer[]
+  courses         Course[]
+  permission      Permission[]
+  studentProgress studentProgress[]
+  studentQuiz     studentQuiz[]
 }
 
 model Permission {
@@ -146,15 +148,98 @@ model Activity {
   titleAm     String
   course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId    String
+  order       Int
   subActivity SubActivity[]
+  question    question[]
 }
 
 model SubActivity {
-  id         String   @id @default(uuid())
-  titleEn    String
-  titleAm    String
-  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  activityId String
+  id              String            @id @default(uuid())
+  titleEn         String
+  titleAm         String
+  activity        Activity          @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId      String
+  order           Int
+  video           String
+  studentProgress studentProgress[]
+}
+
+model question {
+  id              String           @id @default(cuid())
+  activity        Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId      String
+  question        String
+  questionOptions questionOption[]
+  questionAnswer  questionAnswer[]
+  studentQuiz     studentQuiz[]
+
+  @@index([activityId])
+}
+
+model questionOption {
+  id                 String              @id @default(cuid())
+  question           question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId         String
+  option             String
+  questionAnswer     questionAnswer[]
+  studentQuizAnswers studentQuizAnswer[]
+
+  @@index([questionId])
+}
+
+model questionAnswer {
+  id         String         @id @default(cuid())
+  question   question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  answer     questionOption @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  answerId   String
+
+  @@index([answerId])
+  @@index([questionId])
+}
+
+model studentQuiz {
+  id                 String              @id @default(cuid())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String
+  question           question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId         String
+  takenAt            DateTime            @default(now())
+  studentQuizAnswers studentQuizAnswer[]
+
+  @@unique([userId, questionId])
+  @@index([questionId])
+  @@index([userId])
+}
+
+model studentQuizAnswer {
+  id               String         @id @default(cuid())
+  studentQuiz      studentQuiz    @relation(fields: [studentQuizId], references: [id], onDelete: Cascade)
+  studentQuizId    String
+  selectedOption   questionOption @relation(fields: [selectedOptionId], references: [id], onDelete: Cascade)
+  selectedOptionId String
+
+  @@unique([studentQuizId, selectedOptionId])
+  @@index([selectedOptionId])
+  @@index([studentQuizId])
+}
+
+model studentProgress {
+  id            String      @id @default(cuid())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  subActivity   SubActivity @relation(fields: [subActivityId], references: [id], onDelete: Cascade)
+  subActivityId String
+  isStarted     Boolean     @default(true)
+  isCompleted   Boolean     @default(false)
+  completedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, subActivityId])
+  @@index([subActivityId])
+  @@index([userId])
 }
 
 model Channel {

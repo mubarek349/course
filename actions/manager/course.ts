@@ -392,8 +392,10 @@ export async function getCourse(id: string) {
             titleEn: true,
             titleAm: true,
             subActivity: true,
+            question:true,
           },
         },
+        
         instructor: {
           select: { firstName: true, fatherName: true, lastName: true },
         },

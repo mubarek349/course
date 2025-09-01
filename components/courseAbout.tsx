@@ -5,8 +5,9 @@ import { useParams } from "next/navigation";
 import { Button } from "@heroui/react";
 
 export default function CourseAbout({ data }: { data: string }) {
-  const { lang } = useParams<{ lang: string }>(),
-    [more, setMore] = useState(false);
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
+  const [more, setMore] = useState(false);
 
   return (
     <div className="">

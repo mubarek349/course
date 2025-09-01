@@ -94,9 +94,16 @@ export const courseSchema = z.object({
           titleAm: z
             .string({ message: "" })
             .nonempty("sub activity title is required"),
+          video: z.string({ message: "" }).optional(),
         })
       ),
-      // .nonempty("sub activity is required"),
+      questions: z.array(
+        z.object({
+          question: z.string({ message: "" }).nonempty("question is required"),
+          options: z.array(z.string()).min(2, "at least 2 options required"),
+          answers: z.array(z.string()).min(1, "at least 1 answer required"),
+        })
+      ).optional(),
     })
   ),
   // .nonempty("activity is required"),

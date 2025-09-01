@@ -8,11 +8,11 @@ export default function CourseActivity({
   data: {
     titleEn: string;
     titleAm: string;
-    subActivity: { titleEn: string; titleAm: string }[];
+    subActivity: { id: string; titleEn: string; titleAm: string }[];
   }[];
 }) {
-  const { lang } = useParams<{ lang: string }>();
-
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
     <div className="">
       <p className="pb-2 md:text-2xl font-extrabold ">
@@ -47,6 +47,7 @@ export default function CourseActivity({
                 </div>
               ))}
             </div>
+            <div className="flex gap-2 max-md:flex-col-reverse md:justify-end"></div>
           </AccordionItem>
         ))}
       </Accordion>

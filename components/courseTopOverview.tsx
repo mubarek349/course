@@ -1,4 +1,5 @@
 import { useParams } from "next/navigation";
+import Player from "./stream/Player";
 
 export default function CourseTopOverview({
   title,
@@ -11,7 +12,8 @@ export default function CourseTopOverview({
   thumbnail: string;
   video: string;
 }) {
-  const { lang } = useParams<{ lang: string }>();
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
 
   return (
     <div className="flex gap-y-4 max-md:flex-col-reverse flex-col ">
@@ -36,16 +38,7 @@ export default function CourseTopOverview({
         </div>
       </div>
       <div className="rounded-md md:rounded-xl overflow-hidden">
-        <iframe
-          src={video}
-          title="YouTube video player"
-          // frameBorder="0"
-          rel="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; "
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-          className="w-full aspect-video"
-        ></iframe>
+        {video && <Player src={video} type="local" />}
       </div>
     </div>
   );
