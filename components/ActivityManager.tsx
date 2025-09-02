@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Button, cn, Accordion, AccordionItem } from "@heroui/react";
 import { CInput, CTextarea } from "./heroui";
+// import CProgress from the correct module if available
+// import { CProgress } from "@heroui/react"; // Uncomment if CProgress is exported from @heroui/react
 import VideoUploadButton from "./VideoUploadButton";
 
 type TInput = {
@@ -70,6 +72,19 @@ export default function ActivityManager({
     subActivityIndex: number;
   } | null>(null);
 
+  // Add state for chunked upload progress
+  const [videoUploadProgress, setVideoUploadProgress] = useState<{
+    [key: string]: {
+      percent: number;
+      currentChunk: number;
+      totalChunks: number;
+      filename: string | null;
+    };
+  }>({});
+
+  const CHUNK_SIZE = 512 * 1024; // 512KB
+
+  // Chunked upload logic for sub-activity video
   const handleVideoUpload = async (
     activityIndex: number,
     subActivityIndex: number,
@@ -77,30 +92,68 @@ export default function ActivityManager({
   ) => {
     setUploadingVideo({ activityIndex, subActivityIndex });
 
+    const ext = file.name.split(".").pop() || "mp4";
+    const uuidName = `${Date.now()}-${Math.floor(
+      Math.random() * 100000
+    )}.${ext}`;
+    const key = `${activityIndex}-${subActivityIndex}`;
+    const chunkSize = CHUNK_SIZE;
+    const total = Math.ceil(file.size / chunkSize);
+
+    setVideoUploadProgress((prev) => ({
+      ...prev,
+      [key]: {
+        percent: 0,
+        currentChunk: 0,
+        totalChunks: total,
+        filename: uuidName,
+      },
+    }));
+
     try {
-      const formData = new FormData();
-      formData.append("video", file);
+      for (let i = 0; i < total; i++) {
+        const start = i * chunkSize;
+        const end = Math.min(file.size, start + chunkSize);
+        const chunk = file.slice(start, end);
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+        const formData = new FormData();
+        formData.append("chunk", chunk);
+        formData.append("filename", uuidName);
+        formData.append("chunkIndex", i.toString());
+        formData.append("totalChunks", total.toString());
 
-      if (response.ok) {
-        const result = await response.json();
-        updateSubActivityVideo(
-          activityIndex,
-          subActivityIndex,
-          `/api/videos/${result.filename}`
-        );
-      } else {
-        alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
+        await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        setVideoUploadProgress((prev) => ({
+          ...prev,
+          [key]: {
+            percent: Math.round(((i + 1) / total) * 100),
+            currentChunk: i + 1,
+            totalChunks: total,
+            filename: uuidName,
+          },
+        }));
       }
+
+      updateSubActivityVideo(
+        activityIndex,
+        subActivityIndex,
+        `/api/videos/${uuidName}`
+      );
+      alert(lang === "en" ? "Upload complete!" : "ስቀል ተጠናቋል!");
     } catch (error) {
       console.error("Upload error:", error);
       alert(lang === "en" ? "Upload error" : "የመስቀል ስህተት");
     } finally {
       setUploadingVideo(null);
+      setVideoUploadProgress((prev) => {
+        const updated = { ...prev };
+        delete updated[key];
+        return updated;
+      });
     }
   };
 
@@ -278,18 +331,74 @@ export default function ActivityManager({
                           </Button>
                         </div>
                       ) : (
-                        <VideoUploadButton
-                          lang={lang}
-                          selectedVideo={null}
-                          onVideoSelect={(file) =>
-                            handleVideoUpload(activityIndex, subIndex, file)
-                          }
-                          onVideoRemove={() => {}}
-                          disabled={
-                            uploadingVideo?.activityIndex === activityIndex &&
-                            uploadingVideo?.subActivityIndex === subIndex
-                          }
-                        />
+                        <div>
+                          <VideoUploadButton
+                            lang={lang}
+                            selectedVideo={null}
+                            onVideoSelect={(file) =>
+                              // Only allow upload if not already uploading for this sub-activity
+                              !(
+                                uploadingVideo?.activityIndex ===
+                                  activityIndex &&
+                                uploadingVideo?.subActivityIndex === subIndex
+                              ) &&
+                              handleVideoUpload(activityIndex, subIndex, file)
+                            }
+                            onVideoRemove={() => {}}
+                            disabled={
+                              uploadingVideo?.activityIndex === activityIndex &&
+                              uploadingVideo?.subActivityIndex === subIndex
+                            }
+                          />
+                          {/* Show chunked upload progress for this sub-activity */}
+                          {uploadingVideo?.activityIndex === activityIndex &&
+                            uploadingVideo?.subActivityIndex === subIndex &&
+                            videoUploadProgress[
+                              `${activityIndex}-${subIndex}`
+                            ] && (
+                              <div className="mt-2">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs text-primary font-medium">
+                                    {lang === "en"
+                                      ? "Uploading"
+                                      : "ስቀል በሂደት ላይ"}
+                                    :{" "}
+                                    {
+                                      videoUploadProgress[
+                                        `${activityIndex}-${subIndex}`
+                                      ].percent
+                                    }
+                                    %
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {
+                                      videoUploadProgress[
+                                        `${activityIndex}-${subIndex}`
+                                      ].currentChunk
+                                    }
+                                    /
+                                    {
+                                      videoUploadProgress[
+                                        `${activityIndex}-${subIndex}`
+                                      ].totalChunks
+                                    }{" "}
+                                    {lang === "en" ? "chunks" : "ቀለቶች"}
+                                  </span>
+                                </div>
+                                {/* Use a fallback if CProgress is not available */}
+                                {/* <CProgress ... /> */}
+                                <progress
+                                  value={
+                                    videoUploadProgress[
+                                      `${activityIndex}-${subIndex}`
+                                    ].percent
+                                  }
+                                  max={100}
+                                  className="w-full h-2 rounded bg-gray-200"
+                                />
+                              </div>
+                            )}
+                        </div>
                       )}
                     </div>
                   </div>
