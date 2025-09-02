@@ -133,7 +133,7 @@ export default function Page() {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await response.json(); 
         setValue("video", `/api/videos/${result.filename}`);
         setValue("thumbnail", "/darulkubra.png"); // Set default thumbnail
       } else {
