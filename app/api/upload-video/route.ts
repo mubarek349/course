@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
@@ -28,7 +29,6 @@ function getTimestampUUID(ext: string) {
 }
 
 export async function POST(req: NextRequest) {
-  // @ts-ignore
   const nodeReq = req;
   const { fields, files } = await parseForm(nodeReq);
   let { filename, chunkIndex, totalChunks } = fields;

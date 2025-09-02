@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import path from "path";
@@ -14,7 +15,11 @@ export const config = {
 };
 function parseForm(req: NextApiRequest): Promise<{ fields: any; files: any }> {
   return new Promise((resolve, reject) => {
-    const form = formidable({ multiples: false });
+    const form = formidable({ 
+      multiples: false,
+      maxTotalFileSize: 2000 * 1024 * 1024, // 2GB total limit
+      maxFileSize: 2000 * 1024 * 1024 // 2GB per file limit
+    });
     form.parse(req, (err: any, fields: any, files: any) => {
       if (err) reject(err);
       else resolve({ fields, files });

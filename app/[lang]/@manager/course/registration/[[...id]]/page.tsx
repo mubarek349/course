@@ -77,13 +77,38 @@ export default function Page() {
           affiliateRate: 0,
           channelId: "",
         },
-      }),
-    { action } = useAction(courseRegistration, undefined, {
-      // loading: lang == "en" ? "" : "",
-      // success: lang == "en" ? "" : "",
-      // error: lang == "en" ? "" : "",
-      onSuccess({ status }) {
-        if (status) {
+      });
+
+  const isEditing = id && id !== "unknown";
+
+  const { action } = useAction(courseRegistration, undefined, {
+    loading:
+      lang === "en"
+        ? isEditing
+          ? "Updating course..."
+          : "Creating course..."
+        : isEditing
+        ? "ኮርስ በማዘመን ላይ..."
+        : "ኮርስ በመፍጠር ላይ...",
+    success:
+      lang === "en"
+        ? isEditing
+          ? "Course updated successfully!"
+          : "Course created successfully!"
+        : isEditing
+        ? "ኮርስ በተሳካ ሁኔታ ተዘምኗል!"
+        : "ኮርስ በተሳካ ሁኔታ ተፈጠረ!",
+    error:
+      lang === "en"
+        ? isEditing
+          ? "Failed to update course. Please try again."
+          : "Failed to create course. Please try again."
+        : isEditing
+        ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+        : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+    onSuccess({ status }) {
+      if (status) {
+        setTimeout(() => {
           router.push(
             `/${pathname
               ?.split("/")
@@ -93,10 +118,12 @@ export default function Page() {
               .reverse()
               .join("/")}`
           );
-        }
-      },
-    }),
-    { data: channels } = useData({
+        }, 1500);
+      }
+    },
+  });
+
+  const { data: channels } = useData({
       func: getChannels,
       args: [],
     }),
@@ -108,15 +135,31 @@ export default function Page() {
   useData({
     func: getCourseForManager,
     args: [id ? (typeof id === "object" ? id[0] : id) : "unknown"],
-    onSuccess({ instructorId, ...data }) {
-      getEntries(data).forEach(([name, value]) => {
-        if (value) {
+    onSuccess(data) {
+      if (data) {
+        // Set the course ID for updates
+        setValue("id", data.id);
+
+        // Set all other fields
+        getEntries(data).forEach(([name, value]) => {
+          if (value !== null && value !== undefined && name !== "id") {
+            setValue(
+              name as keyof TCourse,
+              value instanceof Prisma.Decimal ? Number(value) : value
+            );
+          }
+        });
+
+        // Ensure video field is properly set
+        if (data.video) {
           setValue(
-            name,
-            value instanceof Prisma.Decimal ? Number(value) : value
+            "video",
+            data.video.startsWith("/api/videos/")
+              ? data.video.replace("/api/videos/", "")
+              : data.video
           );
         }
-      });
+      }
     },
   });
 
@@ -128,18 +171,14 @@ export default function Page() {
       const formData = new FormData();
       formData.append("video", file);
 
-      const response = await fetch("/api/upload", {
+      const response = await fetch("/api/upload-video", {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log("result>>>>test video", result);
-
-        setValue("video", `${result.filename}`);
-        setVideo(result.filename); // Update local state as well
-        // setValue("video", `1756804626377-4117.mp4`);
+        setValue("video", result.filename);
         setValue("thumbnail", "/darulkubra.png"); // Set default thumbnail
       } else {
         alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
@@ -191,8 +230,6 @@ export default function Page() {
   };
 
   // console.log(formState.errors);
-
-  const isEditing = id && id !== "unknown";
   const formProgress = [
     {
       label: lang === "en" ? "Basic Info" : "መሰረታዊ መረጃ",
