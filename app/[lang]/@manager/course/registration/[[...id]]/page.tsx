@@ -76,13 +76,23 @@ export default function Page() {
           affiliateRate: 0,
           channelId: "",
         },
-      }),
-    { action } = useAction(courseRegistration, undefined, {
-      // loading: lang == "en" ? "" : "",
-      // success: lang == "en" ? "" : "",
-      // error: lang == "en" ? "" : "",
-      onSuccess({ status }) {
-        if (status) {
+      });
+
+  const isEditing = id && id !== "unknown";
+  
+  const { action } = useAction(courseRegistration, undefined, {
+    loading: lang === "en" 
+      ? (isEditing ? "Updating course..." : "Creating course...") 
+      : (isEditing ? "ኮርስ በማዘመን ላይ..." : "ኮርስ በመፍጠር ላይ..."),
+    success: lang === "en" 
+      ? (isEditing ? "Course updated successfully!" : "Course created successfully!") 
+      : (isEditing ? "ኮርስ በተሳካ ሁኔታ ተዘምኗል!" : "ኮርስ በተሳካ ሁኔታ ተፈጠረ!"),
+    error: lang === "en" 
+      ? (isEditing ? "Failed to update course. Please try again." : "Failed to create course. Please try again.") 
+      : (isEditing ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።" : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።"),
+    onSuccess({ status }) {
+      if (status) {
+        setTimeout(() => {
           router.push(
             `/${pathname
               ?.split("/")
@@ -92,9 +102,12 @@ export default function Page() {
               .reverse()
               .join("/")}`
           );
-        }
-      },
-    }),
+        }, 1500);
+      }
+    },
+  });
+
+  const
     { data: channels } = useData({
       func: getChannels,
       args: [],
@@ -133,7 +146,7 @@ export default function Page() {
       });
 
       if (response.ok) {
-        const result = await response.json(); 
+        const result = await response.json();
         setValue("video", `/api/videos/${result.filename}`);
         setValue("thumbnail", "/darulkubra.png"); // Set default thumbnail
       } else {
@@ -186,8 +199,6 @@ export default function Page() {
   };
 
   // console.log(formState.errors);
-
-  const isEditing = id && id !== "unknown";
   const formProgress = [
     {
       label: lang === "en" ? "Basic Info" : "መሰረታዊ መረጃ",
