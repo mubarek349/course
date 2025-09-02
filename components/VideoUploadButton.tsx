@@ -3,6 +3,12 @@ import { useState, useRef } from "react";
 import { CButton } from "./heroui";
 import { Upload, Video, X } from "lucide-react";
 
+const CHUNK_SIZE = 512 * 1024; // 512KB
+
+function getTimestampUUID(ext: string) {
+  return `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
+}
+
 interface VideoUploadButtonProps {
   onVideoSelect: (file: File) => void;
   onVideoRemove: () => void;
@@ -20,12 +26,56 @@ export default function VideoUploadButton({
 }: VideoUploadButtonProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentChunk, setCurrentChunk] = useState(0);
+  const [totalChunks, setTotalChunks] = useState(0);
+  const [uuidFilename, setUuidFilename] = useState<string | null>(null);
+
+  const handleChunkedUpload = async (file: File) => {
+    const ext = file.name.split(".").pop() || "mp4";
+    const uuidName = getTimestampUUID(ext);
+    setUuidFilename(uuidName);
+
+    setIsUploading(true);
+    const chunkSize = CHUNK_SIZE;
+    const total = Math.ceil(file.size / chunkSize);
+    setTotalChunks(total);
+
+    for (let i = 0; i < total; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(file.size, start + chunkSize);
+      const chunk = file.slice(start, end);
+
+      const formData = new FormData();
+      formData.append("chunk", chunk);
+      formData.append("filename", uuidName);
+      formData.append("chunkIndex", i.toString());
+      formData.append("totalChunks", total.toString());
+
+      await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      setUploadProgress(Math.round(((i + 1) / total) * 100));
+      setCurrentChunk(i + 1);
+    }
+
+    setIsUploading(false);
+    alert(lang === "en" ? "Upload complete!" : "ስቀል ተጠናቋል!");
+    setCurrentChunk(0);
+    setTotalChunks(0);
+  };
 
   const handleFileSelect = (file: File) => {
     if (file.type.startsWith("video/")) {
       onVideoSelect(file);
+      handleChunkedUpload(file);
     } else {
-      alert(lang === "en" ? "Please select a video file" : "እባክዎ የቪዲዮ ፋይል ይምረጡ");
+      alert(
+        lang === "en" ? "Please select a video file" : "እባክዎ የቪዲዮ ፋይል ይምረጡ"
+      );
     }
   };
 
@@ -64,56 +114,92 @@ export default function VideoUploadButton({
           if (file) handleFileSelect(file);
         }}
         className="hidden"
-        disabled={disabled}
+        disabled={disabled || isUploading}
       />
 
       {selectedVideo ? (
-        <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/30 rounded-lg">
-          <div className="flex items-center gap-3">
-            <Video className="w-8 h-8 text-primary" />
-            <div>
-              <p className="font-medium text-sm">{selectedVideo.name}</p>
-              <p className="text-xs text-gray-500">{formatFileSize(selectedVideo.size)}</p>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/30 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Video className="w-8 h-8 text-primary" />
+              <div>
+                <p className="font-medium text-sm">{selectedVideo.name}</p>
+                <p className="text-xs text-gray-500">
+                  {formatFileSize(selectedVideo.size)}
+                </p>
+                {uuidFilename && (
+                  <p className="text-xs text-gray-400">
+                    <strong>
+                      {lang === "en" ? "Upload filename:" : "የስቀል ፋይል ስም:"}
+                    </strong>{" "}
+                    {uuidFilename}
+                  </p>
+                )}
+              </div>
             </div>
+            <CButton
+              isIconOnly
+              size="sm"
+              variant="light"
+              color="danger"
+              onClick={onVideoRemove}
+              disabled={disabled || isUploading}
+            >
+              <X className="w-4 h-4" />
+            </CButton>
           </div>
-          <CButton
-            isIconOnly
-            size="sm"
-            variant="light"
-            color="danger"
-            onClick={onVideoRemove}
-            disabled={disabled}
-          >
-            <X className="w-4 h-4" />
-          </CButton>
+          {isUploading && (
+            <div className="flex flex-col gap-2 px-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-primary font-medium">
+                  {lang === "en" ? "Uploading" : "ስቀል በሂደት ላይ"}:{" "}
+                  {uploadProgress}%
+                </span>
+                <span className="text-xs text-gray-500">
+                  {currentChunk}/{totalChunks}{" "}
+                  {lang === "en" ? "chunks" : "ቀለቶች"}
+                </span>
+              </div>
+              <progress
+                value={uploadProgress}
+                max={100}
+                className="w-full h-2 rounded bg-gray-200"
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div
           className={`
             relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
             ${isDragOver ? "border-primary bg-primary/5" : "border-primary/30"}
-            ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary hover:bg-primary/5"}
+            ${
+              disabled || isUploading
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:border-primary hover:bg-primary/5"
+            }
           `}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
-          onClick={() => !disabled && fileInputRef.current?.click()}
+          onClick={() =>
+            !disabled && !isUploading && fileInputRef.current?.click()
+          }
         >
           <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2">
             {lang === "en" ? "Upload Video" : "ቪዲዮ ይስቀሉ"}
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            {lang === "en" 
+            {lang === "en"
               ? "Drag and drop your video file here, or click to browse"
-              : "የቪዲዮ ፋይልዎን እዚህ ይጎትቱ እና ይጣሉ፣ ወይም ለማሰስ ይጫኑ"
-            }
+              : "የቪዲዮ ፋይልዎን እዚህ ይጎትቱ እና ይጣሉ፣ ወይም ለማሰስ ይጫኑ"}
           </p>
           <CButton
             color="primary"
             variant="flat"
             startContent={<Upload className="w-4 h-4" />}
-            disabled={disabled}
+            disabled={disabled || isUploading}
           >
             {lang === "en" ? "Choose File" : "ፋይል ይምረጡ"}
           </CButton>

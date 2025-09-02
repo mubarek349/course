@@ -1,99 +1,116 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
+import fs from "fs";
 import path from "path";
-import { PrismaClient } from "@prisma/client";
+import formidable from "formidable";
 
-const prisma = new PrismaClient();
+const UPLOAD_DIR = path.join(process.cwd(), "fuad");
+const COURSE_DIR = path.join(UPLOAD_DIR, "course");
 
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const file = formData.get("video") as File;
-    const titleEn = formData.get("titleEn") as string;
-    const titleAm = formData.get("titleAm") as string;
+export const config = {
+  api: {
+    bodyParser: false,
+    bodySizeLimit: "100mb",
+  },
+};
 
-    if (!file || !titleEn || !titleAm) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    const uploadsDir = path.join(process.cwd(), "file", "videos");
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
-    }
-
-    const timestamp = Date.now();
-    const extension = path.extname(file.name);
-    const filename = `${timestamp}${extension}`;
-    const filepath = path.join(uploadsDir, filename);
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
-
-    let course = await prisma.course.findFirst();
-    if (!course) {
-      let user = await prisma.user.findFirst({ where: { role: 'instructor' } });
-      if (!user) {
-        user = await prisma.user.create({
-          data: {
-            role: 'instructor',
-            phone: '0900000000',
-            firstName: 'Default',
-            fatherName: 'Instructor',
-            lastName: 'User',
-          },
-        });
-      }
-
-      course = await prisma.course.create({
-        data: {
-          titleEn: "Default Course",
-          titleAm: "ነባሪ ኮርስ",
-          aboutEn: "Default course for uploaded videos",
-          aboutAm: "ለተሰቀሉ ቪዲዮዎች ነባሪ ኮርስ",
-          thumbnail: "default.jpg",
-          video: "default.mp4",
-          price: 0,
-          level: 'beginner',
-          duration: "0:00",
-          instructorRate: 0,
-          sellerRate: 0,
-          affiliateRate: 0,
-          instructorId: user.id,
-        },
-      });
-    }
-
-    let activity = await prisma.activity.findFirst({ where: { courseId: course.id } });
-    if (!activity) {
-      activity = await prisma.activity.create({
-        data: {
-          titleEn: "Video Activities",
-          titleAm: "የቪዲዮ እንቅስቃሴዎች",
-          courseId: course.id,
-          order: 1,
-        },
-      });
-    }
-
-    const subActivity = await prisma.subActivity.create({
-      data: {
-        titleEn,
-        titleAm,
-        activityId: activity.id,
-        video: filename,
-      },
+function parseForm(req: any): Promise<{ fields: any; files: any }> {
+  return new Promise((resolve, reject) => {
+    const form = formidable({ multiples: false });
+    form.parse(req, (err: any, fields: any, files: any) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
     });
+  });
+}
 
-    return NextResponse.json({ 
-      success: true, 
-      subActivity,
-      message: "Video uploaded successfully" 
-    });
+function getTimestampUUID(ext: string) {
+  return `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
+}
 
-  } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+export async function POST(req: NextRequest) {
+  // @ts-ignore
+  const nodeReq = req;
+  const { fields, files } = await parseForm(nodeReq);
+  let { filename, chunkIndex, totalChunks } = fields;
+
+  console.log("Received file fields:", Object.keys(files));
+
+  if (Array.isArray(filename)) filename = filename[0];
+  if (Array.isArray(chunkIndex)) chunkIndex = chunkIndex[0];
+  if (Array.isArray(totalChunks)) totalChunks = totalChunks[0];
+
+  let chunkFile = files.chunk;
+  if (Array.isArray(chunkFile)) {
+    chunkFile = chunkFile[0];
   }
+
+  if (!chunkFile || !chunkFile.filepath) {
+    console.error("Chunk file missing or invalid:", chunkFile);
+    return NextResponse.json(
+      {
+        error: "Chunk file missing or invalid",
+        receivedFields: Object.keys(files),
+      },
+      { status: 400 }
+    );
+  }
+
+  let ext = "mp4";
+  if (chunkFile.originalFilename) {
+    const parts = chunkFile.originalFilename.split(".");
+    if (parts.length > 1) ext = parts.pop() as string;
+  }
+  if (!filename || filename === "") {
+    filename = getTimestampUUID(ext);
+  }
+  const chunkFolder = path.join(
+    COURSE_DIR,
+    filename.replace(/\.[^/.]+$/, "") + "_chunks"
+  );
+  if (!fs.existsSync(chunkFolder)) {
+    fs.mkdirSync(chunkFolder, { recursive: true });
+  }
+  const chunkPath = path.join(chunkFolder, `chunk_${chunkIndex}`);
+  const readStream = fs.createReadStream(chunkFile.filepath);
+  const writeStream = fs.createWriteStream(chunkPath);
+  await new Promise<void>((resolve, reject) => {
+    readStream.pipe(writeStream);
+    writeStream.on("finish", () => resolve());
+    writeStream.on("error", reject);
+    readStream.on("error", reject);
+  });
+
+  if (parseInt(chunkIndex) + 1 === parseInt(totalChunks)) {
+    const baseName = filename.replace(/\.[^/.]+$/, "");
+    const videoPath = path.join(COURSE_DIR, `${baseName}.mp4`);
+    const finalWriteStream = fs.createWriteStream(videoPath);
+    try {
+      for (let i = 0; i < parseInt(totalChunks); i++) {
+        const chunkFilePath = path.join(chunkFolder, `chunk_${i}`);
+        if (!fs.existsSync(chunkFilePath)) {
+          console.error("Missing chunk file:", chunkFilePath);
+          continue;
+        }
+        const chunk = fs.readFileSync(chunkFilePath);
+        finalWriteStream.write(chunk);
+      }
+      finalWriteStream.end();
+      await new Promise<void>((resolve, reject) => {
+        finalWriteStream.on("finish", () => resolve());
+        finalWriteStream.on("error", (err) => {
+          console.error("finalWriteStream error:", err);
+          reject(err);
+        });
+      });
+      fs.rmSync(chunkFolder, { recursive: true, force: true });
+    } catch (err) {
+      console.error("Error joining chunks:", err);
+      return NextResponse.json(
+        { error: "Error joining chunks", details: err },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ success: true, filename: `${baseName}.mp4` });
+  }
+  return NextResponse.json({ success: true, filename });
 }
