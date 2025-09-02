@@ -23,38 +23,138 @@ export async function courseRegistration(
     if (id) {
       await prisma.courseFor.deleteMany({ where: { courseId: id } });
       await prisma.requirement.deleteMany({ where: { courseId: id } });
+      // Delete questions and related data first
+      const activities = await prisma.activity.findMany({ where: { courseId: id } });
+      for (const activity of activities) {
+        await prisma.questionAnswer.deleteMany({ 
+          where: { question: { activityId: activity.id } } 
+        });
+        await prisma.questionOption.deleteMany({ 
+          where: { question: { activityId: activity.id } } 
+        });
+        await prisma.question.deleteMany({ where: { activityId: activity.id } });
+      }
       await prisma.activity.deleteMany({ where: { courseId: id } });
-      await prisma.course.update({
+      
+      const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
           ...rest,
           courseFor: { create: courseFor },
           requirement: { create: requirement },
           activity: {
-            create: activity.map(({ titleAm, titleEn, subActivity }) => ({
+            create: activity.map(({ titleAm, titleEn, subActivity }, index) => ({
               titleAm,
               titleEn,
-              subActivity: { create: subActivity },
+              order: index + 1,
+              subActivity: { 
+                create: subActivity.map((sub, subIndex) => ({
+                  ...sub,
+                  order: subIndex + 1
+                }))
+              },
             })),
           },
         },
+        include: { activity: true }
       });
+      
+      // Create questions for each activity
+      for (let i = 0; i < activity.length; i++) {
+        const { questions } = activity[i];
+        const createdActivity = updatedCourse.activity[i];
+        
+        if (questions && questions.length > 0) {
+          for (const { question, options, answers } of questions) {
+            const createdQuestion = await prisma.question.create({
+              data: {
+                question,
+                activityId: createdActivity.id,
+                questionOptions: {
+                  create: options.map((option) => ({ option }))
+                }
+              }
+            });
+            
+            // Get the created options to link answers
+            const createdOptions = await prisma.questionOption.findMany({
+              where: { questionId: createdQuestion.id }
+            });
+            
+            // Create answer links
+            for (const answer of answers) {
+              const matchingOption = createdOptions.find(opt => opt.option === answer);
+              if (matchingOption) {
+                await prisma.questionAnswer.create({
+                  data: {
+                    questionId: createdQuestion.id,
+                    answerId: matchingOption.id
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
     } else {
       const courseId = await prisma.course
         .create({ data: rest })
         .then((v) => v.id);
       if (courseId) {
-        courseFor.forEach(async (v) => {
+        for (const v of courseFor) {
           await prisma.courseFor.create({ data: { ...v, courseId } });
-        });
-        requirement.forEach(async (v) => {
+        }
+        for (const v of requirement) {
           await prisma.requirement.create({ data: { ...v, courseId } });
-        });
-        activity.forEach(async ({ subActivity, ...v }) => {
-          await prisma.activity.create({
-            data: { ...v, courseId, subActivity: { create: subActivity } },
+        }
+        for (let i = 0; i < activity.length; i++) {
+          const { subActivity, questions, ...v } = activity[i];
+          const createdActivity = await prisma.activity.create({
+            data: { 
+              ...v, 
+              courseId,
+              order: i + 1,
+              subActivity: { 
+                create: subActivity.map((sub, subIndex) => ({
+                  ...sub,
+                  order: subIndex + 1
+                }))
+              }
+            },
           });
-        });
+          
+          if (questions && questions.length > 0) {
+            for (const { question, options, answers } of questions) {
+              const createdQuestion = await prisma.question.create({
+                data: {
+                  question,
+                  activityId: createdActivity.id,
+                  questionOptions: {
+                    create: options.map((option) => ({ option }))
+                  }
+                }
+              });
+              
+              // Get the created options to link answers
+              const createdOptions = await prisma.questionOption.findMany({
+                where: { questionId: createdQuestion.id }
+              });
+              
+              // Create answer links
+              for (const answer of answers) {
+                const matchingOption = createdOptions.find(opt => opt.option === answer);
+                if (matchingOption) {
+                  await prisma.questionAnswer.create({
+                    data: {
+                      questionId: createdQuestion.id,
+                      answerId: matchingOption.id
+                    }
+                  });
+                }
+              }
+            }
+          }
+        }
       }
     }
 

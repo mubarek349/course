@@ -91,6 +91,7 @@ export async function getCourseForManager(id: string) {
       .findFirst({
         where: { id },
         select: {
+          id: true,
           titleEn: true,
           titleAm: true,
           aboutAm: true,
@@ -103,13 +104,35 @@ export async function getCourseForManager(id: string) {
           },
           courseFor: { select: { courseForEn: true, courseForAm: true } },
           activity: {
+            orderBy: { order: 'asc' },
             select: {
               titleAm: true,
               titleEn: true,
               subActivity: {
+                orderBy: { order: 'asc' },
                 select: {
                   titleEn: true,
                   titleAm: true,
+                  video: true,
+                },
+              },
+              question: {
+                select: {
+                  question: true,
+                  questionOptions: {
+                    select: {
+                      option: true,
+                    },
+                  },
+                  questionAnswer: {
+                    select: {
+                      answer: {
+                        select: {
+                          option: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -133,8 +156,17 @@ export async function getCourseForManager(id: string) {
           ? {
               ...res,
               price: Number(res.price),
+              instructorRate: Number(res.instructorRate),
               sellerRate: Number(res.sellerRate),
               affiliateRate: Number(res.affiliateRate),
+              activity: res.activity.map(activity => ({
+                ...activity,
+                questions: activity.question.map(q => ({
+                  question: q.question,
+                  options: q.questionOptions.map(opt => opt.option),
+                  answers: q.questionAnswer.map(ans => ans.answer.option),
+                })),
+              })),
             }
           : res
       );

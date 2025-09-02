@@ -42,7 +42,10 @@ export default function CourseMediaSection({
           disabled={isThumbnailUploading}
         />
         {video ? (
-          <Player src={video} title="Melaverse video player" />
+          <Player 
+            src={video.startsWith('/api/videos/') ? video.replace('/api/videos/', '') : video} 
+            title="Melaverse video player" 
+          />
         ) : (
           <div
             className={cn(
