@@ -43,6 +43,7 @@ import { useState } from "react";
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
+  const [video, setVideo] = useState<string>("");
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
@@ -134,7 +135,11 @@ export default function Page() {
 
       if (response.ok) {
         const result = await response.json();
-        setValue("video", `/api/videos/${result.filename}`);
+        console.log("result>>>>test video", result);
+
+        setValue("video", `${result.filename}`);
+        setVideo(result.filename); // Update local state as well
+        // setValue("video", `1756804626377-4117.mp4`);
         setValue("thumbnail", "/darulkubra.png"); // Set default thumbnail
       } else {
         alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
@@ -564,4 +569,3 @@ export default function Page() {
     )
   );
 }
-
