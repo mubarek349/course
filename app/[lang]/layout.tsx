@@ -9,6 +9,7 @@ export default async function Layout({
   seller,
   affiliate,
   instructor,
+  student,
   children,
 }: {
   pending: React.ReactNode;
@@ -17,6 +18,7 @@ export default async function Layout({
   seller: React.ReactNode;
   affiliate: React.ReactNode;
   instructor: React.ReactNode;
+  student: React.ReactNode;
   children: React.ReactNode;
 }) {
   const session = await auth();
@@ -41,5 +43,7 @@ export default async function Layout({
     ? affiliate
     : session.user?.role === "instructor"
     ? instructor
+    : session.user?.role === "student"
+    ? student
     : children;
 }
