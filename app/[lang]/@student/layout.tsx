@@ -1,13 +1,23 @@
 import UserLayout from "@/components/userLayout";
-import { Book, ChartBarDecreasing } from "lucide-react";
+import { LayoutDashboard, Library, GraduationCap, User } from "lucide-react";
 import React from "react";
 
 const studentNav = [
-  { label: "Course", url: "course", icon: <Book className="size-5" /> },
   {
-    label: "Progress",
-    url: "progress",
-    icon: <ChartBarDecreasing className="size-5" />,
+    label: "dashboard",
+    url: "dashboard",
+    icon: <LayoutDashboard className="size-5" />,
+  },
+  { label: "Course", url: "course", icon: <Library className="size-5" /> },
+  {
+    label: "myCourse",
+    url: "myCourse",
+    icon: <GraduationCap className="size-5" />,
+  },
+  {
+    label: "profile",
+    url: "profile",
+    icon: <User className="size-5" />,
   },
 ];
 
