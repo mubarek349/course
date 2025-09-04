@@ -42,6 +42,7 @@ import { useState } from "react";
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
+  const [video, setVideo] = useState<string>("");
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);

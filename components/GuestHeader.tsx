@@ -13,7 +13,7 @@ import { useTheme } from "next-themes";
 import { CButton } from "./heroui";
 import Logo from "./Logo";
 export default function GuestHeader() {
-  const { lang } = useParams<{ lang: string }>(),
+  const { lang = "en" } = useParams<{ lang: string }>() ?? {},
     [side, setSide] = useState(false),
     selectedSegment = useSelectedLayoutSegment(),
     { theme, setTheme } = useTheme(),
@@ -84,7 +84,7 @@ export default function GuestHeader() {
               color="primary"
               variant="flat"
               as={Link}
-              href={`/${lang == "en" ? "am" : "en"}/${pathname
+              href={`/${lang == "en" ? "am" : "en"}/${(pathname ?? "")
                 .split("/")
                 .slice(2)
                 .join("/")}`}
@@ -110,15 +110,26 @@ export default function GuestHeader() {
         >
           {side ? <X className="size-8" /> : <AlignLeft className="size-8" />}
         </CButton>
-        <CButton
-          color="primary"
-          variant="flat"
-          as={Link}
-          href={`/${lang}/login`}
-          className="btn-light-primary w-40"
-        >
-          {lang == "en" ? "Login" : "መግቢያ"}
-        </CButton>
+        <div className="gap-2">
+          <CButton
+            color="primary"
+            variant="flat"
+            as={Link}
+            href={`/${lang}/login`}
+            className="btn-light-primary w-30 ml-3"
+          >
+            {lang == "en" ? "Login" : "መግቢያ"}
+          </CButton>
+          <CButton
+            color="primary"
+            variant="flat"
+            as={Link}
+            href={`/${lang}/signup`}
+            className="bg-red-200 w-30 ml-3"
+          >
+            {lang == "en" ? "Sign Up" : "መዝግብ"}
+          </CButton>
+        </div>
       </div>
     </div>
   );
