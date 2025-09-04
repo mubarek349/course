@@ -30,6 +30,51 @@ export async function authenticate(
   );
 }
 
+export async function signup(
+  prevState: StateType,
+  data:
+    | { phoneNumber: string; password: string; confirmPassword: string }
+    | undefined
+) {
+  // then password is match or not check
+  if (!data) return undefined;
+  const { phoneNumber, password, confirmPassword } = data;
+  if (password !== confirmPassword)
+    return {
+      status: false,
+      cause: "Password doesn't match",
+      message: "Password doesn't match",
+    };
+  // then check if user already exist or not
+  const user = await prisma.user.findFirst({
+    where: { phoneNumber, role: "student" },
+  });
+  if (user)
+    return {
+      status: false,
+      cause: "User already exist",
+      message: "User already exist",
+    };
+  // then hash the password
+  const hashedPassword = await bcryptjs.hash(password, 10);
+  // then create the user
+  if (!hashedPassword)
+    return {
+      status: false,
+      cause: "Password hashing failed",
+      message: "Password hashing failed",
+    };
+  // then create the user in the database
+  await prisma.user.create({
+    data: {
+      phoneNumber: phoneNumber,
+      password: hashedPassword,
+      role: "student",
+    },
+  });
+  return { status: true, message: "User created successfully", cause: "" };
+}
+
 export async function unauthentic(prevState: StateType): Promise<StateType> {
   try {
     await signOut({ redirect: false });
