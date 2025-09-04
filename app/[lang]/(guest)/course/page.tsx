@@ -10,7 +10,8 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Button, Link } from "@heroui/react";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>(),
+    lang = params?.lang ?? "en",
     searchParams = useSearchParams(),
     { data, loading } = useData({
       func: getCoursesForCustomer,
@@ -34,7 +35,7 @@ export default function Page() {
                   color="primary"
                   as={Link}
                   href={`/${lang}/course/${id}?code=${
-                    searchParams.get("code") || ""
+                    searchParams?.get("code") || ""
                   }`}
                   className=""
                 >
