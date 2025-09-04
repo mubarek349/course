@@ -14,6 +14,8 @@ import {
   PanelRightClose,
   PlayCircle,
   CheckCircle2,
+  Menu,
+  X,
 } from "lucide-react";
 import { Accordion, AccordionItem, Skeleton } from "@heroui/react";
 
@@ -123,7 +125,7 @@ export default function Page() {
 
   const { data: contentData, loading: contentLoading } = useData({
     func: getMySingleCourseContent,
-    args: [studentId, id]
+    args: [studentId, id],
   });
 
   const [currentVideo, setCurrentVideo] = useState({
@@ -131,7 +133,7 @@ export default function Page() {
     title: "",
   });
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   React.useEffect(() => {
     if (data?.video) {
@@ -144,6 +146,7 @@ export default function Page() {
 
   const handleSelectVideo = (videoUrl: string, videoTitle: string) => {
     setCurrentVideo({ url: videoUrl, title: videoTitle });
+    setIsSidebarOpen(false); // Close sidebar on video selection
   };
 
   return (
@@ -153,14 +156,15 @@ export default function Page() {
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="flex h-full">
-          <div className="flex-1 overflow-y-auto relative">
+        <div className="h-full">
+          <div className="overflow-y-auto relative h-full">
+            {/* Universal Toggle Button */}
             <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100 hidden md:block"
-              aria-label="Toggle course content"
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100"
+              aria-label="Open course content"
             >
-              {isSidebarOpen ? <PanelRightClose /> : <PanelRightOpen />}
+              <Menu />
             </button>
             <CourseTopOverview
               {...{
@@ -171,16 +175,32 @@ export default function Page() {
               }}
             />
           </div>
+          {/* Universal Sidebar Overlay */}
           {isSidebarOpen && (
-            <aside className="hidden md:block w-[30rem] border-l h-full overflow-y-auto">
-              <CourseContentSidebar
-                contentData={contentData}
-                contentLoading={contentLoading}
-                onSelectVideo={handleSelectVideo}
-                lang={lang}
-                currentVideoUrl={currentVideo.url}
-              />
-            </aside>
+            <div className="fixed inset-0 z-50">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50"
+                onClick={() => setIsSidebarOpen(false)}
+              ></div>
+              {/* Content */}
+              <div className="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-lg overflow-y-auto">
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="absolute top-4 right-4 z-10 p-2"
+                  aria-label="Close course content"
+                >
+                  <X />
+                </button>
+                <CourseContentSidebar
+                  contentData={contentData}
+                  contentLoading={contentLoading}
+                  onSelectVideo={handleSelectVideo}
+                  lang={lang}
+                  currentVideoUrl={currentVideo.url}
+                />
+              </div>
+            </div>
           )}
         </div>
       )}
