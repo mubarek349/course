@@ -1,21 +1,25 @@
 "use client";
 
 import useData from "@/hooks/useData";
-import { getCoursesForCustomer } from "@/lib/data/course";
+// import { getCoursesForCustomer } from "@/lib/data/course";
+import { getAllMyCourses } from "@/actions/student/mycourse";
 import React from "react";
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
 import { useParams, useSearchParams } from "next/navigation";
 import { Button, Link } from "@heroui/react";
+import { useSession } from "next-auth/react";
 
 export default function Page() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang ?? "en";
-  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const studentId = (session?.user as any)?.id;
+
   const { data, loading } = useData({
-    func: getCoursesForCustomer,
-    args: [],
+    func: getAllMyCourses,
+    args: [studentId],
   });
 
   return (
@@ -34,10 +38,10 @@ export default function Page() {
                 <Button
                   color="primary"
                   as={Link}
-                  href={`/${lang}/course/${id}`}
+                  href={`/${lang}/mycourse/${id}`}
                   className=""
                 >
-                  {lang == "en" ? "Enroll" : "ይመዝገቡ"}
+                  {lang == "en" ? "View Course" : "ኮርሱን ይመልከቱ"}
                 </Button>
               }
             />
