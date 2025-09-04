@@ -10,8 +10,8 @@ const studentNav = [
   },
   { label: "Course", url: "course", icon: <Library className="size-5" /> },
   {
-    label: "myCourse",
-    url: "myCourse",
+    label: "mycourse",
+    url: "mycourse",
     icon: <GraduationCap className="size-5" />,
   },
   {
