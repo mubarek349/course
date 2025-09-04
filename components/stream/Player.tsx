@@ -36,11 +36,12 @@ PlayerProps) {
 
   // Compute the video source based on type
   let videoSrc = src;
-  if (type === "url") {
+  if (type === "url" && !src.startsWith('blob:')) {
     videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
   } else if (type === "local") {
     videoSrc = `/api/stream?file=${encodeURIComponent(src)}`;
   }
+  // For blob URLs (uploaded files), use src directly
 
   const currentSrc =
     playlist.length > 0 ? playlist[currentVideoIndex]?.url : videoSrc;
