@@ -33,7 +33,7 @@ import CourseTopOverview from "@/components/courseTopOverview";
 import { useSession } from "next-auth/react";
 
 function CourseContentSidebar({
-  contentData,
+  activities, // Changed from contentData
   contentLoading,
   onSelectVideo,
   lang,
@@ -52,7 +52,7 @@ function CourseContentSidebar({
     );
   }
 
-  if (!Array.isArray(contentData) || contentData.length === 0) {
+  if (!Array.isArray(activities) || activities.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
         No course content available.
@@ -66,7 +66,7 @@ function CourseContentSidebar({
         {lang === "en" ? "Course Content" : "የትምህርት ይዘት"}
       </h2>
       <Accordion selectionMode="multiple" defaultExpandedKeys={["0"]}>
-        {contentData.map((activity: any, index: number) => (
+        {activities.map((activity: any, index: number) => (
           <AccordionItem
             key={activity.id || index}
             aria-label={`Section ${index + 1}`}
@@ -123,8 +123,9 @@ export default function Page() {
 
   const { data: contentData, loading: contentLoading } = useData({
     func: getMySingleCourseContent,
-    args: [studentId, id]
+    args: [studentId, id],
   });
+  console.log("fufu", contentData);
 
   const [currentVideo, setCurrentVideo] = useState({
     url: "",
@@ -142,7 +143,7 @@ export default function Page() {
     }
   }, [data, lang]);
 
-  const handleSelectVideo = (videoUrl: string, videoTitle: string) => {
+  const handleSelectVideo: (videoUrl: string, videoTitle: string) => void = (videoUrl, videoTitle) => {
     setCurrentVideo({ url: videoUrl, title: videoTitle });
   };
 
@@ -174,7 +175,7 @@ export default function Page() {
           {isSidebarOpen && (
             <aside className="hidden md:block w-[30rem] border-l h-full overflow-y-auto">
               <CourseContentSidebar
-                contentData={contentData}
+                activities={contentData?.activity}
                 contentLoading={contentLoading}
                 onSelectVideo={handleSelectVideo}
                 lang={lang}
