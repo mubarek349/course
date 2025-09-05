@@ -16,6 +16,8 @@ interface CourseMediaSectionProps {
   onVideoSelect: (file: File) => void;
   onVideoRemove: () => void;
   hasVideoError: boolean;
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
 }
 
 export default function CourseMediaSection({
@@ -30,6 +32,8 @@ export default function CourseMediaSection({
   onVideoSelect,
   onVideoRemove,
   hasVideoError,
+  onVideoPlay,
+  onVideoPause,
 }: CourseMediaSectionProps) {
   // Priority: selectedVideoFile (uploaded) > video (database)
   const videoSrc = selectedVideoFile 
@@ -56,6 +60,8 @@ export default function CourseMediaSection({
             type={selectedVideoFile ? "url" : "local"}
             title="Melaverse video player" 
             key={selectedVideoFile ? 'uploaded' : 'database'}
+            onVideoPlay={onVideoPlay}
+            onVideoPause={onVideoPause}
           />
         ) : (
           <div

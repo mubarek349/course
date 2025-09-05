@@ -86,50 +86,59 @@ export async function getCoursesForCustomer() {
 // ----------------------------------------------------------
 
 export async function getCourseForManager(id: string) {
+  // Return null immediately for invalid IDs to avoid unnecessary queries
+  if (!id || id === "unknown") {
+    return null;
+  }
+
   try {
-    const course = await prisma.course
-      .findFirst({
-        where: { id },
-        select: {
-          id: true,
-          titleEn: true,
-          titleAm: true,
-          aboutAm: true,
-          aboutEn: true,
-          language: true,
-          level: true,
-          duration: true,
-          requirement: {
-            select: { requirementEn: true, requirementAm: true },
-          },
-          courseFor: { select: { courseForEn: true, courseForAm: true } },
-          activity: {
-            orderBy: { order: 'asc' },
-            select: {
-              titleAm: true,
-              titleEn: true,
-              subActivity: {
-                orderBy: { order: 'asc' },
-                select: {
-                  titleEn: true,
-                  titleAm: true,
-                  video: true,
-                },
+    const course = await prisma.course.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        titleEn: true,
+        titleAm: true,
+        aboutAm: true,
+        aboutEn: true,
+        language: true,
+        level: true,
+        duration: true,
+        requirement: {
+          select: { requirementEn: true, requirementAm: true },
+          orderBy: { id: 'asc' },
+        },
+        courseFor: { 
+          select: { courseForEn: true, courseForAm: true },
+          orderBy: { id: 'asc' },
+        },
+        activity: {
+          orderBy: { order: 'asc' },
+          select: {
+            titleAm: true,
+            titleEn: true,
+            subActivity: {
+              orderBy: { order: 'asc' },
+              select: {
+                titleEn: true,
+                titleAm: true,
+                video: true,
               },
-              question: {
-                select: {
-                  question: true,
-                  questionOptions: {
-                    select: {
-                      option: true,
-                    },
+            },
+            question: {
+              orderBy: { id: 'asc' },
+              select: {
+                question: true,
+                questionOptions: {
+                  orderBy: { id: 'asc' },
+                  select: {
+                    option: true,
                   },
-                  questionAnswer: {
-                    select: {
-                      answer: {
-                        select: {
-                          option: true,
-                        },
+                },
+                questionAnswer: {
+                  select: {
+                    answer: {
+                      select: {
+                        option: true,
                       },
                     },
                   },
@@ -137,42 +146,44 @@ export async function getCourseForManager(id: string) {
               },
             },
           },
-          price: true,
-          instructorRate: true,
-          sellerRate: true,
-          affiliateRate: true,
-          instructorId: true,
-          channelId: true,
-          certificate: true,
-          accessAm: true,
-          accessEn: true,
-          currency: true,
-          thumbnail: true,
-          video: true,
         },
-      })
-      .then((res) =>
-        res
-          ? {
-              ...res,
-              price: Number(res.price),
-              instructorRate: Number(res.instructorRate),
-              sellerRate: Number(res.sellerRate),
-              affiliateRate: Number(res.affiliateRate),
-              activity: res.activity.map(activity => ({
-                ...activity,
-                questions: activity.question.map(q => ({
-                  question: q.question,
-                  options: q.questionOptions.map(opt => opt.option),
-                  answers: q.questionAnswer.map(ans => ans.answer.option),
-                })),
-              })),
-            }
-          : res
-      );
-    return course;
+        price: true,
+        instructorRate: true,
+        sellerRate: true,
+        affiliateRate: true,
+        instructorId: true,
+        channelId: true,
+        certificate: true,
+        accessAm: true,
+        accessEn: true,
+        currency: true,
+        thumbnail: true,
+        video: true,
+      },
+    });
+
+    if (!course) {
+      return null;
+    }
+
+    // Transform data efficiently
+    return {
+      ...course,
+      price: Number(course.price),
+      instructorRate: Number(course.instructorRate),
+      sellerRate: Number(course.sellerRate),
+      affiliateRate: Number(course.affiliateRate),
+      activity: course.activity.map(activity => ({
+        ...activity,
+        questions: activity.question.map(q => ({
+          question: q.question,
+          options: q.questionOptions.map(opt => opt.option),
+          answers: q.questionAnswer.map(ans => ans.answer.option),
+        })),
+      })),
+    };
   } catch (error) {
-    console.log(error);
+    console.error('Error fetching course for manager:', error);
     return null;
   }
 }

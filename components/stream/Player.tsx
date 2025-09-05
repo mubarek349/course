@@ -13,12 +13,16 @@ interface PlayerProps {
   type?: "url" | "local";
   playlist?: VideoItem[];
   title?: string;
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
 }
 
 export default function Player({
   src,
   type = "local",
   playlist = [],
+  onVideoPlay,
+  onVideoPause,
 }: // title,
 PlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -36,7 +40,7 @@ PlayerProps) {
 
   // Compute the video source based on type
   let videoSrc = src;
-  if (type === "url" && !src.startsWith('blob:')) {
+  if (type === "url" && !src.startsWith("blob:")) {
     videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
   } else if (type === "local") {
     videoSrc = `/api/stream?file=${encodeURIComponent(src)}`;
@@ -80,15 +84,7 @@ PlayerProps) {
     };
   }, [currentSrc]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (playing) {
-      video.play();
-    } else {
-      video.pause();
-    }
-  }, [playing]);
+
 
   useEffect(() => {
     const video = videoRef.current;
@@ -125,7 +121,15 @@ PlayerProps) {
     return () => document.removeEventListener("fullscreenchange", handleChange);
   }, []);
 
-  const togglePlay = () => setPlaying((p) => !p);
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  };
 
   const skipTime = (seconds: number) => {
     const video = videoRef.current;
@@ -175,8 +179,14 @@ PlayerProps) {
             maxWidth: 640,
             display: "block",
           }}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
+          onPlay={() => {
+            setPlaying(true);
+            onVideoPlay?.();
+          }}
+          onPause={() => {
+            setPlaying(false);
+            onVideoPause?.();
+          }}
           onClick={() => isMobile && setShowControls((v) => !v)}
         />
 

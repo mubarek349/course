@@ -7,7 +7,7 @@ import useData from "@/hooks/useData";
 import { courseRegistration } from "@/lib/action/course";
 import { getChannels, getCourseForManager } from "@/lib/data/course";
 import { TCourse } from "@/lib/definations";
-import { cn, getEntries } from "@/lib/utils";
+import {  getEntries } from "@/lib/utils";
 import { courseSchema } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -42,11 +42,13 @@ import { useState } from "react";
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
-  const [video, setVideo] = useState<string>("");
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
   const [subActivityVideos, setSubActivityVideos] = useState<{[key: string]: File}>({});
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const id = params?.id ?? "",
     pathname = usePathname(),
     router = useRouter(),
@@ -123,48 +125,67 @@ export default function Page() {
     },
   });
 
-  const { data: channels } = useData({
+  const { data: channels, loading: channelsLoading } = useData({
       func: getChannels,
       args: [],
-    }),
-    { data: instructors } = useData({
-      func: getInstructorsList,
-      args: [],
     });
+    
+  const { data: instructors, loading: instructorsLoading } = useData({
+    func: getInstructorsList,
+    args: [],
+  });
 
-  useData({
+  const { data: courseData, loading: courseLoading } = useData({
     func: getCourseForManager,
-    args: [id ? (typeof id === "object" ? id[0] : id) : "unknown"],
+    args: [isEditing ? id : "unknown"],
     onSuccess(data) {
-      if (data) {
-        setValue("id", data.id);
+      if (data && !isDataLoaded) {
+        // Batch form updates to prevent unnecessary re-renders
+        const updates: Partial<TCourse> = {};
+        
         getEntries(data).forEach(([name, value]) => {
           if (value !== null && value !== undefined && name !== "id") {
-            setValue(
-              name as keyof TCourse,
-              value instanceof Prisma.Decimal ? Number(value) : value
-            );
+            if (value instanceof Prisma.Decimal) {
+              setValue(name as keyof TCourse, Number(value), { shouldValidate: false });
+            } else {
+              setValue(name as keyof TCourse, value, { shouldValidate: false });
+            }
           }
         });
+        
+        // Handle video URL separately to avoid playback issues
         if (data.video) {
-          setValue(
-            "video",
-            data.video.startsWith("/api/videos/")
-              ? data.video.replace("/api/videos/", "")
-              : data.video
-          );
+          const videoUrl = data.video.startsWith("/api/videos/")
+            ? data.video.replace("/api/videos/", "")
+            : data.video;
+          updates.video = videoUrl;
+          setVideoPreviewUrl(data.video); // Keep original URL for preview
         }
+        
+        // Batch update all form values
+        Object.entries(updates).forEach(([key, value]) => {
+          setValue(key as keyof TCourse, value, { shouldValidate: false });
+        });
+        
+        setValue("id", data.id, { shouldValidate: false });
+        setIsDataLoaded(true);
       }
     },
   });
 
   const handleVideoSelect = (file: File) => {
     setSelectedVideoFile(file);
-    setValue("video", file.name);
-    setValue("thumbnail", "/darulkubra.png");
+    setVideoPreviewUrl(URL.createObjectURL(file));
+    setValue("video", file.name, { shouldValidate: false, shouldDirty: true });
+    if (!watch("thumbnail")) {
+      setValue("thumbnail", "/darulkubra.png", { shouldValidate: false });
+    }
   };
 
   const handleFormSubmit = async (data: TCourse) => {
+    if (isVideoPlaying) {
+      return; // Prevent submission when video is playing
+    }
     setIsUploading(true);
     try {
       if (selectedVideoFile) {
@@ -241,8 +262,9 @@ export default function Page() {
       : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
     if (confirm(confirmMessage)) {
       setSelectedVideoFile(null);
-      setValue("video", "");
-      setValue("thumbnail", "");
+      setVideoPreviewUrl("");
+      setValue("video", "", { shouldValidate: false, shouldDirty: true });
+      setValue("thumbnail", "", { shouldValidate: false, shouldDirty: true });
     }
   };
 
@@ -270,7 +292,7 @@ export default function Page() {
   };
 
   const handleThumbnailRemove = () => {
-    setValue("thumbnail", "");
+    setValue("thumbnail", "", { shouldValidate: false, shouldDirty: true });
   };
 
   const formProgress = [
@@ -294,47 +316,92 @@ export default function Page() {
   const completedSteps = formProgress.filter((step) => step.completed).length;
   const progressPercentage = (completedSteps / formProgress.length) * 100;
 
+  // Show loading state while essential data is loading
+  if (channelsLoading || instructorsLoading || (isEditing && courseLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <Card className="p-8 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+            <p className="text-lg font-medium text-gray-700">
+              {lang === "en" ? "Loading course data..." : "የኮርስ መረጃ በመጫን ላይ..."}
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     instructors &&
     channels && (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-2 sm:px-4 lg:px-6 py-4 pb-20 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 flex-1">
-                <BookOpen className="size-6 sm:size-8 text-primary flex-shrink-0" />
-                <div className="flex flex-col min-w-0">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
-                    {isEditing
-                      ? lang === "en"
-                        ? "Edit Course"
-                        : "ኮርስ አርትዕ"
-                      : lang === "en"
-                      ? "Create New Course"
-                      : "አዲስ ኮርስ ፍጠር"}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-default-500 line-clamp-2">
-                    {lang === "en"
-                      ? "Fill in the details to create or update your course"
-                      : "ኮርስዎን ለመፍጠር ወይም ለማዘመን ዝርዝሮችን ይሙሉ"}
-                  </p>
+      <div className="min-h-screen overflow-auto bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
+        <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
+          {/* Header Section */}
+          <div className="relative">
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg">
+                      <BookOpen className="size-6 lg:size-7 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                        {isEditing
+                          ? lang === "en"
+                            ? "Edit Course"
+                            : "ኮርስ አርትዕ"
+                          : lang === "en"
+                          ? "Create New Course"
+                          : "አዲስ ኮርስ ፍጠር"}
+                      </h1>
+                      <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
+                        {lang === "en"
+                          ? "Design and structure your course content with our comprehensive creation tools"
+                          : "በእኛ ሁሉን አቀፍ የመፈጠሪያ መሳሪያዎች ኮርስዎን ይንደፉ እና ያዋቅሩ"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-center lg:items-end gap-3">
+                    <div className="text-center lg:text-right">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-primary-500"></div>
+                        <p className="text-sm font-semibold text-gray-700">
+                          {Math.round(progressPercentage)}% {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                        </p>
+                      </div>
+                      <Progress
+                        value={progressPercentage}
+                        size="md"
+                        className="w-32 lg:w-40"
+                        classNames={{
+                          track: "bg-gray-200",
+                          indicator: "bg-gradient-to-r from-primary-500 to-primary-600"
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Progress Steps */}
+                    <div className="flex gap-2 mt-2">
+                      {formProgress.map((step, index) => (
+                        <div
+                          key={index}
+                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            step.completed
+                              ? "bg-primary-500 shadow-md"
+                              : "bg-gray-200"
+                          }`}
+                          title={step.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                <div className="text-left sm:text-right">
-                  <p className="text-xs sm:text-sm font-medium">
-                    {Math.round(progressPercentage)}%{" "}
-                    {lang === "en" ? "Complete" : "ተጠናቅቋል"}
-                  </p>
-                  <Progress
-                    value={progressPercentage}
-                    size="sm"
-                    className="w-24 sm:w-32"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+              </CardHeader>
+            </Card>
+          </div>
 
           <Form
             onSubmit={handleSubmit(handleFormSubmit)}
@@ -342,58 +409,68 @@ export default function Page() {
               (a, [key, value]) => ({ ...a, [key]: value.message }),
               {}
             )}
-            className="space-y-6"
+            className="space-y-6 lg:space-y-8"
           >
-            <Card className="shadow-sm">
-              <CardHeader className="flex gap-2 sm:gap-3 p-4 sm:p-6">
-                <BookOpen className="size-5 sm:size-6 text-primary flex-shrink-0" />
-                <div className="min-w-0">
-                  <h2 className="text-base sm:text-lg font-semibold truncate">
-                    {lang === "en" ? "Course Information" : "የኮርስ መረጃ"}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-default-500 line-clamp-2">
-                    {lang === "en"
-                      ? "Basic details and media"
-                      : "መሰረታዊ ዝርዝሮች እና ሚዲያ"}
-                  </p>
+            <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+                    <BookOpen className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {lang === "en" ? "Course Information" : "የኮርስ መረጃ"}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lang === "en"
+                        ? "Essential course details and media content"
+                        : "አስፈላጊ የኮርስ ዝርዝሮች እና የሚዲያ ይዘት"}
+                    </p>
+                  </div>
                 </div>
               </CardHeader>
-              <Divider />
-              <CardBody className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+              <Divider className="bg-gradient-to-r from-blue-200 to-indigo-200" />
+              <CardBody className="p-6 lg:p-8 space-y-6 lg:space-y-8">
                 <CourseMediaSection
                   lang={lang}
                   thumbnail={watch("thumbnail")}
-                  video={watch("video")}
+                  video={videoPreviewUrl || watch("video")}
                   selectedVideoFile={selectedVideoFile}
                   isUploading={isUploading}
                   isThumbnailUploading={isThumbnailUploading}
-                  onThumbnailSelect={handleThumbnailSelect}
+                  onThumbnailSelect={handleVideoSelect}
                   onThumbnailRemove={handleThumbnailRemove}
                   onVideoSelect={handleVideoSelect}
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
+                  onVideoPlay={() => setIsVideoPlaying(true)}
+                  onVideoPause={() => setIsVideoPlaying(false)}
                 />
-                <CourseBasicInfo lang={lang} register={register} />
+                <CourseBasicInfo lang={lang} register={register} watch={watch} />
               </CardBody>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <Card className="shadow-sm">
-                <CardHeader className="flex gap-2 sm:gap-3 p-4 sm:p-6">
-                  <Users className="size-5 sm:size-6 text-primary flex-shrink-0" />
-                  <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-semibold truncate">
-                      {lang === "en" ? "Target Audience" : "ዒላማ ተመልካቾች"}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-default-500 line-clamp-2">
-                      {lang === "en"
-                        ? "Who is this course for?"
-                        : "ይህ ኮርስ ለማን ነው?"}
-                    </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md">
+                      <Users className="size-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">
+                        {lang === "en" ? "Target Audience" : "ዒላማ ተመልካቾች"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {lang === "en"
+                          ? "Define your ideal students"
+                          : "ተስማሚ ተማሪዎችዎን ይግለጹ"}
+                      </p>
+                    </div>
                   </div>
                 </CardHeader>
-                <Divider />
-                <CardBody className="p-4 sm:p-6">
+                <Divider className="bg-gradient-to-r from-emerald-200 to-teal-200" />
+                <CardBody className="p-6">
                   <CourseFor
                     list={watch("courseFor")}
                     addValue={({ en, am }) =>
@@ -433,22 +510,26 @@ export default function Page() {
                 </CardBody>
               </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="flex gap-3">
-                  <CheckSquare className="size-6 text-primary" />
-                  <div>
-                    <h2 className="text-lg font-semibold">
-                      {lang === "en" ? "Prerequisites" : "ቅድመ ሁኔታዎች"}
-                    </h2>
-                    <p className="text-sm text-default-500">
-                      {lang === "en"
-                        ? "What students need to know"
-                        : "ተማሪዎች ማወቅ ያለባቸው"}
-                    </p>
+              <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="p-6 bg-gradient-to-r from-amber-50 to-orange-50">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-md">
+                      <CheckSquare className="size-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">
+                        {lang === "en" ? "Prerequisites" : "ቅድመ ሁኔታዎች"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {lang === "en"
+                          ? "Required knowledge and skills"
+                          : "የሚያስፈልግ እውቀት እና ክህሎት"}
+                      </p>
+                    </div>
                   </div>
                 </CardHeader>
-                <Divider />
-                <CardBody>
+                <Divider className="bg-gradient-to-r from-amber-200 to-orange-200" />
+                <CardBody className="p-6">
                   <CourseFor
                     list={watch("requirement")}
                     addValue={({ en, am }) =>
@@ -640,22 +721,26 @@ export default function Page() {
               }
             />
 
-            <Card className="shadow-sm">
-              <CardHeader className="flex gap-3">
-                <Settings className="size-6 text-primary" />
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {lang === "en" ? "Course Settings" : "የኮርስ ቅንብሮች"}
-                  </h2>
-                  <p className="text-sm text-default-500">
-                    {lang === "en"
-                      ? "Pricing, instructors and configuration"
-                      : "የዋጋ መረጃ፣ መምህራን እና አስቀማመጥ"}
-                  </p>
+            <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-purple-50 to-violet-50">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-md">
+                    <Settings className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {lang === "en" ? "Course Settings" : "የኮርስ ቅንብሮች"}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lang === "en"
+                        ? "Configure pricing, instructors and advanced options"
+                        : "የዋጋ አሰጣጥ፣ መምህራን እና የላቀ አማራጮችን ያዋቅሩ"}
+                    </p>
+                  </div>
                 </div>
               </CardHeader>
-              <Divider />
-              <CardBody>
+              <Divider className="bg-gradient-to-r from-purple-200 to-violet-200" />
+              <CardBody className="p-6 lg:p-8">
                 <CourseSettings
                   lang={lang}
                   register={register}
@@ -665,15 +750,17 @@ export default function Page() {
               </CardBody>
             </Card>
 
-            <Card className="shadow-sm">
-              <CardBody>
-                <div className="flex gap-4 justify-end">
+            {/* Action Buttons */}
+            <Card className="shadow-lg border-0 bg-gradient-to-r from-gray-50 to-slate-50">
+              <CardBody className="p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row gap-4 justify-end">
                   <Button
                     variant="bordered"
                     as={Link}
                     href={`/${lang}/course`}
                     startContent={<ArrowLeft className="size-4" />}
-                    className="min-w-32"
+                    className="min-w-36 h-12 border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                    size="lg"
                   >
                     {lang === "en" ? "Cancel" : "ሰርዝ"}
                   </Button>
@@ -681,8 +768,10 @@ export default function Page() {
                     type="submit"
                     color="primary"
                     startContent={<Save className="size-4" />}
-                    className="min-w-32"
+                    className="min-w-36 h-12 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    size="lg"
                     isLoading={formState.isSubmitting}
+                    isDisabled={isVideoPlaying}
                   >
                     {isEditing
                       ? lang === "en"
