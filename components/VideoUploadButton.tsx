@@ -150,6 +150,7 @@ export default function VideoUploadButton({
                 </div>
               </div>
               <CButton
+                type="button"
                 isIconOnly
                 size="sm"
                 variant="light"
@@ -249,6 +250,7 @@ export default function VideoUploadButton({
                 <span>{lang === "en" ? "Max 100MB" : "ከ100MB በታች"}</span>
               </div>
               <CButton
+                type="button"
                 color="primary"
                 variant="bordered"
                 size="md"

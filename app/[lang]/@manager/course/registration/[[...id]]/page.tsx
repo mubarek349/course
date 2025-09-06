@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import CourseFor from "./courseFor";
@@ -20,7 +19,6 @@ import CourseSettings from "@/components/course-form/CourseSettings";
 import { Prisma } from "@prisma/client";
 import {
   Button,
-  Form,
   Link,
   Card,
   CardBody,
@@ -45,14 +43,14 @@ export default function Page() {
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-  const [subActivityVideos, setSubActivityVideos] = useState<{[key: string]: File}>({});
+
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
   const [isDataLoaded, setIsDataLoaded] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const id = params?.id ?? "",
+
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "",
     pathname = usePathname(),
     router = useRouter(),
-    { handleSubmit, register, setValue, formState, watch, getValues } =
+    { handleSubmit, register, setValue, formState, watch } =
       useForm<TCourse>({
         resolver: zodResolver(courseSchema),
         defaultValues: {
@@ -135,14 +133,11 @@ export default function Page() {
     args: [],
   });
 
-  const { data: courseData, loading: courseLoading } = useData({
+  const { loading: courseLoading } = useData({
     func: getCourseForManager,
     args: [isEditing ? id : "unknown"],
     onSuccess(data) {
-      if (data && !isDataLoaded) {
-        // Batch form updates to prevent unnecessary re-renders
-        const updates: Partial<TCourse> = {};
-        
+      if (data && isEditing && !isDataLoaded) {
         getEntries(data).forEach(([name, value]) => {
           if (value !== null && value !== undefined && name !== "id") {
             if (value instanceof Prisma.Decimal) {
@@ -153,19 +148,9 @@ export default function Page() {
           }
         });
         
-        // Handle video URL separately to avoid playback issues
         if (data.video) {
-          const videoUrl = data.video.startsWith("/api/videos/")
-            ? data.video.replace("/api/videos/", "")
-            : data.video;
-          updates.video = videoUrl;
-          setVideoPreviewUrl(data.video); // Keep original URL for preview
+          setVideoPreviewUrl(data.video);
         }
-        
-        // Batch update all form values
-        Object.entries(updates).forEach(([key, value]) => {
-          setValue(key as keyof TCourse, value, { shouldValidate: false });
-        });
         
         setValue("id", data.id, { shouldValidate: false });
         setIsDataLoaded(true);
@@ -183,9 +168,6 @@ export default function Page() {
   };
 
   const handleFormSubmit = async (data: TCourse) => {
-    if (isVideoPlaying) {
-      return; // Prevent submission when video is playing
-    }
     setIsUploading(true);
     try {
       if (selectedVideoFile) {
@@ -214,42 +196,9 @@ export default function Page() {
         data.video = uuidName.replace(/\.[^/.]+$/, "") + ".mp4";
       }
 
-      for (let activityIndex = 0; activityIndex < data.activity.length; activityIndex++) {
-        const activity = data.activity[activityIndex];
-        for (let subIndex = 0; subIndex < activity.subActivity.length; subIndex++) {
-          const sub = activity.subActivity[subIndex];
-          if (sub.video && sub.video.startsWith('blob:')) {
-            const videoFile = subActivityVideos[`${activityIndex}-${subIndex}`];
-            if (videoFile) {
-              const ext = videoFile.name.split(".").pop() || "mp4";
-              const uuidName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
-              const chunkSize = 512 * 1024;
-              const total = Math.ceil(videoFile.size / chunkSize);
 
-              for (let i = 0; i < total; i++) {
-                const start = i * chunkSize;
-                const end = Math.min(videoFile.size, start + chunkSize);
-                const chunk = videoFile.slice(start, end);
-
-                const formData = new FormData();
-                formData.append("chunk", chunk);
-                formData.append("filename", uuidName);
-                formData.append("chunkIndex", i.toString());
-                formData.append("totalChunks", total.toString());
-
-                await fetch("/api/upload-video", {
-                  method: "POST",
-                  body: formData,
-                });
-              }
-              data.activity[activityIndex].subActivity[subIndex].video = `/api/videos/${uuidName.replace(/\.[^/.]+$/, "") + ".mp4"}`;
-            }
-          }
-        }
-      }
       await action(data);
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       throw new Error(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
     } finally {
       setIsUploading(false);
@@ -283,8 +232,7 @@ export default function Page() {
       } else {
         alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
       }
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       alert(lang === "en" ? "Upload error" : "የመስቀል ስህተት");
     } finally {
       setIsThumbnailUploading(false);
@@ -403,12 +351,7 @@ export default function Page() {
             </Card>
           </div>
 
-          <Form
-            onSubmit={handleSubmit(handleFormSubmit)}
-            validationErrors={Object.entries(formState.errors).reduce(
-              (a, [key, value]) => ({ ...a, [key]: value.message }),
-              {}
-            )}
+          <div
             className="space-y-6 lg:space-y-8"
           >
             <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
@@ -438,13 +381,12 @@ export default function Page() {
                   selectedVideoFile={selectedVideoFile}
                   isUploading={isUploading}
                   isThumbnailUploading={isThumbnailUploading}
-                  onThumbnailSelect={handleVideoSelect}
+                  onThumbnailSelect={handleThumbnailSelect}
                   onThumbnailRemove={handleThumbnailRemove}
                   onVideoSelect={handleVideoSelect}
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
-                  onVideoPlay={() => setIsVideoPlaying(true)}
-                  onVideoPause={() => setIsVideoPlaying(false)}
+
                 />
                 <CourseBasicInfo lang={lang} register={register} watch={watch} />
               </CardBody>
@@ -641,7 +583,7 @@ export default function Page() {
                 activityIndex,
                 subActivityIndex,
                 videoUrl
-              ) =>
+              ) => {
                 setValue(
                   "activity",
                   watch("activity").map((activity, aIndex) => ({
@@ -652,8 +594,9 @@ export default function Page() {
                         : sub
                     ),
                   }))
-                )
-              }
+                );
+              }}
+
 
 
               addQuestion={(activityIndex, question) =>
@@ -765,13 +708,15 @@ export default function Page() {
                     {lang === "en" ? "Cancel" : "ሰርዝ"}
                   </Button>
                   <Button
-                    type="submit"
                     color="primary"
                     startContent={<Save className="size-4" />}
                     className="min-w-36 h-12 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg hover:shadow-xl transition-all duration-300"
                     size="lg"
-                    isLoading={formState.isSubmitting}
-                    isDisabled={isVideoPlaying}
+                    isLoading={formState.isSubmitting || isUploading}
+                    isDisabled={isUploading || isThumbnailUploading}
+                    onPress={() => {
+                      handleSubmit(handleFormSubmit)();
+                    }}
                   >
                     {isEditing
                       ? lang === "en"
@@ -784,7 +729,7 @@ export default function Page() {
                 </div>
               </CardBody>
             </Card>
-          </Form>
+          </div>
         </div>
       </div>
     )

@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { Button, cn, Accordion, AccordionItem } from "@heroui/react";
 import { CInput, CTextarea } from "./heroui";
-import VideoUploadButton from "./VideoUploadButton";
+import SubActivityVideoUpload from "./SubActivityVideoUpload";
 
 type TInput = {
   am: string;
@@ -46,7 +46,6 @@ export default function ActivityManager({
   updateActivity,
   updateSubActivity,
   updateSubActivityVideo,
-  onSubActivityVideoRemove,
   addQuestion,
   removeQuestion,
   updateQuestion,
@@ -69,15 +68,6 @@ export default function ActivityManager({
     activityIndex: number,
     subActivityIndex: number,
     videoUrl: string
-  ) => void;
-  onSubActivityVideoSelect?: (
-    activityIndex: number,
-    subActivityIndex: number,
-    file: File
-  ) => void;
-  onSubActivityVideoRemove?: (
-    activityIndex: number,
-    subActivityIndex: number
   ) => void;
   addQuestion: (activityIndex: number, question: TQuestion) => void;
   removeQuestion: (activityIndex: number, questionIndex: number) => void;
@@ -132,6 +122,7 @@ export default function ActivityManager({
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
                   <Button
+                    type="button"
                     size="sm"
                     variant="light"
                     isIconOnly
@@ -164,6 +155,7 @@ export default function ActivityManager({
                 <div className="flex gap-1">
                   {updateActivity && (
                     <Button
+                      type="button"
                       size="sm"
                       color="primary"
                       variant="light"
@@ -173,6 +165,7 @@ export default function ActivityManager({
                     </Button>
                   )}
                   <Button
+                    type="button"
                     size="sm"
                     color="danger"
                     variant="light"
@@ -180,7 +173,7 @@ export default function ActivityManager({
                       const confirmMessage =
                         lang === "en"
                           ? "Are you sure you want to delete this activity?"
-                          : "ይህን ይህን እንቅስቃሴ መሰረዝ እርግጠኛ ነዎት?";
+                          : "ይህን እንቅስቃሴ መሰረዝ እርግጠኛ ነዎት?";
                       if (confirm(confirmMessage)) {
                         removeActivity(activityIndex);
                       }
@@ -242,6 +235,7 @@ export default function ActivityManager({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Button
+                          type="button"
                           size="sm"
                           variant="light"
                           isIconOnly
@@ -283,6 +277,7 @@ export default function ActivityManager({
                       <div className="flex gap-1">
                         {updateSubActivity && (
                           <Button
+                            type="button"
                             size="sm"
                             color="primary"
                             variant="light"
@@ -297,6 +292,7 @@ export default function ActivityManager({
                           </Button>
                         )}
                         <Button
+                          type="button"
                           size="sm"
                           color="danger"
                           variant="light"
@@ -352,67 +348,20 @@ export default function ActivityManager({
                         </span>
                       </div>
 
-                      {sub.video ? (
-                        <div className="flex items-center justify-between bg-success/10 p-2 rounded">
-                          <span className="text-sm text-success">
-                            {lang === "en" ? "Video uploaded" : "ቪዲዮ ተስቅሏል"}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="light"
-                            onPress={() => {
-                              const confirmMessage =
-                                lang === "en"
-                                  ? "Are you sure you want to delete this video?"
-                                  : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
-                              if (confirm(confirmMessage)) {
-                                if (onSubActivityVideoRemove) {
-                                  onSubActivityVideoRemove(
-                                    activityIndex,
-                                    subIndex
-                                  );
-                                } else {
-                                  updateSubActivityVideo(
-                                    activityIndex,
-                                    subIndex,
-                                    ""
-                                  );
-                                }
-                              }
-                            }}
-                          >
-                            <Trash className="size-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <VideoUploadButton
-                            lang={lang}
-                            selectedVideo={null}
-                            onVideoSelect={(file) => {
-                              const videoUrl = URL.createObjectURL(file);
-                              updateSubActivityVideo(
-                                activityIndex,
-                                subIndex,
-                                videoUrl
-                              );
-                            }}
-                            onVideoRemove={() => {
-                              const confirmMessage =
-                                lang === "en"
-                                  ? "Are you sure you want to delete this video?"
-                                  : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
-                              if (confirm(confirmMessage)) {
-                                updateSubActivityVideo(
-                                  activityIndex,
-                                  subIndex,
-                                  ""
-                                );
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
+                      <SubActivityVideoUpload
+                        lang={lang}
+                        hasVideo={!!sub.video}
+                        onVideoSelect={(filename) => {
+                          updateSubActivityVideo(
+                            activityIndex,
+                            subIndex,
+                            filename
+                          );
+                        }}
+                        onVideoRemove={() => {
+                          updateSubActivityVideo(activityIndex, subIndex, "");
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -481,6 +430,7 @@ export default function ActivityManager({
                       <div className="flex gap-1">
                         {updateQuestion && (
                           <Button
+                            type="button"
                             size="sm"
                             color="primary"
                             variant="light"
@@ -495,6 +445,7 @@ export default function ActivityManager({
                           </Button>
                         )}
                         <Button
+                          type="button"
                           size="sm"
                           color="danger"
                           variant="light"
@@ -555,6 +506,7 @@ function Add({
           }
         />
         <Button
+          type="button"
           onPress={() => {
             if (input.am && input.en) {
               add(input);
@@ -600,6 +552,58 @@ function QuestionForm({
     );
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pastedText = e.clipboardData.getData("text");
+    const lines = pastedText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line);
+
+    if (lines.length >= 3) {
+      e.preventDefault();
+      const [questionText, ...optionLines] = lines;
+
+      // Find answer indicators (*, correct, ✓, or በአማርኛ "ትክክል")
+      const newOptions: string[] = [];
+      const newAnswers: string[] = [];
+
+      optionLines.forEach((line) => {
+        let optionText = line;
+        let isCorrect = false;
+
+        // Check for answer indicators
+        if (
+          line.startsWith("*") ||
+          line.toLowerCase().includes("correct") ||
+          line.toLowerCase().includes("መልስ") ||
+          line.toLowerCase().includes("Answer") ||
+          line.includes("✓") ||
+          line.includes("ትክክል")
+        ) {
+          isCorrect = true;
+          optionText = line
+            .replace(/^\*/, "")
+            .replace(/\s*(correct|✓|ትክክል|Answer|መልስ)\s*/gi, "")
+            .trim();
+        }
+
+        // Remove option numbering (1., 2., A., B., etc.)
+        optionText = optionText.replace(/^[0-9A-Za-z][.)\s]+/, "").trim();
+
+        if (optionText) {
+          newOptions.push(optionText);
+          if (isCorrect) {
+            newAnswers.push(optionText);
+          }
+        }
+      });
+
+      setQuestion(questionText);
+      setOptions(newOptions.length >= 2 ? newOptions : ["", ""]);
+      setAnswers(newAnswers);
+    }
+  };
+
   const handleSubmit = () => {
     if (
       question &&
@@ -622,6 +626,7 @@ function QuestionForm({
     <div className="space-y-2">
       {!isOpen ? (
         <Button
+          type="button"
           variant="bordered"
           onPress={() => setIsOpen(true)}
           className="w-full"
@@ -635,41 +640,12 @@ function QuestionForm({
             label={lang === "en" ? "Question" : "ጥያቄ"}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            onPaste={(e) => {
-              e.preventDefault();
-              const pastedText = e.clipboardData.getData("text");
-              const lines = pastedText
-                .split(/\r?\n/)
-                .filter((line) => line.trim() !== "");
-
-              if (lines.length > 1) {
-                setQuestion(lines[0]);
-                const newOptions = lines
-                  .slice(1)
-                  .filter((line) => !line.startsWith("Answer:"));
-                const answerLine = lines.find((line) =>
-                  line.startsWith("Answer:")
-                );
-
-                if (newOptions.length > 0) {
-                  setOptions(
-                    newOptions.length < 2 ? [...newOptions, "", ""] : newOptions
-                  );
-                }
-
-                if (answerLine) {
-                  const answerText = answerLine.replace("Answer:", "").trim();
-                  const matchedAnswers = newOptions.filter(
-                    (option) =>
-                      answerText.toLowerCase().includes(option.toLowerCase()) ||
-                      option.toLowerCase().includes(answerText.toLowerCase())
-                  );
-                  setAnswers(matchedAnswers);
-                }
-              } else {
-                setQuestion(pastedText);
-              }
-            }}
+            onPaste={handlePaste}
+            placeholder={
+              lang === "en"
+                ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል'"
+                : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ያመልክቱ"
+            }
           />
 
           <div className="space-y-2">
@@ -677,7 +653,12 @@ function QuestionForm({
               <span className="font-medium">
                 {lang === "en" ? "Options" : "አማራጮች"}
               </span>
-              <Button size="sm" variant="light" onPress={addOption}>
+              <Button
+                type="button"
+                size="sm"
+                variant="light"
+                onPress={addOption}
+              >
                 <Plus className="size-4" />
               </Button>
             </div>
@@ -685,6 +666,7 @@ function QuestionForm({
             {options.map((option, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Button
+                  type="button"
                   size="sm"
                   variant={
                     answers.includes(option) && option ? "solid" : "bordered"
@@ -706,6 +688,7 @@ function QuestionForm({
                 />
                 {options.length > 2 && (
                   <Button
+                    type="button"
                     size="sm"
                     color="danger"
                     variant="light"
@@ -719,10 +702,14 @@ function QuestionForm({
           </div>
 
           <div className="flex gap-2">
-            <Button variant="light" onPress={() => setIsOpen(false)}>
+            <Button
+              type="button"
+              variant="light"
+              onPress={() => setIsOpen(false)}
+            >
               {lang === "en" ? "Cancel" : "ሰርዝ"}
             </Button>
-            <Button color="primary" onPress={handleSubmit}>
+            <Button type="button" color="primary" onPress={handleSubmit}>
               {lang === "en" ? "Add Question" : "ጥያቄ ጨምር"}
             </Button>
           </div>
@@ -771,10 +758,11 @@ function EditForm({
         />
       </div>
       <div className="flex gap-2">
-        <Button variant="light" onPress={onCancel}>
+        <Button type="button" variant="light" onPress={onCancel}>
           {lang === "en" ? "Cancel" : "ሰርዝ"}
         </Button>
         <Button
+          type="button"
           color="primary"
           onPress={() => onSave(values)}
           isDisabled={!values.am || !values.en}
@@ -828,6 +816,58 @@ function QuestionEditForm({
     );
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pastedText = e.clipboardData.getData("text");
+    const lines = pastedText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line);
+
+    if (lines.length >= 3) {
+      e.preventDefault();
+      const [questionText, ...optionLines] = lines;
+
+      // Find answer indicators (*, correct, ✓, or በአማርኛ "ትክክል")
+      const newOptions: string[] = [];
+      const newAnswers: string[] = [];
+
+      optionLines.forEach((line) => {
+        let optionText = line;
+        let isCorrect = false;
+
+        // Check for answer indicators
+        if (
+          line.startsWith("*") ||
+          line.toLowerCase().includes("correct") ||
+          line.toLowerCase().includes("መልስ") ||
+          line.toLowerCase().includes("Answer") ||
+          line.includes("✓") ||
+          line.includes("ትክክል")
+        ) {
+          isCorrect = true;
+          optionText = line
+            .replace(/^\*/, "")
+            .replace(/\s*(correct|✓|ትክክል|Answer|መልስ)\s*/gi, "")
+            .trim();
+        }
+
+        // Remove option numbering (1., 2., A., B., etc.)
+        optionText = optionText.replace(/^[0-9A-Za-z][.)\s]+/, "").trim();
+
+        if (optionText) {
+          newOptions.push(optionText);
+          if (isCorrect) {
+            newAnswers.push(optionText);
+          }
+        }
+      });
+
+      setQuestion(questionText);
+      setOptions(newOptions.length >= 2 ? newOptions : ["", ""]);
+      setAnswers(newAnswers);
+    }
+  };
+
   const handleSave = () => {
     if (
       question &&
@@ -848,39 +888,12 @@ function QuestionEditForm({
         label={lang === "en" ? "Question" : "ጥያቄ"}
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        onPaste={(e) => {
-          e.preventDefault();
-          const pastedText = e.clipboardData.getData("text");
-          const lines = pastedText
-            .split(/\r?\n/)
-            .filter((line) => line.trim() !== "");
-
-          if (lines.length > 1) {
-            setQuestion(lines[0]);
-            const newOptions = lines
-              .slice(1)
-              .filter((line) => !line.startsWith("Answer:"));
-            const answerLine = lines.find((line) => line.startsWith("Answer:"));
-
-            if (newOptions.length > 0) {
-              setOptions(
-                newOptions.length < 2 ? [...newOptions, "", ""] : newOptions
-              );
-            }
-
-            if (answerLine) {
-              const answerText = answerLine.replace("Answer:", "").trim();
-              const matchedAnswers = newOptions.filter(
-                (option) =>
-                  answerText.toLowerCase().includes(option.toLowerCase()) ||
-                  option.toLowerCase().includes(answerText.toLowerCase())
-              );
-              setAnswers(matchedAnswers);
-            }
-          } else {
-            setQuestion(pastedText);
-          }
-        }}
+        onPaste={handlePaste}
+        placeholder={
+          lang === "en"
+            ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል'"
+            : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ያመልክቱ"
+        }
       />
 
       <div className="space-y-2">
@@ -888,7 +901,7 @@ function QuestionEditForm({
           <span className="font-medium">
             {lang === "en" ? "Options" : "አማራጮች"}
           </span>
-          <Button size="sm" variant="light" onPress={addOption}>
+          <Button type="button" size="sm" variant="light" onPress={addOption}>
             <Plus className="size-4" />
           </Button>
         </div>
@@ -896,6 +909,7 @@ function QuestionEditForm({
         {options.map((option, index) => (
           <div key={index} className="flex items-center gap-2">
             <Button
+              type="button"
               size="sm"
               variant={
                 answers.includes(option) && option ? "solid" : "bordered"
@@ -913,6 +927,7 @@ function QuestionEditForm({
             />
             {options.length > 2 && (
               <Button
+                type="button"
                 size="sm"
                 color="danger"
                 variant="light"
@@ -926,10 +941,10 @@ function QuestionEditForm({
       </div>
 
       <div className="flex gap-2">
-        <Button variant="light" onPress={onCancel}>
+        <Button type="button" variant="light" onPress={onCancel}>
           {lang === "en" ? "Cancel" : "ሰርዝ"}
         </Button>
-        <Button color="primary" onPress={handleSave}>
+        <Button type="button" color="primary" onPress={handleSave}>
           {lang === "en" ? "Save" : "አስቀምጥ"}
         </Button>
       </div>

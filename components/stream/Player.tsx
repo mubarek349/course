@@ -179,15 +179,20 @@ PlayerProps) {
             maxWidth: 640,
             display: "block",
           }}
-          onPlay={() => {
+          onPlay={(e) => {
+            e.stopPropagation();
             setPlaying(true);
             onVideoPlay?.();
           }}
-          onPause={() => {
+          onPause={(e) => {
+            e.stopPropagation();
             setPlaying(false);
             onVideoPause?.();
           }}
-          onClick={() => isMobile && setShowControls((v) => !v)}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isMobile) setShowControls((v) => !v);
+          }}
         />
 
         {/* --- MOBILE CONTROLS --- */}
@@ -209,7 +214,10 @@ PlayerProps) {
               }}
             >
               <button
-                onClick={() => skipTime(-10)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipTime(-10);
+                }}
                 style={{
                   pointerEvents: "auto",
                   background: "rgba(0,0,0,0.5)",
@@ -226,7 +234,10 @@ PlayerProps) {
                 <ChevronLeft />
               </button>
               <button
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
                 style={{
                   pointerEvents: "auto",
                   background: "rgba(0,0,0,0.7)",
@@ -243,7 +254,10 @@ PlayerProps) {
                 {playing ? <Pause /> : <Play />}
               </button>
               <button
-                onClick={() => skipTime(10)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipTime(10);
+                }}
                 style={{
                   pointerEvents: "auto",
                   background: "rgba(0,0,0,0.5)",
@@ -379,7 +393,10 @@ PlayerProps) {
                   onMuteToggle={handleMuteToggle}
                 />
                 <button
-                  onClick={() => changeSpeed(speed >= 2 ? 1 : speed + 0.25)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeSpeed(speed >= 2 ? 1 : speed + 0.25);
+                  }}
                   style={{
                     background: "none",
                     border: "none",

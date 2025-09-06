@@ -20,6 +20,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   buffered = 0,
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
     onSeek(Number(e.target.value));
   };
 

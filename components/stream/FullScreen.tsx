@@ -11,7 +11,10 @@ const FullscreenButton: React.FC<FullscreenButtonProps> = ({
   isFullscreen,
 }) => (
   <button
-    onClick={onClick}
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}
     title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
     style={{
       background: "none",
