@@ -55,7 +55,8 @@ type ContentData = {
   }[];
 } | null;
 
-function CourseContentSidebar({
+// Renamed from CourseContentSidebar to be more generic
+function CourseContent({
   contentData,
   contentLoading,
   onSelectVideo,
@@ -96,7 +97,7 @@ function CourseContentSidebar({
 
   return (
     <div className="w-full h-full flex flex-col">
-      <Tabs aria-label="Sidebar Tabs" className="pt-12">
+      <Tabs aria-label="Sidebar Tabs" className="pt-1">
         <Tab
           key="content"
           title={
@@ -106,7 +107,7 @@ function CourseContentSidebar({
           }
         >
           <div
-            className="px-4 py-2 cursor-pointer hover:bg-gray-100 rounded-lg m-2"
+            className="px-4 py-1 cursor-pointer hover:bg-gray-100 rounded-lg m-2"
             onClick={() =>
               onSelectVideo(
                 contentData.video,
@@ -189,112 +190,6 @@ function CourseContentSidebar({
   );
 }
 
-// New component for mobile content tab
-function MobileCourseContent({
-  contentData,
-  contentLoading,
-  onSelectVideo,
-  lang,
-  currentVideoUrl,
-}: {
-  contentData: ContentData;
-  contentLoading: boolean;
-  onSelectVideo: (url: string, title: string) => void;
-  lang: string;
-  currentVideoUrl: string;
-}) {
-  if (contentLoading) {
-    return (
-      <div className="w-full p-4 space-y-4">
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
-      </div>
-    );
-  }
-
-  if (
-    !contentData ||
-    !Array.isArray(contentData.activity) ||
-    contentData.activity.length === 0
-  ) {
-    return (
-      <div className="p-4 text-center text-gray-500">
-        No course content available.
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full">
-      <div
-        className="px-4 py-2 cursor-pointer hover:bg-gray-100 rounded-lg m-2"
-        onClick={() =>
-          onSelectVideo(
-            contentData.video,
-            lang === "en" ? contentData.titleEn : contentData.titleAm
-          )
-        }
-      >
-        <h3 className="font-semibold text-lg mb-2">Introduction</h3>
-        <div className="flex items-center gap-3">
-          <PlayCircle
-            className={
-              currentVideoUrl === contentData.video
-                ? "text-primary"
-                : "text-gray-400"
-            }
-          />
-          <span
-            className={currentVideoUrl === contentData.video ? "font-bold" : ""}
-          >
-            {lang === "en" ? contentData.titleEn : contentData.titleAm}
-          </span>
-        </div>
-      </div>
-      <Accordion selectionMode="multiple" defaultExpandedKeys={["0"]}>
-        {contentData.activity.map((activity: any, index: number) => (
-          <AccordionItem
-            key={activity.id || index}
-            aria-label={`Section ${index + 1}`}
-            title={`${lang === "en" ? "Section" : "ክፍል"} ${index + 1}: ${
-              lang === "en" ? activity.titleEn : activity.titleAm
-            }`}
-          >
-            <ul className="space-y-1 p-2">
-              {activity.subActivity.map((sub: any) => {
-                const isActive = sub.video === currentVideoUrl;
-                return (
-                  <li
-                    key={sub.id}
-                    onClick={() =>
-                      onSelectVideo(
-                        sub.video,
-                        lang === "en" ? sub.titleEn : sub.titleAm
-                      )
-                    }
-                    className={`flex items-center gap-2 cursor-pointer p-3 rounded ${
-                      isActive
-                        ? "bg-primary-100 font-bold"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    {isActive ? (
-                      <PlayCircle className="text-primary" />
-                    ) : (
-                      <CheckCircle2 className="text-gray-400" />
-                    )}
-                    <span>{lang === "en" ? sub.titleEn : sub.titleAm}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </div>
-  );
-}
-
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
@@ -317,7 +212,6 @@ export default function Page() {
     url: "",
     title: "",
   });
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   React.useEffect(() => {
@@ -334,6 +228,7 @@ export default function Page() {
     videoTitle
   ) => {
     setCurrentVideo({ url: videoUrl, title: videoTitle });
+    setIsSidebarOpen(false); // Close sidebar on video selection
   };
 
   const courseTabs = [
@@ -342,19 +237,21 @@ export default function Page() {
     //   label: lang === "en" ? "Overview" : "አጠቃላይ እይታ",
     //   content: (
     //     <div className="space-y-8">
-    //       {/* <CourseAbout data={lang === "en" ? data.aboutEn : data.aboutAm} /> */}
+    //       <CourseAbout
+    //         data={lang === "en" ? data?.aboutEn ?? "" : data?.aboutAm ?? ""}
+    //       />
     //       <CourseMainDescription
     //         data={[
-    //           // {
-    //           //   icon: <ChartBarIncreasing className="" />,
-    //           //   label: lang == "en" ? "Level" : "ደረጃ",
-    //           //   value: data.level,
-    //           // },
-    //           // {
-    //           //   icon: <Languages className="" />,
-    //           //   label: lang == "en" ? "Language" : "ቋንቋ",
-    //           //   value: data.language,
-    //           // },
+    //           {
+    //             icon: <ChartBarIncreasing className="" />,
+    //             label: lang == "en" ? "Level" : "ደረጃ",
+    //             value: data?.level || "Beginner",
+    //           },
+    //           {
+    //             icon: <Languages className="" />,
+    //             label: lang == "en" ? "Language" : "ቋንቋ",
+    //             value: data?.language || "English",
+    //           },
     //           {
     //             icon: <Logs className="" />,
     //             label: lang == "en" ? "Activities" : "ተግባራት",
@@ -364,30 +261,30 @@ export default function Page() {
     //                 0
     //               ) || 0,
     //           },
-    //           // ...(data.certificate
-    //           //   ? [
-    //           //       {
-    //           //         icon: <ReceiptText className="" />,
-    //           //         label: "",
-    //           //         value:
-    //           //           lang == "en"
-    //           //             ? "Certificate of completion"
-    //           //             : "የማጠናቀቂያ የምስክር ወረቀት",
-    //           //       },
-    //           //     ]
-    //           //   : []),
+    //           ...(data?.certificate
+    //             ? [
+    //                 {
+    //                   icon: <ReceiptText className="" />,
+    //                   label: "",
+    //                   value:
+    //                     lang == "en"
+    //                       ? "Certificate of completion"
+    //                       : "የማጠናቀቂያ የምስክር ወረቀት",
+    //                 },
+    //               ]
+    //             : []),
     //         ]}
     //       />
-    //       {/* <CourseRequirement data={data.requirement} /> */}
-    //       {/* <CourseFor data={data.courseFor} /> */}
+    //       {/* <CourseRequirement data={data.requirement} />
+    //       <CourseFor data={data.courseFor} /> */}
     //     </div>
     //   ),
     // },
     {
       id: "content",
-      label: lang === "en" ? "Course Content" : "የትምህርት ይዘት",
+      label: lang === "en" ? "Content" : "ይዘት",
       content: (
-        <MobileCourseContent
+        <CourseContent
           contentData={contentData ?? null}
           contentLoading={contentLoading}
           onSelectVideo={handleSelectVideo}
@@ -409,11 +306,6 @@ export default function Page() {
       content: "Q&A section coming soon.",
     },
     {
-      id: "notes",
-      label: lang === "en" ? "Notes" : "ማስታወሻዎች",
-      content: "Notes section coming soon.",
-    },
-    {
       id: "announcements",
       label: lang === "en" ? "Announcements" : "ማስታወቂያዎች",
       content: "Announcements section coming soon.",
@@ -427,8 +319,9 @@ export default function Page() {
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="h-full relative">
-          <div className="h-full overflow-y-auto">
+        <div className="h-full flex flex-col relative">
+          {/* Main content area */}
+          <div className="flex-1 overflow-y-auto">
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100 hidden md:block"
@@ -458,6 +351,7 @@ export default function Page() {
               </Tabs>
             </div>
           </div>
+
           {/* Universal Sidebar Overlay - DESKTOP ONLY */}
           {isSidebarOpen && (
             <div className="fixed inset-0 z-50 hidden md:block">
@@ -473,7 +367,7 @@ export default function Page() {
                 >
                   <X />
                 </button>
-                <CourseContentSidebar
+                <CourseContent
                   contentData={contentData ?? null}
                   contentLoading={contentLoading}
                   onSelectVideo={handleSelectVideo}
