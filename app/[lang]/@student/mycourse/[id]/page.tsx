@@ -15,7 +15,7 @@ import {
   PlayCircle,
   CheckCircle2,
 } from "lucide-react";
-import { Accordion, AccordionItem, Skeleton } from "@heroui/react";
+import { Accordion, AccordionItem, Skeleton, Tabs, Tab } from "@heroui/react";
 
 import useData from "@/hooks/useData";
 import Content from "./content";
@@ -32,13 +32,40 @@ import CourseFor from "@/components/courseFor";
 import CourseTopOverview from "@/components/courseTopOverview";
 import { useSession } from "next-auth/react";
 
+// Define the type for the content data object
+type ContentData = {
+  id: string;
+  titleEn: string;
+  titleAm: string;
+  video: string;
+  activity: {
+    id: string;
+    titleEn: string;
+    titleAm: string;
+    order: number;
+    subActivity: {
+      id: string;
+      titleEn: string;
+      titleAm: string;
+      video: string;
+      order: number;
+    }[];
+  }[];
+} | null;
+
 function CourseContentSidebar({
-  activities, // Changed from contentData
+  contentData,
   contentLoading,
   onSelectVideo,
   lang,
   currentVideoUrl,
-}: any) {
+}: {
+  contentData: ContentData;
+  contentLoading: boolean;
+  onSelectVideo: (url: string, title: string) => void;
+  lang: string;
+  currentVideoUrl: string;
+}) {
   if (contentLoading) {
     return (
       <div className="w-full p-4 space-y-4">
@@ -52,7 +79,12 @@ function CourseContentSidebar({
     );
   }
 
-  if (!Array.isArray(activities) || activities.length === 0) {
+  // Check for the nested activity array
+  if (
+    !contentData ||
+    !Array.isArray(contentData.activity) ||
+    contentData.activity.length === 0
+  ) {
     return (
       <div className="p-4 text-center text-gray-500">
         No course content available.
@@ -65,8 +97,33 @@ function CourseContentSidebar({
       <h2 className="text-xl font-bold mb-4 px-4 pt-4">
         {lang === "en" ? "Course Content" : "የትምህርት ይዘት"}
       </h2>
+      <div
+        className="px-4 pb-4 cursor-pointer hover:bg-gray-100 rounded-lg m-2 p-2"
+        onClick={() =>
+          onSelectVideo(
+            contentData.video,
+            lang === "en" ? contentData.titleEn : contentData.titleAm
+          )
+        }
+      >
+        <h3 className="font-semibold text-lg mb-2">Introduction</h3>
+        <div className="flex items-center gap-3">
+          <PlayCircle
+            className={
+              currentVideoUrl === contentData.video
+                ? "text-primary"
+                : "text-gray-400"
+            }
+          />
+          <span
+            className={currentVideoUrl === contentData.video ? "font-bold" : ""}
+          >
+            {lang === "en" ? contentData.titleEn : contentData.titleAm}
+          </span>
+        </div>
+      </div>
       <Accordion selectionMode="multiple" defaultExpandedKeys={["0"]}>
-        {activities.map((activity: any, index: number) => (
+        {contentData.activity.map((activity: any, index: number) => (
           <AccordionItem
             key={activity.id || index}
             aria-label={`Section ${index + 1}`}
@@ -143,9 +200,35 @@ export default function Page() {
     }
   }, [data, lang]);
 
-  const handleSelectVideo: (videoUrl: string, videoTitle: string) => void = (videoUrl, videoTitle) => {
+  const handleSelectVideo: (videoUrl: string, videoTitle: string) => void = (
+    videoUrl,
+    videoTitle
+  ) => {
     setCurrentVideo({ url: videoUrl, title: videoTitle });
   };
+
+  const courseTabs = [
+    {
+      id: "content",
+      label: lang === "en" ? "content" : "ጥያቄ እና መልስ",
+      content: "content section coming soon.",
+    },
+    {
+      id: "q&a",
+      label: lang === "en" ? "Q&A" : "ጥያቄ እና መልስ",
+      content: "Q&A section coming soon.",
+    },
+    {
+      id: "notes",
+      label: lang === "en" ? "Notes" : "ማስታወሻዎች",
+      content: "Notes section coming soon.",
+    },
+    {
+      id: "announcements",
+      label: lang === "en" ? "Announcements" : "ማስታወቂያዎች",
+      content: "Announcements section coming soon.",
+    },
+  ];
 
   return (
     <div className="h-dvh pt-16">
@@ -171,11 +254,20 @@ export default function Page() {
                 video: currentVideo.url,
               }}
             />
+            <div className="p-4 md:p-8">
+              <Tabs aria-label="Course Information" items={courseTabs}>
+                {(item) => (
+                  <Tab key={item.id} title={item.label}>
+                    <div className="py-4">{item.content}</div>
+                  </Tab>
+                )}
+              </Tabs>
+            </div>
           </div>
           {isSidebarOpen && (
             <aside className="hidden md:block w-[30rem] border-l h-full overflow-y-auto">
               <CourseContentSidebar
-                activities={contentData?.activity}
+                contentData={contentData ?? null}
                 contentLoading={contentLoading}
                 onSelectVideo={handleSelectVideo}
                 lang={lang}
