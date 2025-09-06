@@ -7,6 +7,7 @@ import ProgressBar from "./ProgressBar";
 import VolumeControl from "./VolumeControl";
 import FullscreenButton from "./FullScreen";
 import { VideoItem } from "../../types";
+import { cn } from "@/lib/utils";
 
 interface PlayerProps {
   src: string;
@@ -36,7 +37,7 @@ PlayerProps) {
 
   // Compute the video source based on type
   let videoSrc = src;
-  if (type === "url" && !src.startsWith('blob:')) {
+  if (type === "url" && !src.startsWith("blob:")) {
     videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
   } else if (type === "local") {
     videoSrc = `/api/stream?file=${encodeURIComponent(src)}`;
@@ -156,15 +157,14 @@ PlayerProps) {
   return (
     <div ref={containerRef} className="video-player">
       <div
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 640,
-        }}
         onMouseEnter={() => !isMobile && setShowControls(true)}
         onMouseLeave={() => !isMobile && setShowControls(false)}
+        className={cn(
+          "relative bg-green-500 max-md:w-full",
+          isFullscreen ? "md:w-full" : "md:w-[70%]"
+        )}
       >
-        <video
+        <video 
           ref={videoRef}
           src={currentSrc}
           width="100%"
@@ -172,7 +172,7 @@ PlayerProps) {
           style={{
             borderRadius: 8,
             width: "100%",
-            maxWidth: 640,
+            // maxWidth: 640,
             display: "block",
           }}
           onPlay={() => setPlaying(true)}

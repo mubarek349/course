@@ -96,7 +96,7 @@ function CourseContent({
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col ">
       <Tabs aria-label="Sidebar Tabs" className="pt-1">
         <Tab
           key="content"
@@ -305,23 +305,23 @@ export default function Page() {
       label: lang === "en" ? "Q&A" : "ጥያቄ እና መልስ",
       content: "Q&A section coming soon.",
     },
-    {
-      id: "announcements",
-      label: lang === "en" ? "Announcements" : "ማስታወቂያዎች",
-      content: "Announcements section coming soon.",
-    },
+    // {
+    //   id: "announcements",
+    //   label: lang === "en" ? "Announcements" : "ማስታወቂያዎች",
+    //   content: "Announcements section coming soon.",
+    // },
   ];
 
   return (
-    <div className="h-dvh pt-16">
+    <div className="h-dvh bg-red-700">
       {loading ? (
         <Loading />
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="h-full flex flex-col relative">
+        <div className="h-full flex flex-col relative bg-green-600">
           {/* Main content area */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-yellow-500">
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100 hidden md:block"
