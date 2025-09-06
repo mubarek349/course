@@ -15,8 +15,9 @@ export default function CourseMainDescription({
   }[];
   btn?: React.ReactNode;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
-    searchParams = useSearchParams();
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang ?? "";
+  const searchParams = useSearchParams();
 
   return (
     <div className="md:absolute md:top-20 md:right-5 2xl:right-20 md:w-72 2xl:w-96 p-4 rounded-xl border border-blue-600/20 md:divide-y divide-primary-600/20">
@@ -27,7 +28,7 @@ export default function CourseMainDescription({
             variant="flat"
             color="primary"
             as={Link}
-            href={`/${lang}/course?code=${searchParams.get("code") || ""}`}
+            href={`/${lang}/course?code=${searchParams?.get("code") || ""}`}
             className="md: hidden "
           >
             <ChevronLeft className="size-5" />

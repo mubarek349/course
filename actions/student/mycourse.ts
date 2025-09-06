@@ -89,6 +89,10 @@ export async function getMySingleCourse(studentId: string, courseId: string) {
         id: true,
         titleEn: true,
         titleAm: true,
+        aboutEn: true,
+        aboutAm: true,
+        requirement: true,
+        courseFor: true,
         video: true,
         price: true,
         thumbnail: true,
@@ -169,6 +173,11 @@ export async function getMySingleCourseContent(
         titleEn: true,
         titleAm: true,
         video: true,
+        requirement: true,
+        courseFor: true,
+        aboutEn: true,
+        aboutAm: true,
+        level: true,
         activity: {
           orderBy: { order: "asc" },
           select: {
