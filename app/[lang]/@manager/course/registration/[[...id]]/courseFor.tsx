@@ -66,6 +66,7 @@ export default function CourseFor({
           />
         </div>
         <Button
+          type="button"
           onPress={() => {
             addValue(input);
             setInput({ am: "", en: "" });
@@ -108,6 +109,7 @@ export default function CourseFor({
                 <div className="flex flex-col md:flex-row">
                   {updateValue && (
                     <Button
+                      type="button"
                       onPress={() => setEditingIndex(index)}
                       color="primary"
                       variant="light"
@@ -117,6 +119,7 @@ export default function CourseFor({
                     </Button>
                   )}
                   <Button
+                    type="button"
                     onPress={() => removeValue(index)}
                     color="danger"
                     className="md:h-full md:aspect-square max-md:rounded-t-none md:rounded-l-none"
@@ -165,10 +168,11 @@ function EditForm({
         }
       />
       <div className="flex gap-2">
-        <Button size="sm" variant="light" onPress={onCancel}>
+        <Button type="button" size="sm" variant="light" onPress={onCancel}>
           Cancel
         </Button>
         <Button 
+          type="button"
           size="sm"
           color="primary" 
           onPress={() => onSave(values)}

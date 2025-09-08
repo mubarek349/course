@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import CourseFor from "./courseFor";
@@ -7,20 +6,19 @@ import useData from "@/hooks/useData";
 import { courseRegistration } from "@/lib/action/course";
 import { getChannels, getCourseForManager } from "@/lib/data/course";
 import { TCourse } from "@/lib/definations";
-import { cn, getEntries } from "@/lib/utils";
+import { getEntries } from "@/lib/utils";
 import { courseSchema } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
-import ActivityManager from "@/components/ActivityManager";
+import ActivityManager, { TQuestion } from "@/components/ActivityManager";
 import CourseMediaSection from "@/components/course-form/CourseMediaSection";
 import CourseBasicInfo from "@/components/course-form/CourseBasicInfo";
 import CourseSettings from "@/components/course-form/CourseSettings";
 import { Prisma } from "@prisma/client";
 import {
   Button,
-  Form,
   Link,
   Card,
   CardBody,
@@ -36,48 +34,53 @@ import {
   Settings,
   Save,
   ArrowLeft,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
+import FinalExamManager from "@/components/FinalExamManager";
 
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
-  const [video, setVideo] = useState<string>("");
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-  const [subActivityVideos, setSubActivityVideos] = useState<{[key: string]: File}>({});
-  const id = params?.id ?? "",
+
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
+
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "",
     pathname = usePathname(),
     router = useRouter(),
-    { handleSubmit, register, setValue, formState, watch, getValues } =
-      useForm<TCourse>({
-        resolver: zodResolver(courseSchema),
-        defaultValues: {
-          titleEn: "",
-          titleAm: "",
-          aboutEn: "",
-          aboutAm: "",
-          instructorId: "",
-          thumbnail: "",
-          video: "",
-          price: 0,
-          currency: "ETB",
-          level: "beginner",
-          duration: "",
-          language: "Amharic",
-          certificate: false,
-          requirement: [],
-          courseFor: [],
-          activity: [],
-          accessAm: "በሞባይል ፣ በኮምፒተር ላይ መጠቀም",
-          accessEn: "Access on mobile, computer",
-          instructorRate: 0,
-          sellerRate: 0,
-          affiliateRate: 0,
-          channelId: "",
-        },
-      });
+    { handleSubmit, register, setValue, formState, watch } = useForm<TCourse>({
+      resolver: zodResolver(courseSchema),
+      defaultValues: {
+        titleEn: "",
+        titleAm: "",
+        aboutEn: "",
+        aboutAm: "",
+        instructorId: "",
+        thumbnail: "",
+        video: "",
+        price: 0,
+        currency: "ETB",
+        level: "beginner",
+        duration: "",
+        language: "Amharic",
+        certificate: false,
+        requirement: [],
+        courseFor: [],
+        activity: [],
+        accessAm: "በሞባይል ፣ በኮምፒተር ላይ መጠቀም",
+        accessEn: "Access on mobile, computer",
+        instructorRate: 0,
+        sellerRate: 0,
+        affiliateRate: 0,
+        channelId: "",
+        finalExamQuestions: [],
+      },
+    });
 
   const isEditing = id && id !== "unknown";
 
@@ -123,45 +126,54 @@ export default function Page() {
     },
   });
 
-  const { data: channels } = useData({
-      func: getChannels,
-      args: [],
-    }),
-    { data: instructors } = useData({
-      func: getInstructorsList,
-      args: [],
-    });
+  const { data: channels, loading: channelsLoading } = useData({
+    func: getChannels,
+    args: [],
+  });
 
-  useData({
+  const { data: instructors, loading: instructorsLoading } = useData({
+    func: getInstructorsList,
+    args: [],
+  });
+
+  const { loading: courseLoading } = useData({
     func: getCourseForManager,
-    args: [id ? (typeof id === "object" ? id[0] : id) : "unknown"],
+    args: [isEditing ? id : "unknown"],
     onSuccess(data) {
-      if (data) {
-        setValue("id", data.id);
+      if (data && isEditing && !isDataLoaded) {
         getEntries(data).forEach(([name, value]) => {
           if (value !== null && value !== undefined && name !== "id") {
-            setValue(
-              name as keyof TCourse,
-              value instanceof Prisma.Decimal ? Number(value) : value
-            );
+            if (value instanceof Prisma.Decimal) {
+              setValue(name as keyof TCourse, Number(value), {
+                shouldValidate: false,
+              });
+            } else {
+              setValue(name as keyof TCourse, value, { shouldValidate: false });
+            }
           }
         });
+
         if (data.video) {
-          setValue(
-            "video",
-            data.video.startsWith("/api/videos/")
-              ? data.video.replace("/api/videos/", "")
-              : data.video
-          );
+          setVideoPreviewUrl(data.video);
         }
+
+        if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
+          setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
+        }
+
+        setValue("id", data.id, { shouldValidate: false });
+        setIsDataLoaded(true);
       }
     },
   });
 
   const handleVideoSelect = (file: File) => {
     setSelectedVideoFile(file);
-    setValue("video", file.name);
-    setValue("thumbnail", "/darulkubra.png");
+    setVideoPreviewUrl(URL.createObjectURL(file));
+    setValue("video", file.name, { shouldValidate: false, shouldDirty: true });
+    if (!watch("thumbnail")) {
+      setValue("thumbnail", "/darulkubra.png", { shouldValidate: false });
+    }
   };
 
   const handleFormSubmit = async (data: TCourse) => {
@@ -169,7 +181,9 @@ export default function Page() {
     try {
       if (selectedVideoFile) {
         const ext = selectedVideoFile.name.split(".").pop() || "mp4";
-        const uuidName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
+        const uuidName = `${Date.now()}-${Math.floor(
+          Math.random() * 100000
+        )}.${ext}`;
         const CHUNK_SIZE = 512 * 1024;
         const chunkSize = CHUNK_SIZE;
         const total = Math.ceil(selectedVideoFile.size / chunkSize);
@@ -193,42 +207,11 @@ export default function Page() {
         data.video = uuidName.replace(/\.[^/.]+$/, "") + ".mp4";
       }
 
-      for (let activityIndex = 0; activityIndex < data.activity.length; activityIndex++) {
-        const activity = data.activity[activityIndex];
-        for (let subIndex = 0; subIndex < activity.subActivity.length; subIndex++) {
-          const sub = activity.subActivity[subIndex];
-          if (sub.video && sub.video.startsWith('blob:')) {
-            const videoFile = subActivityVideos[`${activityIndex}-${subIndex}`];
-            if (videoFile) {
-              const ext = videoFile.name.split(".").pop() || "mp4";
-              const uuidName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
-              const chunkSize = 512 * 1024;
-              const total = Math.ceil(videoFile.size / chunkSize);
+      // Add final exam questions to form data
+      data.finalExamQuestions = finalExamQuestions;
 
-              for (let i = 0; i < total; i++) {
-                const start = i * chunkSize;
-                const end = Math.min(videoFile.size, start + chunkSize);
-                const chunk = videoFile.slice(start, end);
-
-                const formData = new FormData();
-                formData.append("chunk", chunk);
-                formData.append("filename", uuidName);
-                formData.append("chunkIndex", i.toString());
-                formData.append("totalChunks", total.toString());
-
-                await fetch("/api/upload-video", {
-                  method: "POST",
-                  body: formData,
-                });
-              }
-              data.activity[activityIndex].subActivity[subIndex].video = `/api/videos/${uuidName.replace(/\.[^/.]+$/, "") + ".mp4"}`;
-            }
-          }
-        }
-      }
       await action(data);
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       throw new Error(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
     } finally {
       setIsUploading(false);
@@ -236,13 +219,15 @@ export default function Page() {
   };
 
   const handleVideoRemove = () => {
-    const confirmMessage = lang === "en" 
-      ? "Are you sure you want to delete this video?"
-      : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
+    const confirmMessage =
+      lang === "en"
+        ? "Are you sure you want to delete this video?"
+        : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
     if (confirm(confirmMessage)) {
       setSelectedVideoFile(null);
-      setValue("video", "");
-      setValue("thumbnail", "");
+      setVideoPreviewUrl("");
+      setValue("video", "", { shouldValidate: false, shouldDirty: true });
+      setValue("thumbnail", "", { shouldValidate: false, shouldDirty: true });
     }
   };
 
@@ -261,8 +246,7 @@ export default function Page() {
       } else {
         alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
       }
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       alert(lang === "en" ? "Upload error" : "የመስቀል ስህተት");
     } finally {
       setIsThumbnailUploading(false);
@@ -270,7 +254,7 @@ export default function Page() {
   };
 
   const handleThumbnailRemove = () => {
-    setValue("thumbnail", "");
+    setValue("thumbnail", "", { shouldValidate: false, shouldDirty: true });
   };
 
   const formProgress = [
@@ -294,76 +278,120 @@ export default function Page() {
   const completedSteps = formProgress.filter((step) => step.completed).length;
   const progressPercentage = (completedSteps / formProgress.length) * 100;
 
+  // Show loading state while essential data is loading
+  if (channelsLoading || instructorsLoading || (isEditing && courseLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <Card className="p-8 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+            <p className="text-lg font-medium text-gray-700">
+              {lang === "en" ? "Loading course data..." : "የኮርስ መረጃ በመጫን ላይ..."}
+            </p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     instructors &&
     channels && (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-2 sm:px-4 lg:px-6 py-4 pb-20 overflow-y-auto">
-        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          <Card className="shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 flex-1">
-                <BookOpen className="size-6 sm:size-8 text-primary flex-shrink-0" />
-                <div className="flex flex-col min-w-0">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate">
-                    {isEditing
-                      ? lang === "en"
-                        ? "Edit Course"
-                        : "ኮርስ አርትዕ"
-                      : lang === "en"
-                      ? "Create New Course"
-                      : "አዲስ ኮርስ ፍጠር"}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-default-500 line-clamp-2">
-                    {lang === "en"
-                      ? "Fill in the details to create or update your course"
-                      : "ኮርስዎን ለመፍጠር ወይም ለማዘመን ዝርዝሮችን ይሙሉ"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-                <div className="text-left sm:text-right">
-                  <p className="text-xs sm:text-sm font-medium">
-                    {Math.round(progressPercentage)}%{" "}
-                    {lang === "en" ? "Complete" : "ተጠናቅቋል"}
-                  </p>
-                  <Progress
-                    value={progressPercentage}
-                    size="sm"
-                    className="w-24 sm:w-32"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+      <div className="min-h-screen overflow-auto bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
+        <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
+          {/* Header Section */}
+          <div className="relative">
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full">
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg">
+                      <BookOpen className="size-6 lg:size-7 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                        {isEditing
+                          ? lang === "en"
+                            ? "Edit Course"
+                            : "ኮርስ አርትዕ"
+                          : lang === "en"
+                          ? "Create New Course"
+                          : "አዲስ ኮርስ ፍጠር"}
+                      </h1>
+                      <p className="text-sm lg:text-base text-gray-600 leading-relaxed">
+                        {lang === "en"
+                          ? "Design and structure your course content with our comprehensive creation tools"
+                          : "በእኛ ሁሉን አቀፍ የመፈጠሪያ መሳሪያዎች ኮርስዎን ይንደፉ እና ያዋቅሩ"}
+                      </p>
+                    </div>
+                  </div>
 
-          <Form
-            onSubmit={handleSubmit(handleFormSubmit)}
-            validationErrors={Object.entries(formState.errors).reduce(
-              (a, [key, value]) => ({ ...a, [key]: value.message }),
-              {}
-            )}
-            className="space-y-6"
-          >
-            <Card className="shadow-sm">
-              <CardHeader className="flex gap-2 sm:gap-3 p-4 sm:p-6">
-                <BookOpen className="size-5 sm:size-6 text-primary flex-shrink-0" />
-                <div className="min-w-0">
-                  <h2 className="text-base sm:text-lg font-semibold truncate">
-                    {lang === "en" ? "Course Information" : "የኮርስ መረጃ"}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-default-500 line-clamp-2">
-                    {lang === "en"
-                      ? "Basic details and media"
-                      : "መሰረታዊ ዝርዝሮች እና ሚዲያ"}
-                  </p>
+                  <div className="flex flex-col items-center lg:items-end gap-3">
+                    <div className="text-center lg:text-right">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-primary-500"></div>
+                        <p className="text-sm font-semibold text-gray-700">
+                          {Math.round(progressPercentage)}%{" "}
+                          {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                        </p>
+                      </div>
+                      <Progress
+                        value={progressPercentage}
+                        size="md"
+                        className="w-32 lg:w-40"
+                        classNames={{
+                          track: "bg-gray-200",
+                          indicator:
+                            "bg-gradient-to-r from-primary-500 to-primary-600",
+                        }}
+                      />
+                    </div>
+
+                    {/* Progress Steps */}
+                    <div className="flex gap-2 mt-2">
+                      {formProgress.map((step, index) => (
+                        <div
+                          key={index}
+                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            step.completed
+                              ? "bg-primary-500 shadow-md"
+                              : "bg-gray-200"
+                          }`}
+                          title={step.label}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
-              <Divider />
-              <CardBody className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+            </Card>
+          </div>
+
+          <div className="space-y-6 lg:space-y-8">
+            <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+                    <BookOpen className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {lang === "en" ? "Course Information" : "የኮርስ መረጃ"}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lang === "en"
+                        ? "Essential course details and media content"
+                        : "አስፈላጊ የኮርስ ዝርዝሮች እና የሚዲያ ይዘት"}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <Divider className="bg-gradient-to-r from-blue-200 to-indigo-200" />
+              <CardBody className="p-6 lg:p-8 space-y-6 lg:space-y-8">
                 <CourseMediaSection
                   lang={lang}
                   thumbnail={watch("thumbnail")}
-                  video={watch("video")}
+                  video={videoPreviewUrl || watch("video")}
                   selectedVideoFile={selectedVideoFile}
                   isUploading={isUploading}
                   isThumbnailUploading={isThumbnailUploading}
@@ -373,27 +401,35 @@ export default function Page() {
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
                 />
-                <CourseBasicInfo lang={lang} register={register} />
+                <CourseBasicInfo
+                  lang={lang}
+                  register={register}
+                  watch={watch}
+                />
               </CardBody>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <Card className="shadow-sm">
-                <CardHeader className="flex gap-2 sm:gap-3 p-4 sm:p-6">
-                  <Users className="size-5 sm:size-6 text-primary flex-shrink-0" />
-                  <div className="min-w-0">
-                    <h2 className="text-base sm:text-lg font-semibold truncate">
-                      {lang === "en" ? "Target Audience" : "ዒላማ ተመልካቾች"}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-default-500 line-clamp-2">
-                      {lang === "en"
-                        ? "Who is this course for?"
-                        : "ይህ ኮርስ ለማን ነው?"}
-                    </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md">
+                      <Users className="size-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">
+                        {lang === "en" ? "Target Audience" : "ዒላማ ተመልካቾች"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {lang === "en"
+                          ? "Define your ideal students"
+                          : "ተስማሚ ተማሪዎችዎን ይግለጹ"}
+                      </p>
+                    </div>
                   </div>
                 </CardHeader>
-                <Divider />
-                <CardBody className="p-4 sm:p-6">
+                <Divider className="bg-gradient-to-r from-emerald-200 to-teal-200" />
+                <CardBody className="p-6">
                   <CourseFor
                     list={watch("courseFor")}
                     addValue={({ en, am }) =>
@@ -412,7 +448,9 @@ export default function Page() {
                       setValue(
                         "courseFor",
                         watch("courseFor").map((item, i) =>
-                          i === index ? { courseForEn: en, courseForAm: am } : item
+                          i === index
+                            ? { courseForEn: en, courseForAm: am }
+                            : item
                         )
                       )
                     }
@@ -433,22 +471,26 @@ export default function Page() {
                 </CardBody>
               </Card>
 
-              <Card className="shadow-sm">
-                <CardHeader className="flex gap-3">
-                  <CheckSquare className="size-6 text-primary" />
-                  <div>
-                    <h2 className="text-lg font-semibold">
-                      {lang === "en" ? "Prerequisites" : "ቅድመ ሁኔታዎች"}
-                    </h2>
-                    <p className="text-sm text-default-500">
-                      {lang === "en"
-                        ? "What students need to know"
-                        : "ተማሪዎች ማወቅ ያለባቸው"}
-                    </p>
+              <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
+                <CardHeader className="p-6 bg-gradient-to-r from-amber-50 to-orange-50">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-md">
+                      <CheckSquare className="size-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-gray-900">
+                        {lang === "en" ? "Prerequisites" : "ቅድመ ሁኔታዎች"}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {lang === "en"
+                          ? "Required knowledge and skills"
+                          : "የሚያስፈልግ እውቀት እና ክህሎት"}
+                      </p>
+                    </div>
                   </div>
                 </CardHeader>
-                <Divider />
-                <CardBody>
+                <Divider className="bg-gradient-to-r from-amber-200 to-orange-200" />
+                <CardBody className="p-6">
                   <CourseFor
                     list={watch("requirement")}
                     addValue={({ en, am }) =>
@@ -467,7 +509,9 @@ export default function Page() {
                       setValue(
                         "requirement",
                         watch("requirement").map((item, i) =>
-                          i === index ? { requirementEn: en, requirementAm: am } : item
+                          i === index
+                            ? { requirementEn: en, requirementAm: am }
+                            : item
                         )
                       )
                     }
@@ -486,7 +530,6 @@ export default function Page() {
             <ActivityManager
               errorMessage={formState.errors.activity?.message ?? ""}
               list={watch("activity")}
-
               addActivity={(v) =>
                 setValue("activity", [
                   {
@@ -560,7 +603,7 @@ export default function Page() {
                 activityIndex,
                 subActivityIndex,
                 videoUrl
-              ) =>
+              ) => {
                 setValue(
                   "activity",
                   watch("activity").map((activity, aIndex) => ({
@@ -571,10 +614,8 @@ export default function Page() {
                         : sub
                     ),
                   }))
-                )
-              }
-
-
+                );
+              }}
               addQuestion={(activityIndex, question) =>
                 setValue(
                   "activity",
@@ -606,7 +647,11 @@ export default function Page() {
                   "activity",
                   watch("activity").map((activity, index) =>
                     index === activityIndex
-                      ? { ...activity, titleEn: payload.en, titleAm: payload.am }
+                      ? {
+                          ...activity,
+                          titleEn: payload.en,
+                          titleAm: payload.am,
+                        }
                       : activity
                   )
                 )
@@ -638,24 +683,52 @@ export default function Page() {
                   }))
                 )
               }
+              addToFinalExam={(activityIndex, questionIndex) => {
+                const question =
+                  watch("activity")[activityIndex]?.questions?.[questionIndex];
+                if (
+                  question &&
+                  !finalExamQuestions.some(
+                    (q) => q.question === question.question
+                  )
+                ) {
+                  setFinalExamQuestions([...finalExamQuestions, question]);
+                }
+              }}
+              removeFromFinalExam={(activityIndex, questionIndex) => {
+                const question =
+                  watch("activity")[activityIndex]?.questions?.[questionIndex];
+                if (question) {
+                  setFinalExamQuestions(
+                    finalExamQuestions.filter(
+                      (q) => q.question !== question.question
+                    )
+                  );
+                }
+              }}
+              finalExamQuestions={finalExamQuestions}
             />
 
-            <Card className="shadow-sm">
-              <CardHeader className="flex gap-3">
-                <Settings className="size-6 text-primary" />
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {lang === "en" ? "Course Settings" : "የኮርስ ቅንብሮች"}
-                  </h2>
-                  <p className="text-sm text-default-500">
-                    {lang === "en"
-                      ? "Pricing, instructors and configuration"
-                      : "የዋጋ መረጃ፣ መምህራን እና አስቀማመጥ"}
-                  </p>
+            <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-purple-50 to-violet-50">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-md">
+                    <Settings className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {lang === "en" ? "Course Settings" : "የኮርስ ቅንብሮች"}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lang === "en"
+                        ? "Configure pricing, instructors and advanced options"
+                        : "የዋጋ አሰጣጥ፣ መምህራን እና የላቀ አማራጮችን ያዋቅሩ"}
+                    </p>
+                  </div>
                 </div>
               </CardHeader>
-              <Divider />
-              <CardBody>
+              <Divider className="bg-gradient-to-r from-purple-200 to-violet-200" />
+              <CardBody className="p-6 lg:p-8">
                 <CourseSettings
                   lang={lang}
                   register={register}
@@ -664,25 +737,88 @@ export default function Page() {
                 />
               </CardBody>
             </Card>
+            <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-red-50 to-pink-50">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-md">
+                    <FileText className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {lang === "en"
+                        ? "Final Exam Questions"
+                        : "የመጨረሻ ፈተና ጥያቄዎች"}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lang === "en"
+                        ? "Questions selected for the final examination"
+                        : "ለመጨረሻ ፈተና የተመረጡ ጥያቄዎች"}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <Divider className="bg-gradient-to-r from-red-200 to-pink-200" />
+              <CardBody className="p-6 lg:p-8">
+                {finalExamQuestions.length === 0 ? (
+                  <div className="text-center py-8 mb-6">
+                    <FileText className="size-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-2">
+                      {lang === "en"
+                        ? "No questions for final exam"
+                        : "ለመጨረሻ ፈተና ምንም ጥያቄዎች የሉም"}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {lang === "en"
+                        ? "Add questions directly or use 'Add to Final' from activities"
+                        : "ጥያቄዎችን በቀጥታ ይጨምሩ ወይም ከእንቅስቃሴዎች 'ወደ መጨረሻ ጨምር'ን ይጠቀሙ"}
+                    </p>
+                  </div>
+                ) : null}
 
-            <Card className="shadow-sm">
-              <CardBody>
-                <div className="flex gap-4 justify-end">
+                <FinalExamManager
+                  questions={finalExamQuestions}
+                  onAdd={(question) =>
+                    setFinalExamQuestions([...finalExamQuestions, question])
+                  }
+                  onUpdate={(index, question) => {
+                    const updated = [...finalExamQuestions];
+                    updated[index] = question;
+                    setFinalExamQuestions(updated);
+                  }}
+                  onRemove={(index) =>
+                    setFinalExamQuestions(
+                      finalExamQuestions.filter((_, i) => i !== index)
+                    )
+                  }
+                  lang={lang}
+                />
+              </CardBody>
+            </Card>
+
+            {/* Action Buttons */}
+            <Card className="shadow-lg border-0 bg-gradient-to-r from-gray-50 to-slate-50">
+              <CardBody className="p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row gap-4 justify-end">
                   <Button
                     variant="bordered"
                     as={Link}
                     href={`/${lang}/course`}
                     startContent={<ArrowLeft className="size-4" />}
-                    className="min-w-32"
+                    className="min-w-36 h-12 border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                    size="lg"
                   >
                     {lang === "en" ? "Cancel" : "ሰርዝ"}
                   </Button>
                   <Button
-                    type="submit"
                     color="primary"
                     startContent={<Save className="size-4" />}
-                    className="min-w-32"
-                    isLoading={formState.isSubmitting}
+                    className="min-w-36 h-12 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    size="lg"
+                    isLoading={formState.isSubmitting || isUploading}
+                    isDisabled={isUploading || isThumbnailUploading}
+                    onPress={() => {
+                      handleSubmit(handleFormSubmit)();
+                    }}
                   >
                     {isEditing
                       ? lang === "en"
@@ -695,7 +831,7 @@ export default function Page() {
                 </div>
               </CardBody>
             </Card>
-          </Form>
+          </div>
         </div>
       </div>
     )

@@ -10,11 +10,11 @@ import Overview02 from "../../_components/overview02";
 import Overview03 from "../../_components/overview03";
 
 export default function Page() {
-  const { id } = useParams<{ id: string }>(),
+  const params = useParams<{ id: string }>(),
     searchParams = useSearchParams(),
     getDate = useCallback(() => {
-      const startDate = searchParams.get("startDate"),
-        endDate = searchParams.get("endDate"),
+      const startDate = searchParams?.get("startDate"),
+        endDate = searchParams?.get("endDate"),
         now = new Date();
 
       return {
@@ -29,7 +29,7 @@ export default function Page() {
     [date, setDate] = useState<ReturnType<typeof getDate>>(getDate),
     { data, loading } = useData({
       func: getOverviewData,
-      args: [date, id],
+      args: [date, params?.id || ""],
     });
 
   useEffect(() => {

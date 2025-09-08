@@ -56,6 +56,7 @@ export default function CourseMediaSection({
             type={selectedVideoFile ? "url" : "local"}
             title="Melaverse video player" 
             key={selectedVideoFile ? 'uploaded' : 'database'}
+
           />
         ) : (
           <div

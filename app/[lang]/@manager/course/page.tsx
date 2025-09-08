@@ -25,7 +25,8 @@ import { useParams, usePathname } from "next/navigation";
 import { TTableData } from "@/lib/definations";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>(),
+    lang = params?.lang || "en",
     pathname = usePathname(),
     [tableData, setTableData] = useState<TTableData & { status: Selection }>({
       search: "",
@@ -220,7 +221,8 @@ function ToggleCourse({
   refresh: () => void;
   onClose: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>(),
+    lang = params?.lang || "en",
     { action } = useAction(toggleCourseStatus, undefined, {
       loading: lang == "en" ? "toggle status course" : "ትምህርትን ኢ-ንቁ ማድረግ ላይ",
       success:
@@ -293,7 +295,8 @@ function RemoveCourse({
   onClose: () => void;
   refresh: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>(),
+    lang = params?.lang || "en",
     { action } = useAction(removeCourse, undefined, {
       loading: lang == "en" ? "deleting course" : "ትምህርትን በመሰረዝ ላይ",
       success:

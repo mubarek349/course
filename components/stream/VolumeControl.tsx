@@ -28,7 +28,10 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
       }}
     >
       <button
-        onClick={onMuteToggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          onMuteToggle();
+        }}
         style={{
           background: "none",
           border: "none",
@@ -48,7 +51,10 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
         max={1}
         step={0.01}
         value={muted ? 0 : volume}
-        onChange={(e) => onVolumeChange(Number(e.target.value))}
+        onChange={(e) => {
+          e.stopPropagation();
+          onVolumeChange(Number(e.target.value));
+        }}
         style={{
           width: isMobile ? 60 : 80,
           height: isMobile ? 80 : "auto",
