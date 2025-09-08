@@ -6,13 +6,13 @@ import useData from "@/hooks/useData";
 import { courseRegistration } from "@/lib/action/course";
 import { getChannels, getCourseForManager } from "@/lib/data/course";
 import { TCourse } from "@/lib/definations";
-import {  getEntries } from "@/lib/utils";
+import { getEntries } from "@/lib/utils";
 import { courseSchema } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
-import ActivityManager from "@/components/ActivityManager";
+import ActivityManager, { TQuestion } from "@/components/ActivityManager";
 import CourseMediaSection from "@/components/course-form/CourseMediaSection";
 import CourseBasicInfo from "@/components/course-form/CourseBasicInfo";
 import CourseSettings from "@/components/course-form/CourseSettings";
@@ -34,8 +34,10 @@ import {
   Settings,
   Save,
   ArrowLeft,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
+import FinalExamManager from "@/components/FinalExamManager";
 
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
@@ -46,38 +48,39 @@ export default function Page() {
 
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
 
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "",
     pathname = usePathname(),
     router = useRouter(),
-    { handleSubmit, register, setValue, formState, watch } =
-      useForm<TCourse>({
-        resolver: zodResolver(courseSchema),
-        defaultValues: {
-          titleEn: "",
-          titleAm: "",
-          aboutEn: "",
-          aboutAm: "",
-          instructorId: "",
-          thumbnail: "",
-          video: "",
-          price: 0,
-          currency: "ETB",
-          level: "beginner",
-          duration: "",
-          language: "Amharic",
-          certificate: false,
-          requirement: [],
-          courseFor: [],
-          activity: [],
-          accessAm: "በሞባይል ፣ በኮምፒተር ላይ መጠቀም",
-          accessEn: "Access on mobile, computer",
-          instructorRate: 0,
-          sellerRate: 0,
-          affiliateRate: 0,
-          channelId: "",
-        },
-      });
+    { handleSubmit, register, setValue, formState, watch } = useForm<TCourse>({
+      resolver: zodResolver(courseSchema),
+      defaultValues: {
+        titleEn: "",
+        titleAm: "",
+        aboutEn: "",
+        aboutAm: "",
+        instructorId: "",
+        thumbnail: "",
+        video: "",
+        price: 0,
+        currency: "ETB",
+        level: "beginner",
+        duration: "",
+        language: "Amharic",
+        certificate: false,
+        requirement: [],
+        courseFor: [],
+        activity: [],
+        accessAm: "በሞባይል ፣ በኮምፒተር ላይ መጠቀም",
+        accessEn: "Access on mobile, computer",
+        instructorRate: 0,
+        sellerRate: 0,
+        affiliateRate: 0,
+        channelId: "",
+        finalExamQuestions: [],
+      },
+    });
 
   const isEditing = id && id !== "unknown";
 
@@ -124,10 +127,10 @@ export default function Page() {
   });
 
   const { data: channels, loading: channelsLoading } = useData({
-      func: getChannels,
-      args: [],
-    });
-    
+    func: getChannels,
+    args: [],
+  });
+
   const { data: instructors, loading: instructorsLoading } = useData({
     func: getInstructorsList,
     args: [],
@@ -141,17 +144,23 @@ export default function Page() {
         getEntries(data).forEach(([name, value]) => {
           if (value !== null && value !== undefined && name !== "id") {
             if (value instanceof Prisma.Decimal) {
-              setValue(name as keyof TCourse, Number(value), { shouldValidate: false });
+              setValue(name as keyof TCourse, Number(value), {
+                shouldValidate: false,
+              });
             } else {
               setValue(name as keyof TCourse, value, { shouldValidate: false });
             }
           }
         });
-        
+
         if (data.video) {
           setVideoPreviewUrl(data.video);
         }
-        
+
+        if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
+          setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
+        }
+
         setValue("id", data.id, { shouldValidate: false });
         setIsDataLoaded(true);
       }
@@ -172,7 +181,9 @@ export default function Page() {
     try {
       if (selectedVideoFile) {
         const ext = selectedVideoFile.name.split(".").pop() || "mp4";
-        const uuidName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
+        const uuidName = `${Date.now()}-${Math.floor(
+          Math.random() * 100000
+        )}.${ext}`;
         const CHUNK_SIZE = 512 * 1024;
         const chunkSize = CHUNK_SIZE;
         const total = Math.ceil(selectedVideoFile.size / chunkSize);
@@ -196,6 +207,8 @@ export default function Page() {
         data.video = uuidName.replace(/\.[^/.]+$/, "") + ".mp4";
       }
 
+      // Add final exam questions to form data
+      data.finalExamQuestions = finalExamQuestions;
 
       await action(data);
     } catch {
@@ -206,9 +219,10 @@ export default function Page() {
   };
 
   const handleVideoRemove = () => {
-    const confirmMessage = lang === "en" 
-      ? "Are you sure you want to delete this video?"
-      : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
+    const confirmMessage =
+      lang === "en"
+        ? "Are you sure you want to delete this video?"
+        : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
     if (confirm(confirmMessage)) {
       setSelectedVideoFile(null);
       setVideoPreviewUrl("");
@@ -311,13 +325,14 @@ export default function Page() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col items-center lg:items-end gap-3">
                     <div className="text-center lg:text-right">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-2 h-2 rounded-full bg-primary-500"></div>
                         <p className="text-sm font-semibold text-gray-700">
-                          {Math.round(progressPercentage)}% {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                          {Math.round(progressPercentage)}%{" "}
+                          {lang === "en" ? "Complete" : "ተጠናቅቋል"}
                         </p>
                       </div>
                       <Progress
@@ -326,11 +341,12 @@ export default function Page() {
                         className="w-32 lg:w-40"
                         classNames={{
                           track: "bg-gray-200",
-                          indicator: "bg-gradient-to-r from-primary-500 to-primary-600"
+                          indicator:
+                            "bg-gradient-to-r from-primary-500 to-primary-600",
                         }}
                       />
                     </div>
-                    
+
                     {/* Progress Steps */}
                     <div className="flex gap-2 mt-2">
                       {formProgress.map((step, index) => (
@@ -351,9 +367,7 @@ export default function Page() {
             </Card>
           </div>
 
-          <div
-            className="space-y-6 lg:space-y-8"
-          >
+          <div className="space-y-6 lg:space-y-8">
             <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
               <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-blue-50 to-indigo-50">
                 <div className="flex items-center gap-4">
@@ -386,9 +400,12 @@ export default function Page() {
                   onVideoSelect={handleVideoSelect}
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
-
                 />
-                <CourseBasicInfo lang={lang} register={register} watch={watch} />
+                <CourseBasicInfo
+                  lang={lang}
+                  register={register}
+                  watch={watch}
+                />
               </CardBody>
             </Card>
 
@@ -431,7 +448,9 @@ export default function Page() {
                       setValue(
                         "courseFor",
                         watch("courseFor").map((item, i) =>
-                          i === index ? { courseForEn: en, courseForAm: am } : item
+                          i === index
+                            ? { courseForEn: en, courseForAm: am }
+                            : item
                         )
                       )
                     }
@@ -490,7 +509,9 @@ export default function Page() {
                       setValue(
                         "requirement",
                         watch("requirement").map((item, i) =>
-                          i === index ? { requirementEn: en, requirementAm: am } : item
+                          i === index
+                            ? { requirementEn: en, requirementAm: am }
+                            : item
                         )
                       )
                     }
@@ -509,7 +530,6 @@ export default function Page() {
             <ActivityManager
               errorMessage={formState.errors.activity?.message ?? ""}
               list={watch("activity")}
-
               addActivity={(v) =>
                 setValue("activity", [
                   {
@@ -596,9 +616,6 @@ export default function Page() {
                   }))
                 );
               }}
-
-
-
               addQuestion={(activityIndex, question) =>
                 setValue(
                   "activity",
@@ -630,7 +647,11 @@ export default function Page() {
                   "activity",
                   watch("activity").map((activity, index) =>
                     index === activityIndex
-                      ? { ...activity, titleEn: payload.en, titleAm: payload.am }
+                      ? {
+                          ...activity,
+                          titleEn: payload.en,
+                          titleAm: payload.am,
+                        }
                       : activity
                   )
                 )
@@ -662,6 +683,30 @@ export default function Page() {
                   }))
                 )
               }
+              addToFinalExam={(activityIndex, questionIndex) => {
+                const question =
+                  watch("activity")[activityIndex]?.questions?.[questionIndex];
+                if (
+                  question &&
+                  !finalExamQuestions.some(
+                    (q) => q.question === question.question
+                  )
+                ) {
+                  setFinalExamQuestions([...finalExamQuestions, question]);
+                }
+              }}
+              removeFromFinalExam={(activityIndex, questionIndex) => {
+                const question =
+                  watch("activity")[activityIndex]?.questions?.[questionIndex];
+                if (question) {
+                  setFinalExamQuestions(
+                    finalExamQuestions.filter(
+                      (q) => q.question !== question.question
+                    )
+                  );
+                }
+              }}
+              finalExamQuestions={finalExamQuestions}
             />
 
             <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
@@ -689,6 +734,63 @@ export default function Page() {
                   register={register}
                   channels={channels}
                   instructors={instructors}
+                />
+              </CardBody>
+            </Card>
+            <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+              <CardHeader className="p-6 lg:p-8 bg-gradient-to-r from-red-50 to-pink-50">
+                <div className="flex items-center gap-4">
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-red-500 to-red-600 shadow-md">
+                    <FileText className="size-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg lg:text-xl font-bold text-gray-900">
+                      {lang === "en"
+                        ? "Final Exam Questions"
+                        : "የመጨረሻ ፈተና ጥያቄዎች"}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {lang === "en"
+                        ? "Questions selected for the final examination"
+                        : "ለመጨረሻ ፈተና የተመረጡ ጥያቄዎች"}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <Divider className="bg-gradient-to-r from-red-200 to-pink-200" />
+              <CardBody className="p-6 lg:p-8">
+                {finalExamQuestions.length === 0 ? (
+                  <div className="text-center py-8 mb-6">
+                    <FileText className="size-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-2">
+                      {lang === "en"
+                        ? "No questions for final exam"
+                        : "ለመጨረሻ ፈተና ምንም ጥያቄዎች የሉም"}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {lang === "en"
+                        ? "Add questions directly or use 'Add to Final' from activities"
+                        : "ጥያቄዎችን በቀጥታ ይጨምሩ ወይም ከእንቅስቃሴዎች 'ወደ መጨረሻ ጨምር'ን ይጠቀሙ"}
+                    </p>
+                  </div>
+                ) : null}
+
+                <FinalExamManager
+                  questions={finalExamQuestions}
+                  onAdd={(question) =>
+                    setFinalExamQuestions([...finalExamQuestions, question])
+                  }
+                  onUpdate={(index, question) => {
+                    const updated = [...finalExamQuestions];
+                    updated[index] = question;
+                    setFinalExamQuestions(updated);
+                  }}
+                  onRemove={(index) =>
+                    setFinalExamQuestions(
+                      finalExamQuestions.filter((_, i) => i !== index)
+                    )
+                  }
+                  lang={lang}
                 />
               </CardBody>
             </Card>

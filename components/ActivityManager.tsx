@@ -28,6 +28,7 @@ type TQuestion = {
   question: string;
   options: string[];
   answers: string[];
+  explanation?: string;
 };
 
 type TActivity = {
@@ -36,6 +37,8 @@ type TActivity = {
   subActivity: TSubActivity[];
   questions?: TQuestion[];
 };
+
+export type { TQuestion };
 
 export default function ActivityManager({
   list,
@@ -52,6 +55,9 @@ export default function ActivityManager({
   reorderActivities,
   reorderSubActivities,
   errorMessage,
+  addToFinalExam,
+  removeFromFinalExam,
+  finalExamQuestions,
 }: {
   list: TActivity[];
   addActivity: (payload: TInput) => void;
@@ -76,6 +82,9 @@ export default function ActivityManager({
     questionIndex: number,
     question: TQuestion
   ) => void;
+  addToFinalExam?: (activityIndex: number, questionIndex: number) => void;
+  removeFromFinalExam?: (activityIndex: number, questionIndex: number) => void;
+  finalExamQuestions?: TQuestion[];
   reorderActivities: (fromIndex: number, toIndex: number) => void;
   reorderSubActivities: (
     activityIndex: number,
@@ -378,13 +387,79 @@ export default function ActivityManager({
                   lang={lang}
                 />
 
-                {(activity.questions || []).map((question, questionIndex) => (
-                  <div
-                    key={questionIndex}
-                    className="bg-warning/10 rounded-lg p-3"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                <Accordion variant="splitted" className="space-y-2">
+                  {(activity.questions || []).map((question, questionIndex) => (
+                    <AccordionItem
+                      key={questionIndex}
+                      title={
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-sm font-medium truncate">
+                            {question.question.length > 60 
+                              ? `${question.question.substring(0, 60)}...` 
+                              : question.question
+                            }
+                          </span>
+                          <div className="flex gap-1">
+                            {addToFinalExam && removeFromFinalExam && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                color={finalExamQuestions?.some(q => q.question === question.question) ? "warning" : "secondary"}
+                                variant="light"
+                                onPress={() => {
+                                  const isInFinalExam = finalExamQuestions?.some(q => q.question === question.question);
+                                  if (isInFinalExam) {
+                                    removeFromFinalExam(activityIndex, questionIndex);
+                                  } else {
+                                    addToFinalExam(activityIndex, questionIndex);
+                                  }
+                                }}
+                              >
+                                {finalExamQuestions?.some(q => q.question === question.question) 
+                                  ? (lang === "en" ? "Remove from Final" : "ከመጨረሻ አስወግድ")
+                                  : (lang === "en" ? "Add to Final" : "ወደ መጨረሻ ጨምር")
+                                }
+                              </Button>
+                            )}
+                            {updateQuestion && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                color="primary"
+                                variant="light"
+                                onPress={() =>
+                                  setEditingQuestion({
+                                    activityIndex,
+                                    questionIndex,
+                                  })
+                                }
+                              >
+                                <Edit className="size-4" />
+                              </Button>
+                            )}
+                            <Button
+                              type="button"
+                              size="sm"
+                              color="danger"
+                              variant="light"
+                              onPress={() => {
+                                const confirmMessage =
+                                  lang === "en"
+                                    ? "Are you sure you want to delete this question?"
+                                    : "ይህን ጥያቄ መሰረዝ እርግጠኛ ነዎት?";
+                                if (confirm(confirmMessage)) {
+                                  removeQuestion(activityIndex, questionIndex);
+                                }
+                              }}
+                            >
+                              <Trash className="size-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      }
+                      className="border border-warning-300 rounded-lg"
+                    >
+                      <div className="p-3">
                         {editingQuestion?.activityIndex === activityIndex &&
                         editingQuestion?.questionIndex === questionIndex &&
                         updateQuestion ? (
@@ -403,18 +478,18 @@ export default function ActivityManager({
                           />
                         ) : (
                           <>
-                            <p className="font-medium mb-2">
+                            <p className="font-medium mb-3">
                               {question.question}
                             </p>
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               {question.options.map((option, optionIndex) => (
                                 <div
                                   key={optionIndex}
-                                  className="flex items-center gap-2"
+                                  className="flex items-center gap-2 p-2 rounded bg-gray-50"
                                 >
                                   <div
                                     className={cn(
-                                      "w-2 h-2 rounded-full",
+                                      "w-3 h-3 rounded-full flex-shrink-0",
                                       question.answers.includes(option)
                                         ? "bg-success"
                                         : "bg-gray-300"
@@ -424,47 +499,18 @@ export default function ActivityManager({
                                 </div>
                               ))}
                             </div>
+                            {question.explanation && (
+                              <div className="mt-3 p-3 bg-blue-50 rounded text-sm">
+                                <span className="font-medium">{lang === "en" ? "Explanation: " : "ማብራሪያ: "}</span>
+                                {question.explanation}
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
-                      <div className="flex gap-1">
-                        {updateQuestion && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            color="primary"
-                            variant="light"
-                            onPress={() =>
-                              setEditingQuestion({
-                                activityIndex,
-                                questionIndex,
-                              })
-                            }
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          size="sm"
-                          color="danger"
-                          variant="light"
-                          onPress={() => {
-                            const confirmMessage =
-                              lang === "en"
-                                ? "Are you sure you want to delete this question?"
-                                : "ይህን ጥያቄ መሰረዝ እርግጠኛ ነዎት?";
-                            if (confirm(confirmMessage)) {
-                              removeQuestion(activityIndex, questionIndex);
-                            }
-                          }}
-                        >
-                          <Trash className="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </div>
             </div>
           </AccordionItem>
@@ -534,6 +580,7 @@ function QuestionForm({
   const [question, setQuestion] = useState("");
   const [options, setOptions] = useState(["", ""]);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [explanation, setExplanation] = useState("");
 
   const addOption = () => setOptions([...options, ""]);
   const removeOption = (index: number) =>
@@ -561,39 +608,59 @@ function QuestionForm({
 
     if (lines.length >= 3) {
       e.preventDefault();
-      const [questionText, ...optionLines] = lines;
+      const [questionText, ...remainingLines] = lines;
 
-      // Find answer indicators (*, correct, ✓, or በአማርኛ "ትክክል")
+      let explanationText = "";
+      let optionLines = remainingLines;
+      
+      const explanationIndex = remainingLines.findIndex(line => 
+        /ማብራሪያ/i.test(line) || /explanation/i.test(line)
+      );
+      
+      if (explanationIndex !== -1) {
+        const explanationLine = remainingLines[explanationIndex];
+        explanationText = explanationLine
+          .replace(/^.*?(ማብራሪያ|explanation)\s*[:：]?\s*/i, "")
+          .trim();
+        
+        if (!explanationText && explanationIndex + 1 < remainingLines.length) {
+          explanationText = remainingLines.slice(explanationIndex + 1).join(" ").trim();
+        }
+        
+        optionLines = remainingLines.slice(0, explanationIndex);
+      }
+
       const newOptions: string[] = [];
       const newAnswers: string[] = [];
 
       optionLines.forEach((line) => {
-        let optionText = line;
-        let isCorrect = false;
-
-        // Check for answer indicators
-        if (
-          line.startsWith("*") ||
-          line.toLowerCase().includes("correct") ||
-          line.toLowerCase().includes("መልስ") ||
-          line.toLowerCase().includes("Answer") ||
-          line.includes("✓") ||
-          line.includes("ትክክል")
-        ) {
-          isCorrect = true;
-          optionText = line
-            .replace(/^\*/, "")
-            .replace(/\s*(correct|✓|ትክክል|Answer|መልስ)\s*/gi, "")
+        // Check if line contains answer with colon pattern
+        const answerMatch = line.match(/(መልስ\s*[:：]\s*)(.+)/);
+        
+        if (answerMatch) {
+          // Extract answer from "መልስ: answer" pattern
+          const answerText = answerMatch[2]
+            .replace(/^[0-9A-Za-z\u1200-\u137F][.)\s]+/, "")
             .trim();
-        }
+          if (answerText && !newAnswers.includes(answerText)) {
+            newAnswers.push(answerText);
+          }
+        } else {
+          // Regular option line
+          const isCorrect = /^\*|correct|answer|✓|ትክክል/i.test(line);
+          
+          const optionText = line
+            .replace(/^\*/, "")
+            .replace(/\s*(correct|✓|ትክክል|answer)\s*/gi, "")
+            .replace(/^[0-9A-Za-z][.)\s]+/, "")
+            .replace(/^[ሀለሐመሠረሰሸቀበተቸኀነኘአከወዘየደገጠጨጰጸፀፈፐ][.)\s]+/, "")
+            .trim();
 
-        // Remove option numbering (1., 2., A., B., etc.)
-        optionText = optionText.replace(/^[0-9A-Za-z][.)\s]+/, "").trim();
-
-        if (optionText) {
-          newOptions.push(optionText);
-          if (isCorrect) {
-            newAnswers.push(optionText);
+          if (optionText && !newOptions.includes(optionText)) {
+            newOptions.push(optionText);
+            if (isCorrect) {
+              newAnswers.push(optionText);
+            }
           }
         }
       });
@@ -601,6 +668,7 @@ function QuestionForm({
       setQuestion(questionText);
       setOptions(newOptions.length >= 2 ? newOptions : ["", ""]);
       setAnswers(newAnswers);
+      setExplanation(explanationText);
     }
   };
 
@@ -614,10 +682,12 @@ function QuestionForm({
         question,
         options: options.filter((o) => o),
         answers,
+        explanation: explanation || undefined,
       });
       setQuestion("");
       setOptions(["", ""]);
       setAnswers([]);
+      setExplanation("");
       setIsOpen(false);
     }
   };
@@ -643,8 +713,8 @@ function QuestionForm({
             onPaste={handlePaste}
             placeholder={
               lang === "en"
-                ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል'"
-                : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ያመልክቱ"
+                ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል' or 'መልስ:'. Add explanation with 'ማብራሪያ:'"
+                : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ወይም 'መልስ:' ያመልክቱ። ማብራሪያ ለመጨመር 'ማብራሪያ:' ይጠቀሙ"
             }
           />
 
@@ -700,6 +770,13 @@ function QuestionForm({
               </div>
             ))}
           </div>
+
+          <CTextarea
+            label={lang === "en" ? "Explanation (Optional)" : "ማብራሪያ (አማራጭ)"}
+            value={explanation}
+            onChange={(e) => setExplanation(e.target.value)}
+            placeholder={lang === "en" ? "Optional explanation for the answer" : "ለመልሱ አማራጭ ማብራሪያ"}
+          />
 
           <div className="flex gap-2">
             <Button
@@ -788,6 +865,7 @@ function QuestionEditForm({
   const [question, setQuestion] = useState(initialQuestion.question);
   const [options, setOptions] = useState([...initialQuestion.options]);
   const [answers, setAnswers] = useState([...initialQuestion.answers]);
+  const [explanation, setExplanation] = useState(initialQuestion.explanation || "");
 
   const addOption = () => setOptions([...options, ""]);
   const removeOption = (index: number) => {
@@ -825,39 +903,59 @@ function QuestionEditForm({
 
     if (lines.length >= 3) {
       e.preventDefault();
-      const [questionText, ...optionLines] = lines;
+      const [questionText, ...remainingLines] = lines;
 
-      // Find answer indicators (*, correct, ✓, or በአማርኛ "ትክክል")
+      let explanationText = "";
+      let optionLines = remainingLines;
+      
+      const explanationIndex = remainingLines.findIndex(line => 
+        /ማብራሪያ/i.test(line) || /explanation/i.test(line)
+      );
+      
+      if (explanationIndex !== -1) {
+        const explanationLine = remainingLines[explanationIndex];
+        explanationText = explanationLine
+          .replace(/^.*?(ማብራሪያ|explanation)\s*[:：]?\s*/i, "")
+          .trim();
+        
+        if (!explanationText && explanationIndex + 1 < remainingLines.length) {
+          explanationText = remainingLines.slice(explanationIndex + 1).join(" ").trim();
+        }
+        
+        optionLines = remainingLines.slice(0, explanationIndex);
+      }
+
       const newOptions: string[] = [];
       const newAnswers: string[] = [];
 
       optionLines.forEach((line) => {
-        let optionText = line;
-        let isCorrect = false;
-
-        // Check for answer indicators
-        if (
-          line.startsWith("*") ||
-          line.toLowerCase().includes("correct") ||
-          line.toLowerCase().includes("መልስ") ||
-          line.toLowerCase().includes("Answer") ||
-          line.includes("✓") ||
-          line.includes("ትክክል")
-        ) {
-          isCorrect = true;
-          optionText = line
-            .replace(/^\*/, "")
-            .replace(/\s*(correct|✓|ትክክል|Answer|መልስ)\s*/gi, "")
+        // Check if line contains answer with colon pattern
+        const answerMatch = line.match(/(መልስ\s*[:：]\s*)(.+)/);
+        
+        if (answerMatch) {
+          // Extract answer from "መልስ: answer" pattern
+          const answerText = answerMatch[2]
+            .replace(/^[0-9A-Za-z\u1200-\u137F][.)\s]+/, "")
             .trim();
-        }
+          if (answerText && !newAnswers.includes(answerText)) {
+            newAnswers.push(answerText);
+          }
+        } else {
+          // Regular option line
+          const isCorrect = /^\*|correct|answer|✓|ትክክል/i.test(line);
+          
+          const optionText = line
+            .replace(/^\*/, "")
+            .replace(/\s*(correct|✓|ትክክል|answer)\s*/gi, "")
+            .replace(/^[0-9A-Za-z][.)\s]+/, "")
+            .replace(/^[ሀለሐመሠረሰሸቀበተቸኀነኘአከወዘየደገጠጨጰጸፀፈፐ][.)\s]+/, "")
+            .trim();
 
-        // Remove option numbering (1., 2., A., B., etc.)
-        optionText = optionText.replace(/^[0-9A-Za-z][.)\s]+/, "").trim();
-
-        if (optionText) {
-          newOptions.push(optionText);
-          if (isCorrect) {
-            newAnswers.push(optionText);
+          if (optionText && !newOptions.includes(optionText)) {
+            newOptions.push(optionText);
+            if (isCorrect) {
+              newAnswers.push(optionText);
+            }
           }
         }
       });
@@ -865,6 +963,7 @@ function QuestionEditForm({
       setQuestion(questionText);
       setOptions(newOptions.length >= 2 ? newOptions : ["", ""]);
       setAnswers(newAnswers);
+      setExplanation(explanationText);
     }
   };
 
@@ -878,6 +977,7 @@ function QuestionEditForm({
         question,
         options: options.filter((o) => o),
         answers,
+        explanation: explanation || undefined,
       });
     }
   };
@@ -891,8 +991,8 @@ function QuestionEditForm({
         onPaste={handlePaste}
         placeholder={
           lang === "en"
-            ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል'"
-            : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ያመልክቱ"
+            ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል' or 'መልስ:'. Add explanation with 'ማብራሪያ:'"
+            : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ወይም 'መልስ:' ያመልክቱ። ማብራሪያ ለመጨመር 'ማብራሪያ:' ይጠቀሙ"
         }
       />
 
@@ -939,6 +1039,13 @@ function QuestionEditForm({
           </div>
         ))}
       </div>
+
+      <CTextarea
+        label={lang === "en" ? "Explanation (Optional)" : "ማብራሪያ (አማራጭ)"}
+        value={explanation}
+        onChange={(e) => setExplanation(e.target.value)}
+        placeholder={lang === "en" ? "Optional explanation for the answer" : "ለመልሱ አማራጭ ማብራሪያ"}
+      />
 
       <div className="flex gap-2">
         <Button type="button" variant="light" onPress={onCancel}>

@@ -102,6 +102,7 @@ export const courseSchema = z.object({
           question: z.string({ message: "" }).nonempty("question is required"),
           options: z.array(z.string()).min(2, "at least 2 options required"),
           answers: z.array(z.string()).min(1, "at least 1 answer required"),
+          explanation: z.string().optional(),
         })
       ).optional(),
     })
@@ -109,4 +110,12 @@ export const courseSchema = z.object({
   // .nonempty("activity is required"),
   instructorId: z.string({ message: "" }).nonempty("instructor is required"),
   channelId: z.string({ message: "" }).nonempty("channel is required"),
+  finalExamQuestions: z.array(
+    z.object({
+      question: z.string({ message: "" }).nonempty("question is required"),
+      options: z.array(z.string()).min(2, "at least 2 options required"),
+      answers: z.array(z.string()).min(1, "at least 1 answer required"),
+      explanation: z.string().optional(),
+    })
+  ).optional(),
 });
