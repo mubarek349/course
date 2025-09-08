@@ -160,11 +160,11 @@ PlayerProps) {
         onMouseEnter={() => !isMobile && setShowControls(true)}
         onMouseLeave={() => !isMobile && setShowControls(false)}
         className={cn(
-          "relative bg-green-500 max-md:w-full",
+          "relative max-md:w-full",
           isFullscreen ? "md:w-full" : "md:w-[70%]"
         )}
       >
-        <video 
+        <video
           ref={videoRef}
           src={currentSrc}
           width="100%"

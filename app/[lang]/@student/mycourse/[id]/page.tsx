@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   PanelRightOpen,
   PlayCircle,
@@ -35,6 +35,8 @@ function CourseContent({
   lang: string;
   currentVideoUrl: string;
 }) {
+  const router = useRouter();
+
   if (contentLoading) {
     return (
       <div className="w-full p-4 space-y-4 pt-16">
@@ -122,6 +124,18 @@ function CourseContent({
                   </li>
                 );
               })}
+
+              {activity.hasQuiz && (
+                <li
+                  onClick={() =>
+                    router.push(`/${lang}/activity/${activity.id}`)
+                  }
+                  className="flex items-center gap-2 cursor-pointer p-3 rounded hover:bg-primary-100"
+                >
+                  <Sparkles className="text-purple-500" />
+                  <span>{lang === "en" ? "Quiz" : "ፈተና"}</span>
+                </li>
+              )}
             </ul>
           </AccordionItem>
         ))}
