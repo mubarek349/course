@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   PanelRightOpen,
+  PanelRightClose,
   PlayCircle,
   CheckCircle2,
   Sparkles,
@@ -263,7 +264,7 @@ export default function Page() {
           </div>
           {isSidebarOpen && (
             <aside className="hidden md:block w-[30rem] border-l h-full overflow-y-auto">
-              <CourseContentSidebar
+              <CourseContent
                 contentData={contentData}
                 contentLoading={contentLoading}
                 onSelectVideo={handleSelectVideo}
