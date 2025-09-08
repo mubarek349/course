@@ -38,7 +38,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { useState } from "react";
-// import { getInstructorsList } from "@/lib/data/instructor";
 
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
@@ -47,6 +46,7 @@ export default function Page() {
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [subActivityVideos, setSubActivityVideos] = useState<{[key: string]: File}>({});
   const id = params?.id ?? "",
     pathname = usePathname(),
     router = useRouter(),
@@ -106,7 +106,7 @@ export default function Page() {
         : isEditing
         ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
         : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
-    onSuccess({ status }) {
+    onSuccess({ status }: { status: boolean }) {
       if (status) {
         setTimeout(() => {
           router.push(
@@ -137,10 +137,7 @@ export default function Page() {
     args: [id ? (typeof id === "object" ? id[0] : id) : "unknown"],
     onSuccess(data) {
       if (data) {
-        // Set the course ID for updates
         setValue("id", data.id);
-
-        // Set all other fields
         getEntries(data).forEach(([name, value]) => {
           if (value !== null && value !== undefined && name !== "id") {
             setValue(
@@ -149,8 +146,6 @@ export default function Page() {
             );
           }
         });
-
-        // Ensure video field is properly set
         if (data.video) {
           setValue(
             "video",
@@ -163,54 +158,103 @@ export default function Page() {
     },
   });
 
-  const handleVideoSelect = async (file: File) => {
+  const handleVideoSelect = (file: File) => {
     setSelectedVideoFile(file);
+    setValue("video", file.name);
+    setValue("thumbnail", "/darulkubra.png");
+  };
+
+  const handleFormSubmit = async (data: TCourse) => {
     setIsUploading(true);
-
     try {
-      const formData = new FormData();
-      formData.append("video", file);
+      if (selectedVideoFile) {
+        const ext = selectedVideoFile.name.split(".").pop() || "mp4";
+        const uuidName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
+        const CHUNK_SIZE = 512 * 1024;
+        const chunkSize = CHUNK_SIZE;
+        const total = Math.ceil(selectedVideoFile.size / chunkSize);
 
-      const response = await fetch("/api/upload-video", {
-        method: "POST",
-        body: formData,
-      });
+        for (let i = 0; i < total; i++) {
+          const start = i * chunkSize;
+          const end = Math.min(selectedVideoFile.size, start + chunkSize);
+          const chunk = selectedVideoFile.slice(start, end);
 
-      if (response.ok) {
-        const result = await response.json();
-        setValue("video", result.filename);
-        setValue("thumbnail", "/darulkubra.png"); // Set default thumbnail
-      } else {
-        alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
-        setSelectedVideoFile(null);
+          const formData = new FormData();
+          formData.append("chunk", chunk);
+          formData.append("filename", uuidName);
+          formData.append("chunkIndex", i.toString());
+          formData.append("totalChunks", total.toString());
+
+          await fetch("/api/upload-video", {
+            method: "POST",
+            body: formData,
+          });
+        }
+        data.video = uuidName.replace(/\.[^/.]+$/, "") + ".mp4";
       }
+
+      for (let activityIndex = 0; activityIndex < data.activity.length; activityIndex++) {
+        const activity = data.activity[activityIndex];
+        for (let subIndex = 0; subIndex < activity.subActivity.length; subIndex++) {
+          const sub = activity.subActivity[subIndex];
+          if (sub.video && sub.video.startsWith('blob:')) {
+            const videoFile = subActivityVideos[`${activityIndex}-${subIndex}`];
+            if (videoFile) {
+              const ext = videoFile.name.split(".").pop() || "mp4";
+              const uuidName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.${ext}`;
+              const chunkSize = 512 * 1024;
+              const total = Math.ceil(videoFile.size / chunkSize);
+
+              for (let i = 0; i < total; i++) {
+                const start = i * chunkSize;
+                const end = Math.min(videoFile.size, start + chunkSize);
+                const chunk = videoFile.slice(start, end);
+
+                const formData = new FormData();
+                formData.append("chunk", chunk);
+                formData.append("filename", uuidName);
+                formData.append("chunkIndex", i.toString());
+                formData.append("totalChunks", total.toString());
+
+                await fetch("/api/upload-video", {
+                  method: "POST",
+                  body: formData,
+                });
+              }
+              data.activity[activityIndex].subActivity[subIndex].video = `/api/videos/${uuidName.replace(/\.[^/.]+$/, "") + ".mp4"}`;
+            }
+          }
+        }
+      }
+      await action(data);
     } catch (error) {
       console.error("Upload error:", error);
-      alert(lang === "en" ? "Upload error" : "የመስቀል ስህተት");
-      setSelectedVideoFile(null);
+      throw new Error(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleVideoRemove = () => {
-    setSelectedVideoFile(null);
-    setValue("video", "");
-    setValue("thumbnail", "");
+    const confirmMessage = lang === "en" 
+      ? "Are you sure you want to delete this video?"
+      : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
+    if (confirm(confirmMessage)) {
+      setSelectedVideoFile(null);
+      setValue("video", "");
+      setValue("thumbnail", "");
+    }
   };
 
   const handleThumbnailSelect = async (file: File) => {
     setIsThumbnailUploading(true);
-
     try {
       const formData = new FormData();
       formData.append("thumbnail", file);
-
       const response = await fetch("/api/upload-thumbnail", {
         method: "POST",
         body: formData,
       });
-
       if (response.ok) {
         const result = await response.json();
         setValue("thumbnail", result.thumbnailUrl);
@@ -229,7 +273,6 @@ export default function Page() {
     setValue("thumbnail", "");
   };
 
-  // console.log(formState.errors);
   const formProgress = [
     {
       label: lang === "en" ? "Basic Info" : "መሰረታዊ መረጃ",
@@ -256,7 +299,6 @@ export default function Page() {
     channels && (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-2 sm:px-4 lg:px-6 py-4 pb-20 overflow-y-auto">
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-          {/* Header */}
           <Card className="shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex items-center gap-3 flex-1">
@@ -295,14 +337,13 @@ export default function Page() {
           </Card>
 
           <Form
-            onSubmit={handleSubmit(action)}
+            onSubmit={handleSubmit(handleFormSubmit)}
             validationErrors={Object.entries(formState.errors).reduce(
               (a, [key, value]) => ({ ...a, [key]: value.message }),
               {}
             )}
             className="space-y-6"
           >
-            {/* Basic Information Section */}
             <Card className="shadow-sm">
               <CardHeader className="flex gap-2 sm:gap-3 p-4 sm:p-6">
                 <BookOpen className="size-5 sm:size-6 text-primary flex-shrink-0" />
@@ -335,7 +376,7 @@ export default function Page() {
                 <CourseBasicInfo lang={lang} register={register} />
               </CardBody>
             </Card>
-            {/* Target Audience & Requirements */}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <Card className="shadow-sm">
                 <CardHeader className="flex gap-2 sm:gap-3 p-4 sm:p-6">
@@ -365,6 +406,14 @@ export default function Page() {
                       setValue(
                         "courseFor",
                         watch("courseFor").filter((v, i) => i !== index)
+                      )
+                    }
+                    updateValue={(index, { en, am }) =>
+                      setValue(
+                        "courseFor",
+                        watch("courseFor").map((item, i) =>
+                          i === index ? { courseForEn: en, courseForAm: am } : item
+                        )
                       )
                     }
                     label={
@@ -414,6 +463,14 @@ export default function Page() {
                         watch("requirement").filter((v, i) => i !== index)
                       )
                     }
+                    updateValue={(index, { en, am }) =>
+                      setValue(
+                        "requirement",
+                        watch("requirement").map((item, i) =>
+                          i === index ? { requirementEn: en, requirementAm: am } : item
+                        )
+                      )
+                    }
                     label={lang === "en" ? "Add Requirement" : "መስፈርት ጨምር"}
                     placeHolderAm={
                       lang === "en" ? "Requirement in Amharic" : "መስፈርት በአማርኛ"
@@ -425,10 +482,11 @@ export default function Page() {
                 </CardBody>
               </Card>
             </div>
-            {/* Activities Section */}
+
             <ActivityManager
               errorMessage={formState.errors.activity?.message ?? ""}
               list={watch("activity")}
+
               addActivity={(v) =>
                 setValue("activity", [
                   {
@@ -515,6 +573,8 @@ export default function Page() {
                   }))
                 )
               }
+
+
               addQuestion={(activityIndex, question) =>
                 setValue(
                   "activity",
@@ -541,9 +601,45 @@ export default function Page() {
                   }))
                 )
               }
+              updateActivity={(activityIndex, payload) =>
+                setValue(
+                  "activity",
+                  watch("activity").map((activity, index) =>
+                    index === activityIndex
+                      ? { ...activity, titleEn: payload.en, titleAm: payload.am }
+                      : activity
+                  )
+                )
+              }
+              updateSubActivity={(activityIndex, subActivityIndex, payload) =>
+                setValue(
+                  "activity",
+                  watch("activity").map((activity, aIndex) => ({
+                    ...activity,
+                    subActivity: activity.subActivity.map((sub, sIndex) =>
+                      aIndex === activityIndex && sIndex === subActivityIndex
+                        ? { ...sub, titleEn: payload.en, titleAm: payload.am }
+                        : sub
+                    ),
+                  }))
+                )
+              }
+              updateQuestion={(activityIndex, questionIndex, question) =>
+                setValue(
+                  "activity",
+                  watch("activity").map((activity, index) => ({
+                    ...activity,
+                    questions:
+                      index === activityIndex
+                        ? (activity.questions || []).map((q, i) =>
+                            i === questionIndex ? question : q
+                          )
+                        : activity.questions || [],
+                  }))
+                )
+              }
             />
 
-            {/* Settings Section */}
             <Card className="shadow-sm">
               <CardHeader className="flex gap-3">
                 <Settings className="size-6 text-primary" />
@@ -569,7 +665,6 @@ export default function Page() {
               </CardBody>
             </Card>
 
-            {/* Action Buttons */}
             <Card className="shadow-sm">
               <CardBody>
                 <div className="flex gap-4 justify-end">

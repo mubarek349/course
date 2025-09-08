@@ -89,6 +89,10 @@ export async function getMySingleCourse(studentId: string, courseId: string) {
         id: true,
         titleEn: true,
         titleAm: true,
+        aboutEn: true,
+        aboutAm: true,
+        requirement: true,
+        courseFor: true,
         video: true,
         price: true,
         thumbnail: true,
@@ -169,6 +173,11 @@ export async function getMySingleCourseContent(
         titleEn: true,
         titleAm: true,
         video: true,
+        requirement: true,
+        courseFor: true,
+        aboutEn: true,
+        aboutAm: true,
+        level: true,
         activity: {
           orderBy: { order: "asc" },
           select: {
@@ -176,9 +185,10 @@ export async function getMySingleCourseContent(
             titleEn: true,
             titleAm: true,
             order: true,
-            // question: {
-            //   select: { question: true, questionOptions: true },
-            // },
+            question: {
+              select: { question: true, questionOptions: true },
+              take: 1,
+            },
             subActivity: {
               orderBy: { order: "asc" },
               select: {
@@ -199,11 +209,37 @@ export async function getMySingleCourseContent(
     }
 
     // Convert Decimal fields to numbers
-    return {
+    const fuad = {
       ...course,
+      activity: course.activity.map((act) => ({
+        ...act,
+        hasQuiz: Array.isArray(act.question)
+          ? act.question.length > 0
+          : !!act.question,
+      })),
     };
+    console.log(fuad);
+    return fuad;
   } catch (error) {
     console.error("Error fetching single course:", error);
+    return null;
+  }
+}
+
+export async function getActivityQuiz(activityId: string) {
+  try {
+    const quiz = await prisma.question.findMany({
+      where: { activityId },
+      select: {
+        id: true,
+        question: true,
+        questionOptions: true,
+      },
+      // orderBy: { createdAt: "asc" },
+    });
+    return quiz.length > 0 ? quiz : null;
+  } catch (error) {
+    console.error("Error fetching activity quiz:", error);
     return null;
   }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CInput } from "@/components/heroui";
 import { Button } from "@heroui/react";
-import { Plus, Trash } from "lucide-react";
+import { Plus, Trash, Edit } from "lucide-react";
 import { useState } from "react";
 
 type TInput = {
@@ -13,6 +13,7 @@ export default function CourseFor({
   list,
   addValue,
   removeValue,
+  updateValue,
   label,
   placeHolderEn,
   placeHolderAm,
@@ -20,11 +21,13 @@ export default function CourseFor({
   list: Array<object>;
   addValue: (payload: TInput) => void;
   removeValue: (index: number) => void;
+  updateValue?: (index: number, payload: TInput) => void;
   label?: string;
   placeHolderAm?: string;
   placeHolderEn?: string;
 }) {
   const [input, setInput] = useState<TInput>({ am: "", en: "" });
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   return (
     <div className="p-1 rounded-xl overflow-hidden grid gap-2">
@@ -79,22 +82,100 @@ export default function CourseFor({
             key={index + ""}
             className="bg-primary/20 rounded-xl grid md:grid-cols-[1fr_auto]"
           >
-            <div className="md:px-2 grid divide-y divide-primary/50">
-              {Object.values(value).map((v, i) => (
-                <p key={i + ""} className="p-2 pl-5 ">
-                  {v}
-                </p>
-              ))}
-            </div>
-            <Button
-              onPress={() => removeValue(index)}
-              color="danger"
-              className="md:h-full md:aspect-square max-md:rounded-t-none md:rounded-l-none"
-            >
-              <Trash className="size-5" />
-            </Button>
+            {editingIndex === index && updateValue ? (
+              <EditForm
+                initialValues={{
+                  am: Object.values(value)[1] as string,
+                  en: Object.values(value)[0] as string,
+                }}
+                onSave={(values) => {
+                  updateValue(index, values);
+                  setEditingIndex(null);
+                }}
+                onCancel={() => setEditingIndex(null)}
+                placeHolderAm={placeHolderAm}
+                placeHolderEn={placeHolderEn}
+              />
+            ) : (
+              <>
+                <div className="md:px-2 grid divide-y divide-primary/50">
+                  {Object.values(value).map((v, i) => (
+                    <p key={i + ""} className="p-2 pl-5 ">
+                      {v}
+                    </p>
+                  ))}
+                </div>
+                <div className="flex flex-col md:flex-row">
+                  {updateValue && (
+                    <Button
+                      onPress={() => setEditingIndex(index)}
+                      color="primary"
+                      variant="light"
+                      className="md:h-full md:aspect-square max-md:rounded-b-none md:rounded-r-none"
+                    >
+                      <Edit className="size-4" />
+                    </Button>
+                  )}
+                  <Button
+                    onPress={() => removeValue(index)}
+                    color="danger"
+                    className="md:h-full md:aspect-square max-md:rounded-t-none md:rounded-l-none"
+                  >
+                    <Trash className="size-5" />
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function EditForm({
+  initialValues,
+  onSave,
+  onCancel,
+  placeHolderEn,
+  placeHolderAm,
+}: {
+  initialValues: TInput;
+  onSave: (values: TInput) => void;
+  onCancel: () => void;
+  placeHolderEn?: string;
+  placeHolderAm?: string;
+}) {
+  const [values, setValues] = useState<TInput>(initialValues);
+
+  return (
+    <div className="p-3 space-y-2">
+      <CInput
+        placeholder={placeHolderAm}
+        value={values.am}
+        onChange={({ target }) =>
+          setValues((prev) => ({ ...prev, am: target.value }))
+        }
+      />
+      <CInput
+        placeholder={placeHolderEn}
+        value={values.en}
+        onChange={({ target }) =>
+          setValues((prev) => ({ ...prev, en: target.value }))
+        }
+      />
+      <div className="flex gap-2">
+        <Button size="sm" variant="light" onPress={onCancel}>
+          Cancel
+        </Button>
+        <Button 
+          size="sm"
+          color="primary" 
+          onPress={() => onSave(values)}
+          isDisabled={!values.am || !values.en}
+        >
+          Save
+        </Button>
       </div>
     </div>
   );

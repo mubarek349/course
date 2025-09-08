@@ -39,7 +39,7 @@ function Upload() {
       formData.append("chunkIndex", i.toString());
       formData.append("totalChunks", total.toString());
 
-      await fetch("/api/upload", {
+      await fetch("/api/upload-video", {
         method: "POST",
         body: formData,
       });

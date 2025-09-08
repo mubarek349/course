@@ -15,6 +15,7 @@ interface VideoUploadButtonProps {
   selectedVideo?: File | null;
   lang: string;
   disabled?: boolean;
+  showExternalProgress?: boolean;
 }
 
 export default function VideoUploadButton({
@@ -23,6 +24,7 @@ export default function VideoUploadButton({
   selectedVideo,
   lang,
   disabled = false,
+  showExternalProgress = false,
 }: VideoUploadButtonProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +39,6 @@ export default function VideoUploadButton({
     const uuidName = getTimestampUUID(ext);
     setUuidFilename(uuidName);
 
-    setIsUploading(true);
     const chunkSize = CHUNK_SIZE;
     const total = Math.ceil(file.size / chunkSize);
     setTotalChunks(total);
@@ -53,7 +54,7 @@ export default function VideoUploadButton({
       formData.append("chunkIndex", i.toString());
       formData.append("totalChunks", total.toString());
 
-      await fetch("/api/upload", {
+      await fetch("/api/upload-video", {
         method: "POST",
         body: formData,
       });
@@ -68,10 +69,11 @@ export default function VideoUploadButton({
     setTotalChunks(0);
   };
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     if (file.type.startsWith("video/")) {
+      setIsUploading(true);
       onVideoSelect(file);
-      handleChunkedUpload(file);
+      await handleChunkedUpload(file);
     } else {
       alert(
         lang === "en" ? "Please select a video file" : "እባክዎ የቪዲዮ ፋይል ይምረጡ"
@@ -117,39 +119,49 @@ export default function VideoUploadButton({
         disabled={disabled || isUploading}
       />
 
-      {selectedVideo ? (
+      {selectedVideo || isUploading ? (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/30 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Video className="w-8 h-8 text-primary" />
-              <div>
-                <p className="font-medium text-sm">{selectedVideo.name}</p>
-                <p className="text-xs text-gray-500">
-                  {formatFileSize(selectedVideo.size)}
-                </p>
-                {uuidFilename && (
-                  <p className="text-xs text-gray-400">
-                    <strong>
-                      {lang === "en" ? "Upload filename:" : "የስቀል ፋይል ስም:"}
-                    </strong>{" "}
-                    {uuidFilename}
+          {selectedVideo && (
+            <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Video className="w-8 h-8 text-primary" />
+                <div>
+                  <p className="font-medium text-sm">{selectedVideo.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatFileSize(selectedVideo.size)}
                   </p>
-                )}
+                  {uuidFilename && (
+                    <p className="text-xs text-gray-400">
+                      <strong>
+                        {lang === "en" ? "Upload filename:" : "የስቀል ፋይል ስም:"}
+                      </strong>{" "}
+                      {uuidFilename}
+                    </p>
+                  )}
+                </div>
               </div>
+              <CButton
+                isIconOnly
+                size="sm"
+                variant="light"
+                color="danger"
+                onClick={() => {
+                  const confirmMessage =
+                    lang === "en"
+                      ? "Are you sure you want to delete this video?"
+                      : "ይህን ቪዲዮ መሰረዝ እርግጠኛ ነዎት?";
+                  if (confirm(confirmMessage)) {
+                    onVideoRemove();
+                  }
+                }}
+                disabled={disabled || isUploading}
+              >
+                <X className="w-4 h-4" />
+              </CButton>
             </div>
-            <CButton
-              isIconOnly
-              size="sm"
-              variant="light"
-              color="danger"
-              onClick={onVideoRemove}
-              disabled={disabled || isUploading}
-            >
-              <X className="w-4 h-4" />
-            </CButton>
-          </div>
-          {isUploading && (
-            <div className="flex flex-col gap-2 px-4">
+          )}
+          {isUploading && !showExternalProgress && (
+            <div className="flex flex-col gap-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-primary font-medium">
                   {lang === "en" ? "Uploading" : "ስቀል በሂደት ላይ"}:{" "}
@@ -165,18 +177,27 @@ export default function VideoUploadButton({
                 max={100}
                 className="w-full h-2 rounded bg-gray-200"
               />
+              {selectedVideo && (
+                <p className="text-xs text-gray-600">
+                  {lang === "en" ? "Uploading" : "የሚስቀል"}: {selectedVideo.name}
+                </p>
+              )}
             </div>
           )}
         </div>
       ) : (
         <div
           className={`
-            relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
-            ${isDragOver ? "border-primary bg-primary/5" : "border-primary/30"}
+            relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300
+            ${
+              isDragOver
+                ? "border-primary-500 bg-primary-50 shadow-lg scale-105"
+                : "border-primary-300 hover:border-primary-400 hover:bg-primary-25"
+            }
             ${
               disabled || isUploading
                 ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer hover:border-primary hover:bg-primary/5"
+                : "cursor-pointer"
             }
           `}
           onDrop={handleDrop}
@@ -186,23 +207,49 @@ export default function VideoUploadButton({
             !disabled && !isUploading && fileInputRef.current?.click()
           }
         >
-          <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">
-            {lang === "en" ? "Upload Video" : "ቪዲዮ ይስቀሉ"}
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">
-            {lang === "en"
-              ? "Drag and drop your video file here, or click to browse"
-              : "የቪዲዮ ፋይልዎን እዚህ ይጎትቱ እና ይጣሉ፣ ወይም ለማሰስ ይጫኑ"}
-          </p>
-          <CButton
-            color="primary"
-            variant="flat"
-            startContent={<Upload className="w-4 h-4" />}
-            disabled={disabled || isUploading}
-          >
-            {lang === "en" ? "Choose File" : "ፋይል ይምረጡ"}
-          </CButton>
+          <div className="flex flex-col items-center space-y-4">
+            <div
+              className={`p-4 rounded-full transition-colors ${
+                isDragOver ? "bg-primary-100" : "bg-primary-50"
+              }`}
+            >
+              <Upload className="w-8 h-8 text-primary-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {isUploading
+                  ? lang === "en"
+                    ? "Uploading..."
+                    : "የሚስቀል..."
+                  : lang === "en"
+                  ? "Upload Course Video"
+                  : "የኮርስ ቪዲዮ ይስቀሉ"}
+              </h3>
+              <p className="text-sm text-gray-600 max-w-sm mx-auto leading-relaxed">
+                {lang === "en"
+                  ? "Drag and drop your video file here to upload"
+                  : "የቪዲዮ ፋይልዎን እዚህ ይጎትቱ እና ይጣሉ"}
+              </p>
+            </div>
+            <div className="flex flex-col items-center space-y-3">
+              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                <span className="px-2 py-1 bg-gray-100 rounded">
+                  {lang === "en" ? "MP4, AVI, MOV" : "MP4፣ AVI፣ MOV"}
+                </span>
+                <span>•</span>
+                <span>{lang === "en" ? "Max 100MB" : "ከ100MB በታች"}</span>
+              </div>
+              <CButton
+                color="primary"
+                variant="bordered"
+                size="md"
+                onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
+                disabled={disabled || isUploading}
+              >
+                {lang === "en" ? "Choose File" : "ፋይል ምረጥ"}
+              </CButton>
+            </div>
+          </div>
         </div>
       )}
     </div>

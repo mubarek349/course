@@ -1,49 +1,45 @@
 "use client";
 
-// import "./youtube.css";
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
-  ChartBarIncreasing,
-  Clock,
-  Languages,
-  Logs,
-  MonitorSmartphone,
-  ReceiptText,
   PanelRightOpen,
-  PanelRightClose,
   PlayCircle,
   CheckCircle2,
-  Menu,
+  Sparkles,
   X,
 } from "lucide-react";
-import { Accordion, AccordionItem, Skeleton } from "@heroui/react";
+import { Accordion, AccordionItem, Skeleton, Tabs, Tab } from "@heroui/react";
 
 import useData from "@/hooks/useData";
-import Content from "./content";
 import {
   getMySingleCourse,
   getMySingleCourseContent,
 } from "@/actions/student/mycourse";
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
-import CourseAbout from "@/components/courseAbout";
-import CourseMainDescription from "@/components/courseMainDescription";
-import CourseRequirement from "@/components/courseRequirement";
-import CourseFor from "@/components/courseFor";
 import CourseTopOverview from "@/components/courseTopOverview";
 import { useSession } from "next-auth/react";
 
-function CourseContentSidebar({
+// ---------------- COURSE CONTENT COMPONENT ----------------
+function CourseContent({
   contentData,
   contentLoading,
   onSelectVideo,
   lang,
   currentVideoUrl,
-}: any) {
+}: {
+  contentData: any;
+  contentLoading: boolean;
+  onSelectVideo: (url: string, title: string) => void;
+  lang: string;
+  currentVideoUrl: string;
+}) {
+  const router = useRouter();
+
   if (contentLoading) {
     return (
-      <div className="w-full p-4 space-y-4">
+      <div className="w-full p-4 space-y-4 pt-16">
         <Skeleton className="h-8 w-3/4 mb-4" />
         <div className="space-y-2">
           <Skeleton className="h-14 w-full" />
@@ -54,7 +50,7 @@ function CourseContentSidebar({
     );
   }
 
-  if (!Array.isArray(contentData) || contentData.length === 0) {
+  if (!contentData || !Array.isArray(contentData.activity)) {
     return (
       <div className="p-4 text-center text-gray-500">
         No course content available.
@@ -63,12 +59,37 @@ function CourseContentSidebar({
   }
 
   return (
-    <div className="w-full">
-      <h2 className="text-xl font-bold mb-4 px-4 pt-4">
-        {lang === "en" ? "Course Content" : "የትምህርት ይዘት"}
-      </h2>
+    <div className="w-full h-full flex flex-col">
+      {/* INTRODUCTION */}
+      <div
+        className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg m-2"
+        onClick={() =>
+          onSelectVideo(
+            contentData.video,
+            lang === "en" ? contentData.titleEn : contentData.titleAm
+          )
+        }
+      >
+        <h3 className="font-semibold text-lg mb-2">Introduction</h3>
+        <div className="flex items-center gap-3">
+          <PlayCircle
+            className={
+              currentVideoUrl === contentData.video
+                ? "text-primary"
+                : "text-gray-400"
+            }
+          />
+          <span
+            className={currentVideoUrl === contentData.video ? "font-bold" : ""}
+          >
+            {lang === "en" ? contentData.titleEn : contentData.titleAm}
+          </span>
+        </div>
+      </div>
+
+      {/* SECTIONS */}
       <Accordion selectionMode="multiple" defaultExpandedKeys={["0"]}>
-        {contentData.map((activity: any, index: number) => (
+        {contentData.activity.map((activity: any, index: number) => (
           <AccordionItem
             key={activity.id || index}
             aria-label={`Section ${index + 1}`}
@@ -91,7 +112,7 @@ function CourseContentSidebar({
                     className={`flex items-center gap-2 cursor-pointer p-3 rounded ${
                       isActive
                         ? "bg-primary-100 font-bold"
-                        : "hover:bg-gray-100"
+                        : "hover:bg-primary-100"
                     }`}
                   >
                     {isActive ? (
@@ -103,6 +124,18 @@ function CourseContentSidebar({
                   </li>
                 );
               })}
+
+              {activity.hasQuiz && (
+                <li
+                  onClick={() =>
+                    router.push(`/${lang}/activity/${activity.id}`)
+                  }
+                  className="flex items-center gap-2 cursor-pointer p-3 rounded hover:bg-primary-100"
+                >
+                  <Sparkles className="text-purple-500" />
+                  <span>{lang === "en" ? "Quiz" : "ፈተና"}</span>
+                </li>
+              )}
             </ul>
           </AccordionItem>
         ))}
@@ -111,6 +144,7 @@ function CourseContentSidebar({
   );
 }
 
+// ---------------- MAIN PAGE ----------------
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
@@ -133,9 +167,9 @@ export default function Page() {
     title: "",
   });
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (data?.video) {
       setCurrentVideo({
         url: data.video,
@@ -146,26 +180,63 @@ export default function Page() {
 
   const handleSelectVideo = (videoUrl: string, videoTitle: string) => {
     setCurrentVideo({ url: videoUrl, title: videoTitle });
-    setIsSidebarOpen(false); // Close sidebar on video selection
   };
 
+  // -------- MAIN CONTENT TABS --------
+  const courseTabs = [
+    // Course Content (mobile only)
+    {
+      id: "content",
+      label: lang === "en" ? "Course Content" : "የትምህርት ይዘት",
+      content: (
+        <CourseContent
+          contentData={contentData ?? null}
+          contentLoading={contentLoading}
+          onSelectVideo={handleSelectVideo}
+          lang={lang}
+          currentVideoUrl={currentVideo.url}
+        />
+      ),
+      className: "md:hidden", // hide on desktop
+    },
+    // AI Assistant (mobile only)
+    {
+      id: "ai",
+      label: "AI Assistant",
+      content: (
+        <div className="p-4 flex items-center gap-2">
+          <Sparkles className="text-purple-500" />
+          <span>AI Assistant coming soon.</span>
+        </div>
+      ),
+      // className: "md:hidden", // hide on desktop
+    },
+    // Q&A (always visible)
+    {
+      id: "q&a",
+      label: lang === "en" ? "Q&A" : "ጥያቄ እና መልስ",
+      content: <div className="p-4">Q&A section coming soon.</div>,
+    },
+  ];
+
   return (
-    <div className="h-dvh pt-16">
+    <div className="h-dvh">
       {loading ? (
         <Loading />
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="h-full">
-          <div className="overflow-y-auto relative h-full">
-            {/* Universal Toggle Button */}
+        <div className="flex h-full">
+          <div className="flex-1 overflow-y-auto relative">
             <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100"
-              aria-label="Open course content"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100 hidden md:block"
+              aria-label="Toggle course content"
             >
-              <Menu />
+              {isSidebarOpen ? <PanelRightClose /> : <PanelRightOpen />}
             </button>
+
+            {/* COURSE OVERVIEW WITH VIDEO */}
             <CourseTopOverview
               {...{
                 title: currentVideo.title,
@@ -174,33 +245,32 @@ export default function Page() {
                 video: currentVideo.url,
               }}
             />
-          </div>
-          {/* Universal Sidebar Overlay */}
-          {isSidebarOpen && (
-            <div className="fixed inset-0 z-50">
-              {/* Backdrop */}
-              <div
-                className="fixed inset-0 bg-black/50"
-                onClick={() => setIsSidebarOpen(false)}
-              ></div>
-              {/* Content */}
-              <div className="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-lg overflow-y-auto">
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="absolute top-4 right-4 z-10 p-2"
-                  aria-label="Close course content"
-                >
-                  <X />
-                </button>
-                <CourseContentSidebar
-                  contentData={contentData}
-                  contentLoading={contentLoading}
-                  onSelectVideo={handleSelectVideo}
-                  lang={lang}
-                  currentVideoUrl={currentVideo.url}
-                />
-              </div>
+
+            {/* COURSE TABS */}
+            <div className="p-4 md:p-8">
+              <Tabs aria-label="Course Information" items={courseTabs}>
+                {(item) => (
+                  <Tab
+                    key={item.id}
+                    title={item.label}
+                    className={item.className}
+                  >
+                    <div className="py-4">{item.content}</div>
+                  </Tab>
+                )}
+              </Tabs>
             </div>
+          </div>
+          {isSidebarOpen && (
+            <aside className="hidden md:block w-[30rem] border-l h-full overflow-y-auto">
+              <CourseContentSidebar
+                contentData={contentData}
+                contentLoading={contentLoading}
+                onSelectVideo={handleSelectVideo}
+                lang={lang}
+                currentVideoUrl={currentVideo.url}
+              />
+            </aside>
           )}
         </div>
       )}

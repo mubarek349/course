@@ -60,7 +60,17 @@ export default function Activity({
                 </div>
               </CardHeader>
               <CardBody className="pt-0 space-y-4">
-                <Item value={value} remove={() => removeActivity(index)} />
+                <Item 
+                  value={value} 
+                  remove={() => {
+                    const confirmMessage = lang === "en" 
+                      ? "Are you sure you want to delete this module?"
+                      : "ይህን ሞጁል መሰረዝ እርግጠኛ ነዎት?";
+                    if (confirm(confirmMessage)) {
+                      removeActivity(index);
+                    }
+                  }} 
+                />
                 
                 <div className="ml-4 pl-4 border-l-2 border-primary-200 space-y-3">
                   <Add
@@ -74,7 +84,14 @@ export default function Activity({
                     <Item
                       key={i}
                       value={v}
-                      remove={() => removeSubActivity(index, i)}
+                      remove={() => {
+                        const confirmMessage = lang === "en" 
+                          ? "Are you sure you want to delete this lesson?"
+                          : "ይህን ትምህርት መሰረዝ እርግጠኛ ነዎት?";
+                        if (confirm(confirmMessage)) {
+                          removeSubActivity(index, i);
+                        }
+                      }}
                       isSubItem
                     />
                   ))}

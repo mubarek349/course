@@ -31,6 +31,15 @@ export default function CourseMediaSection({
   onVideoRemove,
   hasVideoError,
 }: CourseMediaSectionProps) {
+  // Priority: selectedVideoFile (uploaded) > video (database)
+  const videoSrc = selectedVideoFile 
+    ? URL.createObjectURL(selectedVideoFile)
+    : video
+    ? video.startsWith('/api/videos/') 
+      ? video.replace('/api/videos/', '') 
+      : video
+    : null;
+
   return (
     <div className="grid gap-2">
       <div className="grid gap-2 md:gap-5 grid-cols-1 md:grid-cols-2">
@@ -41,8 +50,13 @@ export default function CourseMediaSection({
           lang={lang}
           disabled={isThumbnailUploading}
         />
-        {video ? (
-          <Player src={video} type="local" title="Melaverse video player" />
+        {videoSrc ? (
+          <Player 
+            src={videoSrc}
+            type={selectedVideoFile ? "url" : "local"}
+            title="Melaverse video player" 
+            key={selectedVideoFile ? 'uploaded' : 'database'}
+          />
         ) : (
           <div
             className={cn(

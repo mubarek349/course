@@ -73,6 +73,11 @@ export default function ThumbnailUpload({
                 color="primary"
                 variant="solid"
                 startContent={<Upload className="w-4 h-4" />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                disabled={disabled}
               >
                 {lang === "en" ? "Change" : "ቀይር"}
               </CButton>
