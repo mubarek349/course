@@ -23,7 +23,7 @@ export default function Page() {
   });
 
   return (
-    <div className="h-dvh">
+    <div className="h-dvh overflow-y-auto">
       {loading ? (
         <Loading />
       ) : !data || data.length <= 0 ? (

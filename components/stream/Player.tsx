@@ -7,6 +7,7 @@ import ProgressBar from "./ProgressBar";
 import VolumeControl from "./VolumeControl";
 import FullscreenButton from "./FullScreen";
 import { VideoItem } from "../../types";
+import { cn } from "@/lib/utils";
 
 interface PlayerProps {
   src: string;
@@ -160,13 +161,12 @@ PlayerProps) {
   return (
     <div ref={containerRef} className="video-player">
       <div
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 640,
-        }}
         onMouseEnter={() => !isMobile && setShowControls(true)}
         onMouseLeave={() => !isMobile && setShowControls(false)}
+        className={cn(
+          "relative max-md:w-full",
+          isFullscreen ? "md:w-full" : "md:w-[70%]"
+        )}
       >
         <video
           ref={videoRef}
@@ -176,7 +176,7 @@ PlayerProps) {
           style={{
             borderRadius: 8,
             width: "100%",
-            maxWidth: 640,
+            // maxWidth: 640,
             display: "block",
           }}
           onPlay={(e) => {

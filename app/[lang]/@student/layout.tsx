@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <UserLayout list={studentNav}>
       <main>
-        <h1 className="text-xl font-bold mb-4">Student Dashboard</h1>
+        {/* <h1 className="text-xl font-bold mb-0">Student Dashboard</h1> */}
         {children}
       </main>
     </UserLayout>
