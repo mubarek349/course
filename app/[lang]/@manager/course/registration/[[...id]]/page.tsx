@@ -142,7 +142,7 @@ export default function Page() {
     onSuccess(data) {
       if (data && isEditing && !isDataLoaded) {
         getEntries(data).forEach(([name, value]) => {
-          if (value !== null && value !== undefined && name !== "id") {
+          if (value !== null && value !== undefined && name !== "id" && name !== "finalExamQuestions") {
             if (value instanceof Prisma.Decimal) {
               setValue(name as keyof TCourse, Number(value), {
                 shouldValidate: false,
@@ -159,6 +159,7 @@ export default function Page() {
 
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
           setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
+          setValue("finalExamQuestions", data.finalExamQuestions as TQuestion[], { shouldValidate: false });
         }
 
         setValue("id", data.id, { shouldValidate: false });
@@ -207,12 +208,8 @@ export default function Page() {
         data.video = uuidName.replace(/\.[^/.]+$/, "") + ".mp4";
       }
 
-      // Add final exam questions to form data
       data.finalExamQuestions = finalExamQuestions;
-
       await action(data);
-    } catch {
-      throw new Error(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
     } finally {
       setIsUploading(false);
     }
@@ -689,22 +686,33 @@ export default function Page() {
                 if (
                   question &&
                   !finalExamQuestions.some(
-                    (q) => q.question === question.question
+                    (q) => 
+                      q.sourceActivityIndex === activityIndex && 
+                      q.sourceQuestionIndex === questionIndex
                   )
                 ) {
-                  setFinalExamQuestions([...finalExamQuestions, question]);
+                  const questionWithRef = {
+                    ...question,
+                    sourceActivityIndex: activityIndex,
+                    sourceQuestionIndex: questionIndex,
+                  };
+                  const updated = [...finalExamQuestions, questionWithRef];
+                  setFinalExamQuestions(updated);
+                  setValue("finalExamQuestions", updated, {
+                    shouldValidate: false,
+                  });
                 }
               }}
               removeFromFinalExam={(activityIndex, questionIndex) => {
-                const question =
-                  watch("activity")[activityIndex]?.questions?.[questionIndex];
-                if (question) {
-                  setFinalExamQuestions(
-                    finalExamQuestions.filter(
-                      (q) => q.question !== question.question
-                    )
-                  );
-                }
+                const updated = finalExamQuestions.filter(
+                  (q) => 
+                    !(q.sourceActivityIndex === activityIndex && 
+                      q.sourceQuestionIndex === questionIndex)
+                );
+                setFinalExamQuestions(updated);
+                setValue("finalExamQuestions", updated, {
+                  shouldValidate: false,
+                });
               }}
               finalExamQuestions={finalExamQuestions}
             />
@@ -777,19 +785,30 @@ export default function Page() {
 
                 <FinalExamManager
                   questions={finalExamQuestions}
-                  onAdd={(question) =>
-                    setFinalExamQuestions([...finalExamQuestions, question])
-                  }
+                  onAdd={(question) => {
+                    const updated = [...finalExamQuestions, question];
+                    setFinalExamQuestions(updated);
+                    setValue("finalExamQuestions", updated, {
+                      shouldValidate: false,
+                    });
+                  }}
                   onUpdate={(index, question) => {
                     const updated = [...finalExamQuestions];
                     updated[index] = question;
                     setFinalExamQuestions(updated);
+                    setValue("finalExamQuestions", updated, {
+                      shouldValidate: false,
+                    });
                   }}
-                  onRemove={(index) =>
-                    setFinalExamQuestions(
-                      finalExamQuestions.filter((_, i) => i !== index)
-                    )
-                  }
+                  onRemove={(index) => {
+                    const updated = finalExamQuestions.filter(
+                      (_, i) => i !== index
+                    );
+                    setFinalExamQuestions(updated);
+                    setValue("finalExamQuestions", updated, {
+                      shouldValidate: false,
+                    });
+                  }}
                   lang={lang}
                 />
               </CardBody>
@@ -816,9 +835,7 @@ export default function Page() {
                     size="lg"
                     isLoading={formState.isSubmitting || isUploading}
                     isDisabled={isUploading || isThumbnailUploading}
-                    onPress={() => {
-                      handleSubmit(handleFormSubmit)();
-                    }}
+                    onPress={() => handleSubmit(handleFormSubmit)()}
                   >
                     {isEditing
                       ? lang === "en"

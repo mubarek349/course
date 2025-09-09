@@ -114,6 +114,7 @@ export async function getCourseForManager(id: string) {
         activity: {
           orderBy: { order: 'asc' },
           select: {
+            id: true,
             titleAm: true,
             titleEn: true,
             subActivity: {
@@ -166,8 +167,33 @@ export async function getCourseForManager(id: string) {
       return null;
     }
 
+    // Fetch final exam questions separately
+    const finalExamQuestions = await prisma.question.findMany({
+      where: { 
+        courseId: id,
+        activityId: { not: null } // Questions from activities
+      },
+      orderBy: { id: 'asc' },
+      select: {
+        question: true,
+        answerExplanation: true,
+        activityId: true,
+        questionOptions: {
+          orderBy: { id: 'asc' },
+          select: { option: true }
+        },
+        questionAnswer: {
+          select: {
+            answer: {
+              select: { option: true }
+            }
+          }
+        }
+      }
+    });
+
     // Transform data efficiently
-    return {
+    const result = {
       ...course,
       price: Number(course.price),
       instructorRate: Number(course.instructorRate),
@@ -179,9 +205,26 @@ export async function getCourseForManager(id: string) {
           question: q.question,
           options: q.questionOptions.map(opt => opt.option),
           answers: q.questionAnswer.map(ans => ans.answer.option),
+          explanation: q.answerExplanation,
         })),
       })),
+      finalExamQuestions: finalExamQuestions.map(q => {
+        const activityIndex = course.activity.findIndex(act => act.id === q.activityId);
+        const questionIndex = activityIndex >= 0 ? 
+          course.activity[activityIndex].question.findIndex(aq => aq.question === q.question) : -1;
+        
+        return {
+          question: q.question,
+          options: q.questionOptions.map(opt => opt.option),
+          answers: q.questionAnswer.map(ans => ans.answer.option),
+          explanation: q.answerExplanation,
+          sourceActivityIndex: activityIndex >= 0 ? activityIndex : undefined,
+          sourceQuestionIndex: questionIndex >= 0 ? questionIndex : undefined
+        };
+      })
     };
+
+    return result;
   } catch (error) {
     console.error('Error fetching course for manager:', error);
     return null;

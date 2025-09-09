@@ -53,46 +53,44 @@ export default function FinalExamManager({
           <AccordionItem
             key={index}
             title={
-              <div className="flex items-center justify-between w-full">
-                <span className="text-sm font-medium truncate">
-                  {question.question.length > 60 
-                    ? `${question.question.substring(0, 60)}...` 
-                    : question.question
-                  }
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    color="primary"
-                    variant="light"
-                    onPress={() => setEditingIndex(index)}
-                  >
-                    <Edit className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    color="danger"
-                    variant="light"
-                    onPress={() => {
-                      const confirmMessage =
-                        lang === "en"
-                          ? "Remove this question from final exam?"
-                          : "ይህን ጥያቄ ከመጨረሻ ፈተና ማስወገድ?";
-                      if (confirm(confirmMessage)) {
-                        onRemove(index);
-                      }
-                    }}
-                  >
-                    <Trash className="size-4" />
-                  </Button>
-                </div>
-              </div>
+              <span className="text-sm font-medium truncate">
+                {question.question.length > 60 
+                  ? `${question.question.substring(0, 60)}...` 
+                  : question.question
+                }
+              </span>
             }
             className="border border-red-300 rounded-lg"
           >
             <div className="p-3">
+              <div className="flex justify-end gap-1 mb-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  color="primary"
+                  variant="light"
+                  onPress={() => setEditingIndex(index)}
+                >
+                  <Edit className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  color="danger"
+                  variant="light"
+                  onPress={() => {
+                    const confirmMessage =
+                      lang === "en"
+                        ? "Remove this question from final exam?"
+                        : "ይህን ጥያቄ ከመጨረሻ ፈተና ማስወገድ?";
+                    if (confirm(confirmMessage)) {
+                      onRemove(index);
+                    }
+                  }}
+                >
+                  <Trash className="size-4" />
+                </Button>
+              </div>
               {editingIndex === index ? (
                 <QuestionForm
                   initialQuestion={question}

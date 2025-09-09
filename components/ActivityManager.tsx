@@ -29,6 +29,8 @@ type TQuestion = {
   options: string[];
   answers: string[];
   explanation?: string;
+  sourceActivityIndex?: number;
+  sourceQuestionIndex?: number;
 };
 
 type TActivity = {
@@ -128,74 +130,55 @@ export default function ActivityManager({
           <AccordionItem
             key={activityIndex}
             title={
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="light"
-                    isIconOnly
-                    className="cursor-grab active:cursor-grabbing"
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData(
-                        "text/plain",
-                        activityIndex.toString()
-                      );
-                      e.dataTransfer.effectAllowed = "move";
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const fromIndex = parseInt(
-                        e.dataTransfer.getData("text/plain")
-                      );
-                      if (fromIndex !== activityIndex) {
-                        reorderActivities(fromIndex, activityIndex);
-                      }
-                    }}
-                  >
-                    <GripVertical className="size-4" />
-                  </Button>
-                  <span>
-                    {lang === "en" ? activity.titleEn : activity.titleAm}
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  {updateActivity && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      color="primary"
-                      variant="light"
-                      onPress={() => setEditingActivity(activityIndex)}
-                    >
-                      <Edit className="size-4" />
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    size="sm"
-                    color="danger"
-                    variant="light"
-                    onPress={() => {
-                      const confirmMessage =
-                        lang === "en"
-                          ? "Are you sure you want to delete this activity?"
-                          : "ይህን እንቅስቃሴ መሰረዝ እርግጠኛ ነዎት?";
-                      if (confirm(confirmMessage)) {
-                        removeActivity(activityIndex);
-                      }
-                    }}
-                  >
-                    <Trash className="size-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="cursor-grab active:cursor-grabbing" draggable onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", activityIndex.toString());
+                  e.dataTransfer.effectAllowed = "move";
+                }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => {
+                  e.preventDefault();
+                  const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
+                  if (fromIndex !== activityIndex) {
+                    reorderActivities(fromIndex, activityIndex);
+                  }
+                }}>
+                  <GripVertical className="size-4 inline mr-2" />
+                </span>
+                <span>{lang === "en" ? activity.titleEn : activity.titleAm}</span>
               </div>
             }
             className="border border-primary-300 rounded-xl"
           >
             <div className="space-y-4 p-4">
+              <div className="flex justify-end gap-1 mb-3">
+                {updateActivity && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    color="primary"
+                    variant="light"
+                    onPress={() => setEditingActivity(activityIndex)}
+                  >
+                    <Edit className="size-4" />
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  color="danger"
+                  variant="light"
+                  onPress={() => {
+                    const confirmMessage =
+                      lang === "en"
+                        ? "Are you sure you want to delete this activity?"
+                        : "ይህን እንቅስቃሴ መሰረዝ እርግጠኛ ነዎት?";
+                    if (confirm(confirmMessage)) {
+                      removeActivity(activityIndex);
+                    }
+                  }}
+                >
+                  <Trash className="size-4" />
+                </Button>
+              </div>
               {editingActivity === activityIndex && updateActivity && (
                 <EditForm
                   initialValues={{ en: activity.titleEn, am: activity.titleAm }}
@@ -392,74 +375,72 @@ export default function ActivityManager({
                     <AccordionItem
                       key={questionIndex}
                       title={
-                        <div className="flex items-center justify-between w-full">
-                          <span className="text-sm font-medium truncate">
-                            {question.question.length > 60 
-                              ? `${question.question.substring(0, 60)}...` 
-                              : question.question
-                            }
-                          </span>
-                          <div className="flex gap-1">
-                            {addToFinalExam && removeFromFinalExam && (
-                              <Button
-                                type="button"
-                                size="sm"
-                                color={finalExamQuestions?.some(q => q.question === question.question) ? "warning" : "secondary"}
-                                variant="light"
-                                onPress={() => {
-                                  const isInFinalExam = finalExamQuestions?.some(q => q.question === question.question);
-                                  if (isInFinalExam) {
-                                    removeFromFinalExam(activityIndex, questionIndex);
-                                  } else {
-                                    addToFinalExam(activityIndex, questionIndex);
-                                  }
-                                }}
-                              >
-                                {finalExamQuestions?.some(q => q.question === question.question) 
-                                  ? (lang === "en" ? "Remove from Final" : "ከመጨረሻ አስወግድ")
-                                  : (lang === "en" ? "Add to Final" : "ወደ መጨረሻ ጨምር")
-                                }
-                              </Button>
-                            )}
-                            {updateQuestion && (
-                              <Button
-                                type="button"
-                                size="sm"
-                                color="primary"
-                                variant="light"
-                                onPress={() =>
-                                  setEditingQuestion({
-                                    activityIndex,
-                                    questionIndex,
-                                  })
-                                }
-                              >
-                                <Edit className="size-4" />
-                              </Button>
-                            )}
-                            <Button
-                              type="button"
-                              size="sm"
-                              color="danger"
-                              variant="light"
-                              onPress={() => {
-                                const confirmMessage =
-                                  lang === "en"
-                                    ? "Are you sure you want to delete this question?"
-                                    : "ይህን ጥያቄ መሰረዝ እርግጠኛ ነዎት?";
-                                if (confirm(confirmMessage)) {
-                                  removeQuestion(activityIndex, questionIndex);
-                                }
-                              }}
-                            >
-                              <Trash className="size-4" />
-                            </Button>
-                          </div>
-                        </div>
+                        <span className="text-sm font-medium truncate">
+                          {question.question.length > 60 
+                            ? `${question.question.substring(0, 60)}...` 
+                            : question.question
+                          }
+                        </span>
                       }
                       className="border border-warning-300 rounded-lg"
                     >
                       <div className="p-3">
+                        <div className="flex justify-end gap-1 mb-3">
+                          {addToFinalExam && removeFromFinalExam && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              color={finalExamQuestions?.some(q => q.sourceActivityIndex === activityIndex && q.sourceQuestionIndex === questionIndex) ? "warning" : "secondary"}
+                              variant="light"
+                              onPress={() => {
+                                const isInFinalExam = finalExamQuestions?.some(q => q.sourceActivityIndex === activityIndex && q.sourceQuestionIndex === questionIndex);
+                                if (isInFinalExam) {
+                                  removeFromFinalExam(activityIndex, questionIndex);
+                                } else {
+                                  addToFinalExam(activityIndex, questionIndex);
+                                }
+                              }}
+                            >
+                              {finalExamQuestions?.some(q => q.sourceActivityIndex === activityIndex && q.sourceQuestionIndex === questionIndex) 
+                                ? (lang === "en" ? "Remove from Final" : "ከመጨረሻ አስወግድ")
+                                : (lang === "en" ? "Add to Final" : "ወደ መጨረሻ ጨምር")
+                              }
+                            </Button>
+                          )}
+                          {updateQuestion && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              color="primary"
+                              variant="light"
+                              onPress={() =>
+                                setEditingQuestion({
+                                  activityIndex,
+                                  questionIndex,
+                                })
+                              }
+                            >
+                              <Edit className="size-4" />
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            color="danger"
+                            variant="light"
+                            onPress={() => {
+                              const confirmMessage =
+                                lang === "en"
+                                  ? "Are you sure you want to delete this question?"
+                                  : "ይህን ጥያቄ መሰረዝ እርግጠኛ ነዎት?";
+                              if (confirm(confirmMessage)) {
+                                removeQuestion(activityIndex, questionIndex);
+                              }
+                            }}
+                          >
+                            <Trash className="size-4" />
+                          </Button>
+                        </div>
                         {editingQuestion?.activityIndex === activityIndex &&
                         editingQuestion?.questionIndex === questionIndex &&
                         updateQuestion ? (

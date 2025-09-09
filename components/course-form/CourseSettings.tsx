@@ -47,6 +47,7 @@ export default function CourseSettings({
           {...register("certificate")}
           size="sm"
           className="max-w-full h-fit self-end shrink-0 p-2 rounded-xl bg-foreground/30 border border-foreground/30 data-[selected=true]:border-primary/30 data-[selected=true]:bg-primary/30 flex"
+          aria-label={lang === "en" ? "Certificate" : "ሰርተፊኬት"}
         >
           Certificate
         </Switch>
@@ -56,7 +57,7 @@ export default function CourseSettings({
           label={lang === "en" ? "Channel" : "ቻናል"}
         >
           {channels.map((v) => (
-            <CSelectItem key={v.id}>{v.title}</CSelectItem>
+            <CSelectItem key={v.id} textValue={v.title}>{v.title}</CSelectItem>
           ))}
         </CSelect>
         <CSelect
@@ -65,7 +66,7 @@ export default function CourseSettings({
           label={lang === "en" ? "Instructor" : "መምህር"}
         >
           {instructors.map((v) => (
-            <CSelectItem key={v.id}>
+            <CSelectItem key={v.id} textValue={`${v.firstName} ${v.fatherName}`}>
               {`${v.firstName} ${v.fatherName}`}
             </CSelectItem>
           ))}

@@ -116,6 +116,8 @@ export const courseSchema = z.object({
       options: z.array(z.string()).min(2, "at least 2 options required"),
       answers: z.array(z.string()).min(1, "at least 1 answer required"),
       explanation: z.string().optional(),
+      sourceActivityIndex: z.number().optional(),
+      sourceQuestionIndex: z.number().optional(),
     })
   ).optional(),
 });
