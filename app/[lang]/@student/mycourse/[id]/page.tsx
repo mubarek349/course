@@ -128,7 +128,9 @@ function CourseContent({
               {activity.hasQuiz && (
                 <li
                   onClick={() =>
-                    router.push(`/${lang}/activity/${activity.id}`)
+                    router.push(
+                      `/${lang}/mycourse/${contentData.id}/${activity.id}`
+                    )
                   }
                   className="flex items-center gap-2 cursor-pointer p-3 rounded hover:bg-primary-100"
                 >

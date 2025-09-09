@@ -1,5 +1,5 @@
 "use server";
-
+import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
 import { StateType, TStudent, TTableData } from "@/lib/definations";
 import bcryptjs from "bcryptjs";
@@ -228,18 +228,141 @@ export async function getMySingleCourseContent(
 
 export async function getActivityQuiz(activityId: string) {
   try {
-    const quiz = await prisma.question.findMany({
+    const user = await auth();
+    const userId = user?.user?.id || undefined;
+
+    const questions = await prisma.question.findMany({
       where: { activityId },
       select: {
         id: true,
         question: true,
         questionOptions: true,
+        questionAnswer: true,
+        answerExplanation: true,
       },
       // orderBy: { createdAt: "asc" },
     });
-    return quiz.length > 0 ? quiz : null;
+
+    if (!questions.length) return null;
+
+    let byQuestionId: Record<string, string | undefined> = {};
+    if (userId) {
+      const prev = await prisma.studentQuiz.findMany({
+        where: {
+          userId,
+          questionId: { in: questions.map((q) => q.id) },
+        },
+        select: {
+          questionId: true,
+          studentQuizAnswers: {
+            // orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { selectedOptionId: true },
+          },
+        },
+        // orderBy: { createdAt: "desc" },
+      });
+
+      byQuestionId = prev.reduce((acc, row) => {
+        acc[row.questionId] = row.studentQuizAnswers[0]?.selectedOptionId;
+        return acc;
+      }, {} as Record<string, string | undefined>);
+    }
+
+    return questions.map((q) => ({
+      ...q,
+      studentSelectedOptionId: byQuestionId[q.id],
+    }));
   } catch (error) {
     console.error("Error fetching activity quiz:", error);
     return null;
+  }
+}
+
+// Check if the activity quiz is done, partially done, or not started for this logged-in student
+export async function getActivityQuizStatus(activityId: string) {
+  try {
+    const user = await auth();
+    const userId = user?.user?.id;
+    if (!userId) return "error" as const;
+
+    const questions = await prisma.question.findMany({
+      where: { activityId },
+      select: { id: true },
+    });
+    const total = questions.length;
+    if (total === 0) return "no-quiz" as const;
+
+    const answered = await prisma.studentQuiz.groupBy({
+      by: ["questionId"],
+      where: { userId, questionId: { in: questions.map((q) => q.id) } },
+      _count: { questionId: true },
+    });
+    const uniqueAnswered = answered.length;
+
+    if (uniqueAnswered === 0) return "not-done" as const;
+    if (uniqueAnswered >= total) return "done" as const;
+    return "partial" as const;
+  } catch (error) {
+    console.error("Error fetching quiz status:", error);
+    return "error" as const;
+  }
+}
+
+export async function saveStudentQuizAnswers(
+  prevState: StateType,
+  data: { questionId: string; selectedOptionId: string } | undefined
+): Promise<StateType> {
+  try {
+    // get user id from the session
+    const user = await auth();
+    if (!user) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
+    const userId = user.user?.id!;
+
+    // Destructure questionId and selectedOptionId from data
+    if (!data) {
+      return {
+        status: false,
+        cause: "invalid_data",
+        message: "No data provided",
+      } as StateType;
+    }
+    const { questionId, selectedOptionId } = data;
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Ensure the selected option belongs to the question
+      const option = await tx.questionOption.findFirst({
+        where: { id: selectedOptionId, questionId },
+        select: { id: true },
+      });
+      if (!option) {
+        throw new Error("invalid_option");
+      }
+
+      const studentQuiz = await tx.studentQuiz.create({
+        data: {
+          userId,
+          questionId,
+        },
+      });
+
+      const studentQuizAnswer = await tx.studentQuizAnswer.create({
+        data: {
+          studentQuizId: studentQuiz.id,
+          selectedOptionId,
+        },
+      });
+
+      return { studentQuiz, studentQuizAnswer };
+    });
+  } catch (error) {
+    console.error("Error saving student quiz answers", error);
+    // return null;
   }
 }
