@@ -4,15 +4,34 @@ import React from "react";
 import { Accordion, AccordionItem, Skeleton } from "@heroui/react";
 import { PlayCircle, CheckCircle2 } from "lucide-react";
 
+interface SubActivity {
+  id: string;
+  titleEn: string;
+  titleAm: string;
+  video: string;
+}
+
+interface Activity {
+  titleEn: string;
+  titleAm: string;
+  subActivity: SubActivity[];
+}
+
+interface ContentProps {
+  activities: Activity[];
+  onSelectVideo: (video: string, title: string) => void;
+  lang: string;
+  currentVideoUrl: string;
+  loading: boolean;
+}
+
 export default function Content({
   activities,
   onSelectVideo,
   lang,
   currentVideoUrl,
   loading,
-}: any) {
-  const defaultContent =
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+}: ContentProps) {
 
   if (loading) {
     return (
@@ -41,7 +60,7 @@ export default function Content({
         {lang === "en" ? "Course Content" : "የትምህርት ይዘት"}
       </h2>
       <Accordion selectionMode="multiple" defaultExpandedKeys={["0"]}>
-        {activities.map((activity: any, index: number) => (
+        {activities.map((activity, index: number) => (
           <AccordionItem
             key={index}
             aria-label={`Section ${index + 1}`}
@@ -50,7 +69,7 @@ export default function Content({
             }`}
           >
             <ul className="space-y-1 p-2">
-              {activity.subActivity.map((sub: any) => {
+              {activity.subActivity.map((sub) => {
                 const isActive = sub.video === currentVideoUrl;
                 return (
                   <li

@@ -22,7 +22,10 @@ export default function Controls({
       style={{ display: "flex", alignItems: "center", gap: 8 }}
     >
       <button
-        onClick={() => onSkip(-10)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSkip(-10);
+        }}
         title="Skip Back 10s"
         style={{
           background: "none",
@@ -36,7 +39,10 @@ export default function Controls({
         <ChevronLeft />
       </button>
       <button
-        onClick={onPlayPause}
+        onClick={(e) => {
+          e.stopPropagation();
+          onPlayPause();
+        }}
         title={playing ? "Pause" : "Play"}
         style={{
           background: "none",
@@ -50,7 +56,10 @@ export default function Controls({
         {playing ? <Pause /> : <Play />}
       </button>
       <button
-        onClick={() => onSkip(10)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSkip(10);
+        }}
         title="Skip Forward 10s"
         style={{
           background: "none",
@@ -64,7 +73,10 @@ export default function Controls({
         <ChevronRight />
       </button>
       <button
-        onClick={onSpeedChange}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSpeedChange();
+        }}
         title="Change Speed"
         style={{
           background: "none",

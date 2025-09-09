@@ -71,6 +71,11 @@ export default function VideoUploadButton({
 
   const handleFileSelect = async (file: File) => {
     if (file.type.startsWith("video/")) {
+      // Reset states for new upload
+      setUploadProgress(0);
+      setCurrentChunk(0);
+      setTotalChunks(0);
+      setUuidFilename(null);
       setIsUploading(true);
       onVideoSelect(file);
       await handleChunkedUpload(file);
@@ -113,7 +118,11 @@ export default function VideoUploadButton({
         accept="video/*"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) handleFileSelect(file);
+          if (file) {
+            handleFileSelect(file);
+            // Reset input to allow selecting same file again
+            e.target.value = '';
+          }
         }}
         className="hidden"
         disabled={disabled || isUploading}
@@ -141,6 +150,7 @@ export default function VideoUploadButton({
                 </div>
               </div>
               <CButton
+                type="button"
                 isIconOnly
                 size="sm"
                 variant="light"
@@ -240,6 +250,7 @@ export default function VideoUploadButton({
                 <span>{lang === "en" ? "Max 100MB" : "ከ100MB በታች"}</span>
               </div>
               <CButton
+                type="button"
                 color="primary"
                 variant="bordered"
                 size="md"

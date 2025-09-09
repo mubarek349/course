@@ -129,7 +129,9 @@ function CourseContent({
               {activity.hasQuiz && (
                 <li
                   onClick={() =>
-                    router.push(`/${lang}/activity/${activity.id}`)
+                    router.push(
+                      `/${lang}/mycourse/${contentData.id}/${activity.id}`
+                    )
                   }
                   className="flex items-center gap-2 cursor-pointer p-3 rounded hover:bg-primary-100"
                 >
@@ -163,12 +165,8 @@ export default function Page() {
     args: [studentId, id],
   });
 
-  const [currentVideo, setCurrentVideo] = useState({
-    url: "",
-    title: "",
-  });
-
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [currentVideo, setCurrentVideo] = useState({ url: "", title: "" });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (data?.video) {
@@ -181,6 +179,7 @@ export default function Page() {
 
   const handleSelectVideo = (videoUrl: string, videoTitle: string) => {
     setCurrentVideo({ url: videoUrl, title: videoTitle });
+    setIsSidebarOpen(false);
   };
 
   // -------- MAIN CONTENT TABS --------
@@ -227,14 +226,16 @@ export default function Page() {
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="flex h-full">
-          <div className="flex-1 overflow-y-auto relative">
+        <div className="h-full flex flex-col relative">
+          {/* MAIN CONTENT */}
+          <div className="flex-1 overflow-y-auto">
+            {/* SIDEBAR TOGGLE (desktop only) */}
             <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow hover:bg-gray-100 hidden md:block"
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute top-4 right-4 z-10 p-2 bg-background rounded-full shadow hover:bg-primary-100 hidden md:block"
               aria-label="Toggle course content"
             >
-              {isSidebarOpen ? <PanelRightClose /> : <PanelRightOpen />}
+              <PanelRightOpen />
             </button>
 
             {/* COURSE OVERVIEW WITH VIDEO */}
@@ -262,16 +263,31 @@ export default function Page() {
               </Tabs>
             </div>
           </div>
+
+          {/* SIDEBAR (desktop only) */}
           {isSidebarOpen && (
-            <aside className="hidden md:block w-[30rem] border-l h-full overflow-y-auto">
-              <CourseContent
-                contentData={contentData}
-                contentLoading={contentLoading}
-                onSelectVideo={handleSelectVideo}
-                lang={lang}
-                currentVideoUrl={currentVideo.url}
+            <div className="fixed inset-0 z-50 hidden md:block">
+              <div
+                className="fixed inset-0 bg-black/50"
+                onClick={() => setIsSidebarOpen(false)}
               />
-            </aside>
+              <div className="fixed top-0 right-0 h-full w-full max-w-md bg-background shadow-lg">
+                <button
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="absolute top-4 right-4 z-20 p-2"
+                  aria-label="Close course content"
+                >
+                  <X />
+                </button>
+                <CourseContent
+                  contentData={contentData ?? null}
+                  contentLoading={contentLoading}
+                  onSelectVideo={handleSelectVideo}
+                  lang={lang}
+                  currentVideoUrl={currentVideo.url}
+                />
+              </div>
+            </div>
           )}
         </div>
       )}

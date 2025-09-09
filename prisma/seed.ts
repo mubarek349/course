@@ -218,6 +218,116 @@ import prisma from "@/lib/db";
       },
     });
 
+    // Create a second activity with a quiz
+    const activity2 = await prisma.activity.create({
+      data: {
+        titleEn: "Fractions",
+        titleAm: "ፍራክሽኖች",
+        courseId: course.id,
+        order: 2,
+        subActivity: {
+          create: [
+            {
+              titleEn: "Fractions Basics",
+              titleAm: "የፍራክሽን መሠረት",
+              order: 1,
+              video: "https://example.com/video3.mp4",
+            },
+          ],
+        },
+        question: {
+          create: [
+            {
+              question: "Which value equals 1/2?",
+              questionOptions: {
+                create: [
+                  { option: "0.25" },
+                  { option: "0.5" },
+                  { option: "2" },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      include: {
+        question: { include: { questionOptions: true } },
+        subActivity: true,
+      },
+    });
+
+    // Mark the correct answer for the activity2 quiz (0.5)
+    const activity2Question = activity2.question[0];
+    const correctOption2 = activity2Question.questionOptions.find(
+      (o) => o.option === "0.5"
+    );
+    if (correctOption2) {
+      await prisma.questionAnswer.create({
+        data: { questionId: activity2Question.id, answerId: correctOption2.id },
+      });
+    }
+
+    // Create a Final Exam activity with multiple questions
+    const finalExam = await prisma.activity.create({
+      data: {
+        titleEn: "Final Exam",
+        titleAm: "መጨረሻ ፈተና",
+        courseId: course.id,
+        order: 99,
+        question: {
+          create: [
+            {
+              question: "What is 5 + 7?",
+              questionOptions: {
+                create: [{ option: "10" }, { option: "11" }, { option: "12" }],
+              },
+            },
+            {
+              question: "Which is greater?",
+              questionOptions: {
+                create: [
+                  { option: "3/4" },
+                  { option: "2/3" },
+                  { option: "1/2" },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      include: { question: { include: { questionOptions: true } } },
+    });
+
+    // Set correct answers for the Final Exam
+    const q1 = finalExam.question[0];
+    const q1Correct = q1.questionOptions.find((o) => o.option === "12");
+    if (q1Correct) {
+      await prisma.questionAnswer.create({
+        data: { questionId: q1.id, answerId: q1Correct.id },
+      });
+    }
+
+    const q2 = finalExam.question[1];
+    const q2Correct = q2.questionOptions.find((o) => o.option === "3/4");
+    if (q2Correct) {
+      await prisma.questionAnswer.create({
+        data: { questionId: q2.id, answerId: q2Correct.id },
+      });
+    }
+
+    // Optionally record a sample attempt for the manager on the final exam first question
+    if (q1 && q1Correct) {
+      await prisma.studentQuiz.create({
+        data: {
+          userId: manager.id,
+          questionId: q1.id,
+          studentQuizAnswers: {
+            create: [{ selectedOptionId: q1Correct.id }],
+          },
+        },
+      });
+    }
+
     console.log("SEED SUCCESS");
   } catch (error) {
     console.log("SEED ERROR :: ", error);

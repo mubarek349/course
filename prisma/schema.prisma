@@ -124,6 +124,7 @@ model Course {
   activity       Activity[]
   order          Order[]
   incomeRate     IncomeRate[]
+  question    question[]
 }
 
 model Requirement {
@@ -166,9 +167,12 @@ model SubActivity {
 
 model question {
   id              String           @id @default(cuid())
-  activity        Activity         @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  activityId      String
+  activity        Activity?       @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  activityId      String?
+  course    Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId      String?
   question        String
+  answerExplanation String?
   questionOptions questionOption[]
   questionAnswer  questionAnswer[]
   studentQuiz     studentQuiz[]
@@ -204,6 +208,7 @@ model studentQuiz {
   userId             String
   question           question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
   questionId         String
+  isFinalExam        Boolean             @default(false)
   takenAt            DateTime            @default(now())
   studentQuizAnswers studentQuizAnswer[]
 

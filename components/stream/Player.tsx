@@ -14,12 +14,16 @@ interface PlayerProps {
   type?: "url" | "local";
   playlist?: VideoItem[];
   title?: string;
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
 }
 
 export default function Player({
   src,
   type = "local",
   playlist = [],
+  onVideoPlay,
+  onVideoPause,
 }: // title,
 PlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,15 +85,7 @@ PlayerProps) {
     };
   }, [currentSrc]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (playing) {
-      video.play();
-    } else {
-      video.pause();
-    }
-  }, [playing]);
+
 
   useEffect(() => {
     const video = videoRef.current;
@@ -126,7 +122,15 @@ PlayerProps) {
     return () => document.removeEventListener("fullscreenchange", handleChange);
   }, []);
 
-  const togglePlay = () => setPlaying((p) => !p);
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  };
 
   const skipTime = (seconds: number) => {
     const video = videoRef.current;
@@ -175,9 +179,20 @@ PlayerProps) {
             // maxWidth: 640,
             display: "block",
           }}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onClick={() => isMobile && setShowControls((v) => !v)}
+          onPlay={(e) => {
+            e.stopPropagation();
+            setPlaying(true);
+            onVideoPlay?.();
+          }}
+          onPause={(e) => {
+            e.stopPropagation();
+            setPlaying(false);
+            onVideoPause?.();
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isMobile) setShowControls((v) => !v);
+          }}
         />
 
         {/* --- MOBILE CONTROLS --- */}
@@ -199,7 +214,10 @@ PlayerProps) {
               }}
             >
               <button
-                onClick={() => skipTime(-10)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipTime(-10);
+                }}
                 style={{
                   pointerEvents: "auto",
                   background: "rgba(0,0,0,0.5)",
@@ -216,7 +234,10 @@ PlayerProps) {
                 <ChevronLeft />
               </button>
               <button
-                onClick={togglePlay}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
                 style={{
                   pointerEvents: "auto",
                   background: "rgba(0,0,0,0.7)",
@@ -233,7 +254,10 @@ PlayerProps) {
                 {playing ? <Pause /> : <Play />}
               </button>
               <button
-                onClick={() => skipTime(10)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  skipTime(10);
+                }}
                 style={{
                   pointerEvents: "auto",
                   background: "rgba(0,0,0,0.5)",
@@ -369,7 +393,10 @@ PlayerProps) {
                   onMuteToggle={handleMuteToggle}
                 />
                 <button
-                  onClick={() => changeSpeed(speed >= 2 ? 1 : speed + 0.25)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeSpeed(speed >= 2 ? 1 : speed + 0.25);
+                  }}
                   style={{
                     background: "none",
                     border: "none",
