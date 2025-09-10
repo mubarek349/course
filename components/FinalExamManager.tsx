@@ -53,12 +53,18 @@ export default function FinalExamManager({
           <AccordionItem
             key={index}
             title={
-              <span className="text-sm font-medium truncate">
-                {question.question.length > 60 
-                  ? `${question.question.substring(0, 60)}...` 
-                  : question.question
-                }
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium truncate">
+                  {question.question.length > 60
+                    ? `${question.question.substring(0, 60)}...`
+                    : question.question}
+                </span>
+                {question.isSharedFromActivity && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    {lang === "en" ? "Shared" : "የተጋራ"}
+                  </span>
+                )}
+              </div>
             }
             className="border border-red-300 rounded-lg"
           >
@@ -106,7 +112,10 @@ export default function FinalExamManager({
                   <p className="font-medium mb-3">{question.question}</p>
                   <div className="space-y-2">
                     {question.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="flex items-center gap-2 p-2 rounded bg-gray-50">
+                      <div
+                        key={optionIndex}
+                        className="flex items-center gap-2 p-2 rounded bg-gray-50"
+                      >
                         <div
                           className={cn(
                             "w-3 h-3 rounded-full flex-shrink-0",
@@ -150,8 +159,12 @@ function QuestionForm({
 }) {
   const [question, setQuestion] = useState(initialQuestion?.question || "");
   const [options, setOptions] = useState(initialQuestion?.options || ["", ""]);
-  const [answers, setAnswers] = useState<string[]>(initialQuestion?.answers || []);
-  const [explanation, setExplanation] = useState(initialQuestion?.explanation || "");
+  const [answers, setAnswers] = useState<string[]>(
+    initialQuestion?.answers || []
+  );
+  const [explanation, setExplanation] = useState(
+    initialQuestion?.explanation || ""
+  );
 
   const addOption = () => setOptions([...options, ""]);
   const removeOption = (index: number) => {
@@ -166,7 +179,9 @@ function QuestionForm({
     setOptions(newOptions);
 
     if (answers.includes(oldValue)) {
-      setAnswers(answers.map((answer) => (answer === oldValue ? value : answer)));
+      setAnswers(
+        answers.map((answer) => (answer === oldValue ? value : answer))
+      );
     }
   };
 
@@ -191,21 +206,24 @@ function QuestionForm({
 
       let explanationText = "";
       let optionLines = remainingLines;
-      
-      const explanationIndex = remainingLines.findIndex(line => 
-        /ማብራሪያ/i.test(line) || /explanation/i.test(line)
+
+      const explanationIndex = remainingLines.findIndex(
+        (line) => /ማብራሪያ/i.test(line) || /explanation/i.test(line)
       );
-      
+
       if (explanationIndex !== -1) {
         const explanationLine = remainingLines[explanationIndex];
         explanationText = explanationLine
           .replace(/^.*?(ማብራሪያ|explanation)\s*[:：]?\s*/i, "")
           .trim();
-        
+
         if (!explanationText && explanationIndex + 1 < remainingLines.length) {
-          explanationText = remainingLines.slice(explanationIndex + 1).join(" ").trim();
+          explanationText = remainingLines
+            .slice(explanationIndex + 1)
+            .join(" ")
+            .trim();
         }
-        
+
         optionLines = remainingLines.slice(0, explanationIndex);
       }
 
@@ -215,7 +233,7 @@ function QuestionForm({
       optionLines.forEach((line) => {
         // Check if line contains answer with colon pattern
         const answerMatch = line.match(/(መልስ\s*[:：]\s*)(.+)/);
-        
+
         if (answerMatch) {
           // Extract answer from "መልስ: answer" pattern
           const answerText = answerMatch[2]
@@ -227,7 +245,7 @@ function QuestionForm({
         } else {
           // Regular option line
           const isCorrect = /^\*|correct|answer|✓|ትክክል/i.test(line);
-          
+
           const optionText = line
             .replace(/^\*/, "")
             .replace(/\s*(correct|✓|ትክክል|answer)\s*/gi, "")
@@ -298,9 +316,7 @@ function QuestionForm({
               variant={
                 answers.includes(option) && option ? "solid" : "bordered"
               }
-              color={
-                answers.includes(option) && option ? "success" : "default"
-              }
+              color={answers.includes(option) && option ? "success" : "default"}
               onPress={() => option && toggleAnswer(option)}
               className="shrink-0"
             >

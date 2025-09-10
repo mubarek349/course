@@ -142,7 +142,13 @@ export default function Page() {
     onSuccess(data) {
       if (data && isEditing && !isDataLoaded) {
         getEntries(data).forEach(([name, value]) => {
-          if (value !== null && value !== undefined && name !== "id" && name !== "finalExamQuestions") {
+          if (
+            value !== null &&
+            value !== undefined &&
+            name !== "id" &&
+            name !== "finalExamQuestions" &&
+            name !== "activity"
+          ) {
             if (value instanceof Prisma.Decimal) {
               setValue(name as keyof TCourse, Number(value), {
                 shouldValidate: false,
@@ -153,13 +159,34 @@ export default function Page() {
           }
         });
 
+        // Handle activity data separately since it requires proper type alignment
+        if (data.activity) {
+          const transformedActivity = data.activity.map((activity) => ({
+            titleEn: activity.titleEn,
+            titleAm: activity.titleAm,
+            subActivity: activity.subActivity,
+            questions:
+              activity.questions?.map((q) => ({
+                question: q.question,
+                options: q.options,
+                answers: q.answers,
+                explanation: q.explanation || undefined, // Convert null to undefined
+              })) || [],
+          }));
+          setValue("activity", transformedActivity, { shouldValidate: false });
+        }
+
         if (data.video) {
           setVideoPreviewUrl(data.video);
         }
 
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
           setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
-          setValue("finalExamQuestions", data.finalExamQuestions as TQuestion[], { shouldValidate: false });
+          setValue(
+            "finalExamQuestions",
+            data.finalExamQuestions as TQuestion[],
+            { shouldValidate: false }
+          );
         }
 
         setValue("id", data.id, { shouldValidate: false });
@@ -686,17 +713,20 @@ export default function Page() {
                 if (
                   question &&
                   !finalExamQuestions.some(
-                    (q) => 
-                      q.sourceActivityIndex === activityIndex && 
+                    (q) =>
+                      q.sourceActivityIndex === activityIndex &&
                       q.sourceQuestionIndex === questionIndex
                   )
                 ) {
-                  const questionWithRef = {
+                  // Instead of duplicating the question, we create a reference
+                  // The actual question will remain in the activity and be shared
+                  const questionReference = {
                     ...question,
                     sourceActivityIndex: activityIndex,
                     sourceQuestionIndex: questionIndex,
+                    isSharedFromActivity: true, // Flag to indicate this is a reference
                   };
-                  const updated = [...finalExamQuestions, questionWithRef];
+                  const updated = [...finalExamQuestions, questionReference];
                   setFinalExamQuestions(updated);
                   setValue("finalExamQuestions", updated, {
                     shouldValidate: false,
@@ -705,9 +735,11 @@ export default function Page() {
               }}
               removeFromFinalExam={(activityIndex, questionIndex) => {
                 const updated = finalExamQuestions.filter(
-                  (q) => 
-                    !(q.sourceActivityIndex === activityIndex && 
-                      q.sourceQuestionIndex === questionIndex)
+                  (q) =>
+                    !(
+                      q.sourceActivityIndex === activityIndex &&
+                      q.sourceQuestionIndex === questionIndex
+                    )
                 );
                 setFinalExamQuestions(updated);
                 setValue("finalExamQuestions", updated, {

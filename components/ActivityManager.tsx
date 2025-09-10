@@ -31,6 +31,7 @@ type TQuestion = {
   explanation?: string;
   sourceActivityIndex?: number;
   sourceQuestionIndex?: number;
+  isSharedFromActivity?: boolean; // Flag to indicate this question is shared from an activity
 };
 
 type TActivity = {
@@ -131,19 +132,32 @@ export default function ActivityManager({
             key={activityIndex}
             title={
               <div className="flex items-center gap-2">
-                <span className="cursor-grab active:cursor-grabbing" draggable onDragStart={(e) => {
-                  e.dataTransfer.setData("text/plain", activityIndex.toString());
-                  e.dataTransfer.effectAllowed = "move";
-                }} onDragOver={(e) => e.preventDefault()} onDrop={(e) => {
-                  e.preventDefault();
-                  const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
-                  if (fromIndex !== activityIndex) {
-                    reorderActivities(fromIndex, activityIndex);
-                  }
-                }}>
+                <span
+                  className="cursor-grab active:cursor-grabbing"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(
+                      "text/plain",
+                      activityIndex.toString()
+                    );
+                    e.dataTransfer.effectAllowed = "move";
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const fromIndex = parseInt(
+                      e.dataTransfer.getData("text/plain")
+                    );
+                    if (fromIndex !== activityIndex) {
+                      reorderActivities(fromIndex, activityIndex);
+                    }
+                  }}
+                >
                   <GripVertical className="size-4 inline mr-2" />
                 </span>
-                <span>{lang === "en" ? activity.titleEn : activity.titleAm}</span>
+                <span>
+                  {lang === "en" ? activity.titleEn : activity.titleAm}
+                </span>
               </div>
             }
             className="border border-primary-300 rounded-xl"
@@ -376,10 +390,9 @@ export default function ActivityManager({
                       key={questionIndex}
                       title={
                         <span className="text-sm font-medium truncate">
-                          {question.question.length > 60 
-                            ? `${question.question.substring(0, 60)}...` 
-                            : question.question
-                          }
+                          {question.question.length > 60
+                            ? `${question.question.substring(0, 60)}...`
+                            : question.question}
                         </span>
                       }
                       className="border border-warning-300 rounded-lg"
@@ -390,21 +403,43 @@ export default function ActivityManager({
                             <Button
                               type="button"
                               size="sm"
-                              color={finalExamQuestions?.some(q => q.sourceActivityIndex === activityIndex && q.sourceQuestionIndex === questionIndex) ? "warning" : "secondary"}
+                              color={
+                                finalExamQuestions?.some(
+                                  (q) =>
+                                    q.sourceActivityIndex === activityIndex &&
+                                    q.sourceQuestionIndex === questionIndex
+                                )
+                                  ? "warning"
+                                  : "secondary"
+                              }
                               variant="light"
                               onPress={() => {
-                                const isInFinalExam = finalExamQuestions?.some(q => q.sourceActivityIndex === activityIndex && q.sourceQuestionIndex === questionIndex);
+                                const isInFinalExam = finalExamQuestions?.some(
+                                  (q) =>
+                                    q.sourceActivityIndex === activityIndex &&
+                                    q.sourceQuestionIndex === questionIndex
+                                );
                                 if (isInFinalExam) {
-                                  removeFromFinalExam(activityIndex, questionIndex);
+                                  removeFromFinalExam(
+                                    activityIndex,
+                                    questionIndex
+                                  );
                                 } else {
                                   addToFinalExam(activityIndex, questionIndex);
                                 }
                               }}
                             >
-                              {finalExamQuestions?.some(q => q.sourceActivityIndex === activityIndex && q.sourceQuestionIndex === questionIndex) 
-                                ? (lang === "en" ? "Remove from Final" : "ከመጨረሻ አስወግድ")
-                                : (lang === "en" ? "Add to Final" : "ወደ መጨረሻ ጨምር")
-                              }
+                              {finalExamQuestions?.some(
+                                (q) =>
+                                  q.sourceActivityIndex === activityIndex &&
+                                  q.sourceQuestionIndex === questionIndex
+                              )
+                                ? lang === "en"
+                                  ? "Remove from Final"
+                                  : "ከመጨረሻ አስወግድ"
+                                : lang === "en"
+                                ? "Add to Final"
+                                : "ወደ መጨረሻ ጨምር"}
                             </Button>
                           )}
                           {updateQuestion && (
@@ -482,7 +517,9 @@ export default function ActivityManager({
                             </div>
                             {question.explanation && (
                               <div className="mt-3 p-3 bg-blue-50 rounded text-sm">
-                                <span className="font-medium">{lang === "en" ? "Explanation: " : "ማብራሪያ: "}</span>
+                                <span className="font-medium">
+                                  {lang === "en" ? "Explanation: " : "ማብራሪያ: "}
+                                </span>
                                 {question.explanation}
                               </div>
                             )}
@@ -593,21 +630,24 @@ function QuestionForm({
 
       let explanationText = "";
       let optionLines = remainingLines;
-      
-      const explanationIndex = remainingLines.findIndex(line => 
-        /ማብራሪያ/i.test(line) || /explanation/i.test(line)
+
+      const explanationIndex = remainingLines.findIndex(
+        (line) => /ማብራሪያ/i.test(line) || /explanation/i.test(line)
       );
-      
+
       if (explanationIndex !== -1) {
         const explanationLine = remainingLines[explanationIndex];
         explanationText = explanationLine
           .replace(/^.*?(ማብራሪያ|explanation)\s*[:：]?\s*/i, "")
           .trim();
-        
+
         if (!explanationText && explanationIndex + 1 < remainingLines.length) {
-          explanationText = remainingLines.slice(explanationIndex + 1).join(" ").trim();
+          explanationText = remainingLines
+            .slice(explanationIndex + 1)
+            .join(" ")
+            .trim();
         }
-        
+
         optionLines = remainingLines.slice(0, explanationIndex);
       }
 
@@ -617,7 +657,7 @@ function QuestionForm({
       optionLines.forEach((line) => {
         // Check if line contains answer with colon pattern
         const answerMatch = line.match(/(መልስ\s*[:：]\s*)(.+)/);
-        
+
         if (answerMatch) {
           // Extract answer from "መልስ: answer" pattern
           const answerText = answerMatch[2]
@@ -629,7 +669,7 @@ function QuestionForm({
         } else {
           // Regular option line
           const isCorrect = /^\*|correct|answer|✓|ትክክል/i.test(line);
-          
+
           const optionText = line
             .replace(/^\*/, "")
             .replace(/\s*(correct|✓|ትክክል|answer)\s*/gi, "")
@@ -756,7 +796,11 @@ function QuestionForm({
             label={lang === "en" ? "Explanation (Optional)" : "ማብራሪያ (አማራጭ)"}
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
-            placeholder={lang === "en" ? "Optional explanation for the answer" : "ለመልሱ አማራጭ ማብራሪያ"}
+            placeholder={
+              lang === "en"
+                ? "Optional explanation for the answer"
+                : "ለመልሱ አማራጭ ማብራሪያ"
+            }
           />
 
           <div className="flex gap-2">
@@ -846,7 +890,9 @@ function QuestionEditForm({
   const [question, setQuestion] = useState(initialQuestion.question);
   const [options, setOptions] = useState([...initialQuestion.options]);
   const [answers, setAnswers] = useState([...initialQuestion.answers]);
-  const [explanation, setExplanation] = useState(initialQuestion.explanation || "");
+  const [explanation, setExplanation] = useState(
+    initialQuestion.explanation || ""
+  );
 
   const addOption = () => setOptions([...options, ""]);
   const removeOption = (index: number) => {
@@ -888,21 +934,24 @@ function QuestionEditForm({
 
       let explanationText = "";
       let optionLines = remainingLines;
-      
-      const explanationIndex = remainingLines.findIndex(line => 
-        /ማብራሪያ/i.test(line) || /explanation/i.test(line)
+
+      const explanationIndex = remainingLines.findIndex(
+        (line) => /ማብራሪያ/i.test(line) || /explanation/i.test(line)
       );
-      
+
       if (explanationIndex !== -1) {
         const explanationLine = remainingLines[explanationIndex];
         explanationText = explanationLine
           .replace(/^.*?(ማብራሪያ|explanation)\s*[:：]?\s*/i, "")
           .trim();
-        
+
         if (!explanationText && explanationIndex + 1 < remainingLines.length) {
-          explanationText = remainingLines.slice(explanationIndex + 1).join(" ").trim();
+          explanationText = remainingLines
+            .slice(explanationIndex + 1)
+            .join(" ")
+            .trim();
         }
-        
+
         optionLines = remainingLines.slice(0, explanationIndex);
       }
 
@@ -912,7 +961,7 @@ function QuestionEditForm({
       optionLines.forEach((line) => {
         // Check if line contains answer with colon pattern
         const answerMatch = line.match(/(መልስ\s*[:：]\s*)(.+)/);
-        
+
         if (answerMatch) {
           // Extract answer from "መልስ: answer" pattern
           const answerText = answerMatch[2]
@@ -924,7 +973,7 @@ function QuestionEditForm({
         } else {
           // Regular option line
           const isCorrect = /^\*|correct|answer|✓|ትክክል/i.test(line);
-          
+
           const optionText = line
             .replace(/^\*/, "")
             .replace(/\s*(correct|✓|ትክክል|answer)\s*/gi, "")
@@ -1025,7 +1074,11 @@ function QuestionEditForm({
         label={lang === "en" ? "Explanation (Optional)" : "ማብራሪያ (አማራጭ)"}
         value={explanation}
         onChange={(e) => setExplanation(e.target.value)}
-        placeholder={lang === "en" ? "Optional explanation for the answer" : "ለመልሱ አማራጭ ማብራሪያ"}
+        placeholder={
+          lang === "en"
+            ? "Optional explanation for the answer"
+            : "ለመልሱ አማራጭ ማብራሪያ"
+        }
       />
 
       <div className="flex gap-2">

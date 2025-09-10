@@ -105,20 +105,20 @@ export async function getCourseForManager(id: string) {
         duration: true,
         requirement: {
           select: { requirementEn: true, requirementAm: true },
-          orderBy: { id: 'asc' },
+          orderBy: { id: "asc" },
         },
-        courseFor: { 
+        courseFor: {
           select: { courseForEn: true, courseForAm: true },
-          orderBy: { id: 'asc' },
+          orderBy: { id: "asc" },
         },
         activity: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
           select: {
             id: true,
             titleAm: true,
             titleEn: true,
             subActivity: {
-              orderBy: { order: 'asc' },
+              orderBy: { order: "asc" },
               select: {
                 titleEn: true,
                 titleAm: true,
@@ -126,11 +126,12 @@ export async function getCourseForManager(id: string) {
               },
             },
             question: {
-              orderBy: { id: 'asc' },
+              orderBy: { id: "asc" },
               select: {
                 question: true,
+                answerExplanation: true,
                 questionOptions: {
-                  orderBy: { id: 'asc' },
+                  orderBy: { id: "asc" },
                   select: {
                     option: true,
                   },
@@ -167,29 +168,28 @@ export async function getCourseForManager(id: string) {
       return null;
     }
 
-    // Fetch final exam questions separately
+    // Fetch final exam questions (both standalone and shared)
     const finalExamQuestions = await prisma.question.findMany({
-      where: { 
-        courseId: id,
-        activityId: { not: null } // Questions from activities
+      where: {
+        courseId: id, // All questions that are part of final exam have courseId set
       },
-      orderBy: { id: 'asc' },
+      orderBy: { id: "asc" },
       select: {
         question: true,
         answerExplanation: true,
-        activityId: true,
+        activityId: true, // This tells us if it's shared (has activityId) or standalone (null)
         questionOptions: {
-          orderBy: { id: 'asc' },
-          select: { option: true }
+          orderBy: { id: "asc" },
+          select: { option: true },
         },
         questionAnswer: {
           select: {
             answer: {
-              select: { option: true }
-            }
-          }
-        }
-      }
+              select: { option: true },
+            },
+          },
+        },
+      },
     });
 
     // Transform data efficiently
@@ -199,34 +199,74 @@ export async function getCourseForManager(id: string) {
       instructorRate: Number(course.instructorRate),
       sellerRate: Number(course.sellerRate),
       affiliateRate: Number(course.affiliateRate),
-      activity: course.activity.map(activity => ({
+      activity: course.activity.map((activity) => ({
         ...activity,
-        questions: activity.question.map(q => ({
+        questions: activity.question.map((q) => ({
           question: q.question,
-          options: q.questionOptions.map(opt => opt.option),
-          answers: q.questionAnswer.map(ans => ans.answer.option),
+          options: q.questionOptions.map((opt) => opt.option),
+          answers: q.questionAnswer.map((ans) => ans.answer.option),
           explanation: q.answerExplanation,
         })),
       })),
-      finalExamQuestions: finalExamQuestions.map(q => {
-        const activityIndex = course.activity.findIndex(act => act.id === q.activityId);
-        const questionIndex = activityIndex >= 0 ? 
-          course.activity[activityIndex].question.findIndex(aq => aq.question === q.question) : -1;
-        
-        return {
-          question: q.question,
-          options: q.questionOptions.map(opt => opt.option),
-          answers: q.questionAnswer.map(ans => ans.answer.option),
-          explanation: q.answerExplanation,
-          sourceActivityIndex: activityIndex >= 0 ? activityIndex : undefined,
-          sourceQuestionIndex: questionIndex >= 0 ? questionIndex : undefined
-        };
-      })
+      finalExamQuestions: finalExamQuestions.map((q) => {
+        // Check if this is a shared question (has activityId) or standalone (no activityId)
+        if (q.activityId) {
+          // This is a shared question - find its source activity and question index
+          let sourceActivityIndex: number | undefined;
+          let sourceQuestionIndex: number | undefined;
+
+          // Find which activity this question belongs to
+          for (
+            let activityIndex = 0;
+            activityIndex < course.activity.length;
+            activityIndex++
+          ) {
+            const activity = course.activity[activityIndex];
+            const questionInActivity = activity.question.findIndex(
+              (activityQuestion) => {
+                // Match by content since we don't have direct ID mapping
+                return (
+                  activityQuestion.question === q.question &&
+                  activityQuestion.questionOptions.length ===
+                    q.questionOptions.length
+                );
+              }
+            );
+
+            if (questionInActivity !== -1) {
+              sourceActivityIndex = activityIndex;
+              sourceQuestionIndex = questionInActivity;
+              break;
+            }
+          }
+
+          return {
+            question: q.question,
+            options: q.questionOptions.map((opt) => opt.option),
+            answers: q.questionAnswer.map((ans) => ans.answer.option),
+            explanation: q.answerExplanation,
+            sourceActivityIndex,
+            sourceQuestionIndex,
+            isSharedFromActivity: true,
+          };
+        } else {
+          // This is a standalone final exam question
+          return {
+            question: q.question,
+            options: q.questionOptions.map((opt) => opt.option),
+            answers: q.questionAnswer.map((ans) => ans.answer.option),
+            explanation: q.answerExplanation,
+            sourceActivityIndex: undefined,
+            sourceQuestionIndex: undefined,
+            isSharedFromActivity: false,
+          };
+        }
+      }),
     };
 
     return result;
   } catch (error) {
-    console.error('Error fetching course for manager:', error);
+    console.error("Error fetching course for manager:", error);
     return null;
   }
 }

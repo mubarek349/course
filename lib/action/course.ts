@@ -10,7 +10,14 @@ export async function courseRegistration(
 ): Promise<StateType> {
   try {
     if (!data) return undefined;
-    const { id, courseFor, requirement, activity, finalExamQuestions, ...rest } = data;
+    const {
+      id,
+      courseFor,
+      requirement,
+      activity,
+      finalExamQuestions,
+      ...rest
+    } = data;
 
     await prisma.course.updateMany({
       where: { channelId: rest.channelId },
@@ -23,19 +30,36 @@ export async function courseRegistration(
     if (id) {
       await prisma.courseFor.deleteMany({ where: { courseId: id } });
       await prisma.requirement.deleteMany({ where: { courseId: id } });
+
       // Delete questions and related data first
-      const activities = await prisma.activity.findMany({ where: { courseId: id } });
+      const activities = await prisma.activity.findMany({
+        where: { courseId: id },
+      });
       for (const activity of activities) {
-        await prisma.questionAnswer.deleteMany({ 
-          where: { question: { activityId: activity.id } } 
+        await prisma.questionAnswer.deleteMany({
+          where: { question: { activityId: activity.id } },
         });
-        await prisma.questionOption.deleteMany({ 
-          where: { question: { activityId: activity.id } } 
+        await prisma.questionOption.deleteMany({
+          where: { question: { activityId: activity.id } },
         });
-        await prisma.question.deleteMany({ where: { activityId: activity.id } });
+        await prisma.question.deleteMany({
+          where: { activityId: activity.id },
+        });
       }
+
+      // Delete final exam questions (those with courseId but no activityId)
+      await prisma.questionAnswer.deleteMany({
+        where: { question: { courseId: id, activityId: null } },
+      });
+      await prisma.questionOption.deleteMany({
+        where: { question: { courseId: id, activityId: null } },
+      });
+      await prisma.question.deleteMany({
+        where: { courseId: id, activityId: null },
+      });
+
       await prisma.activity.deleteMany({ where: { courseId: id } });
-      
+
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
@@ -43,135 +67,126 @@ export async function courseRegistration(
           courseFor: { create: courseFor },
           requirement: { create: requirement },
           activity: {
-            create: activity.map(({ titleAm, titleEn, subActivity }, index) => ({
-              titleAm,
-              titleEn,
-              order: index + 1,
-              subActivity: { 
-                create: subActivity.map((sub, subIndex) => ({
-                  ...sub,
-                  order: subIndex + 1
-                }))
-              },
-            })),
+            create: activity.map(
+              ({ titleAm, titleEn, subActivity }, index) => ({
+                titleAm,
+                titleEn,
+                order: index + 1,
+                subActivity: {
+                  create: subActivity.map((sub, subIndex) => ({
+                    ...sub,
+                    video: sub.video || "", // Ensure video is always a string
+                    order: subIndex + 1,
+                  })),
+                },
+              })
+            ),
           },
         },
-        include: { activity: true }
+        include: { activity: { orderBy: { order: "asc" } } },
       });
-      
-      // Create questions for each activity (skip those in final exam)
+
+      // Create questions for each activity
       for (let i = 0; i < activity.length; i++) {
         const { questions } = activity[i];
         const createdActivity = updatedCourse.activity[i];
-        
+
         if (questions && questions.length > 0) {
           for (let j = 0; j < questions.length; j++) {
             const { question, options, answers, explanation } = questions[j];
-            
-            // Skip if this question is in final exam
-            const isInFinalExam = finalExamQuestions?.some(
-              q => q.sourceActivityIndex === i && q.sourceQuestionIndex === j
-            );
-            
-            if (!isInFinalExam) {
-              const createdQuestion = await prisma.question.create({
-                data: {
-                  question,
-                  answerExplanation: explanation,
-                  activityId: createdActivity.id,
-                  questionOptions: {
-                    create: options.map((option) => ({ option }))
-                  }
-                }
-              });
-              
-              const createdOptions = await prisma.questionOption.findMany({
-                where: { questionId: createdQuestion.id }
-              });
-              
-              for (const answer of answers) {
-                const matchingOption = createdOptions.find(opt => opt.option === answer);
-                if (matchingOption) {
-                  await prisma.questionAnswer.create({
-                    data: {
-                      questionId: createdQuestion.id,
-                      answerId: matchingOption.id
-                    }
-                  });
-                }
+
+            // Always create activity questions - they serve as the master copy
+            const createdQuestion = await prisma.question.create({
+              data: {
+                question,
+                answerExplanation: explanation,
+                activityId: createdActivity.id,
+                questionOptions: {
+                  create: options.map((option) => ({ option })),
+                },
+              },
+            });
+
+            const createdOptions = await prisma.questionOption.findMany({
+              where: { questionId: createdQuestion.id },
+            });
+
+            for (const answer of answers) {
+              const matchingOption = createdOptions.find(
+                (opt) => opt.option === answer
+              );
+              if (matchingOption) {
+                await prisma.questionAnswer.create({
+                  data: {
+                    questionId: createdQuestion.id,
+                    answerId: matchingOption.id,
+                  },
+                });
               }
             }
           }
         }
       }
-      
-      // Create final exam questions with both courseId and activityId
+
+      // Create final exam questions and update shared questions
       if (finalExamQuestions && finalExamQuestions.length > 0) {
-        const activities = await prisma.activity.findMany({ 
-          where: { courseId: id },
-          include: { question: true },
-          orderBy: { order: 'asc' }
-        });
-        
         for (const examQuestion of finalExamQuestions) {
-          if (examQuestion.sourceActivityIndex !== undefined && examQuestion.sourceQuestionIndex !== undefined) {
-            // This is a reference to an existing activity question - create new final exam question
-            const activity = activities[examQuestion.sourceActivityIndex];
-            
-            if (activity) {
-              const createdQuestion = await prisma.question.create({
-                data: {
-                  question: examQuestion.question,
-                  answerExplanation: examQuestion.explanation,
-                  courseId: id,
-                  activityId: activity.id,
-                  questionOptions: {
-                    create: examQuestion.options.map((option) => ({ option }))
-                  }
-                }
+          if (
+            examQuestion.isSharedFromActivity &&
+            examQuestion.sourceActivityIndex !== undefined &&
+            examQuestion.sourceQuestionIndex !== undefined
+          ) {
+            // For shared questions: find the existing activity question and update it to include courseId
+            const activityIndex = examQuestion.sourceActivityIndex;
+            const questionIndex = examQuestion.sourceQuestionIndex;
+
+            if (activityIndex < updatedCourse.activity.length) {
+              const targetActivity = updatedCourse.activity[activityIndex];
+
+              // Find the corresponding question in the database
+              const existingQuestions = await prisma.question.findMany({
+                where: { activityId: targetActivity.id },
+                orderBy: { id: "asc" },
               });
-              
-              const createdOptions = await prisma.questionOption.findMany({
-                where: { questionId: createdQuestion.id }
-              });
-              
-              for (const answer of examQuestion.answers) {
-                const matchingOption = createdOptions.find(opt => opt.option === answer);
-                if (matchingOption) {
-                  await prisma.questionAnswer.create({
-                    data: {
-                      questionId: createdQuestion.id,
-                      answerId: matchingOption.id
-                    }
-                  });
-                }
+
+              if (questionIndex < existingQuestions.length) {
+                const targetQuestion = existingQuestions[questionIndex];
+
+                // Update the question to also be part of the final exam
+                await prisma.question.update({
+                  where: { id: targetQuestion.id },
+                  data: { courseId: id }, // Add courseId to mark it as final exam question
+                });
               }
             }
           } else {
-            // This is a new question created directly for final exam
+            // Only create standalone final exam questions (not tied to activities)
             const createdQuestion = await prisma.question.create({
               data: {
                 question: examQuestion.question,
                 answerExplanation: examQuestion.explanation,
                 courseId: id,
+                // Note: activityId is intentionally left null for standalone final exam questions
                 questionOptions: {
-                  create: examQuestion.options.map((option) => ({ option }))
-                }
-              }
+                  create: examQuestion.options.map((option) => ({ option })),
+                },
+              },
             });
-            
+
             const createdOptions = await prisma.questionOption.findMany({
-              where: { questionId: createdQuestion.id }
+              where: { questionId: createdQuestion.id },
             });
-            
+
             for (const answer of examQuestion.answers) {
-              const matchingOption = createdOptions.find(opt => opt.option === answer);
+              const matchingOption = createdOptions.find(
+                (opt) => opt.option === answer
+              );
               if (matchingOption) {
                 await prisma.questionAnswer.create({
                   data: {
                     questionId: createdQuestion.id,
-                    answerId: matchingOption.id
-                  }
+                    answerId: matchingOption.id,
+                  },
                 });
               }
             }
@@ -192,127 +207,122 @@ export async function courseRegistration(
         for (let i = 0; i < activity.length; i++) {
           const { subActivity, questions, ...v } = activity[i];
           const createdActivity = await prisma.activity.create({
-            data: { 
-              ...v, 
+            data: {
+              ...v,
               courseId,
               order: i + 1,
-              subActivity: { 
+              subActivity: {
                 create: subActivity.map((sub, subIndex) => ({
                   ...sub,
-                  order: subIndex + 1
-                }))
-              }
+                  video: sub.video || "", // Ensure video is always a string
+                  order: subIndex + 1,
+                })),
+              },
             },
           });
-          
+
           if (questions && questions.length > 0) {
             for (let j = 0; j < questions.length; j++) {
               const { question, options, answers, explanation } = questions[j];
-              
-              // Skip if this question is in final exam
-              const isInFinalExam = finalExamQuestions?.some(
-                q => q.sourceActivityIndex === i && q.sourceQuestionIndex === j
-              );
-              
-              if (!isInFinalExam) {
-                const createdQuestion = await prisma.question.create({
-                  data: {
-                    question,
-                    answerExplanation: explanation,
-                    activityId: createdActivity.id,
-                    questionOptions: {
-                      create: options.map((option) => ({ option }))
-                    }
-                  }
-                });
-                
-                const createdOptions = await prisma.questionOption.findMany({
-                  where: { questionId: createdQuestion.id }
-                });
-                
-                for (const answer of answers) {
-                  const matchingOption = createdOptions.find(opt => opt.option === answer);
-                  if (matchingOption) {
-                    await prisma.questionAnswer.create({
-                      data: {
-                        questionId: createdQuestion.id,
-                        answerId: matchingOption.id
-                      }
-                    });
-                  }
+
+              // Always create activity questions - they serve as the master copy
+              const createdQuestion = await prisma.question.create({
+                data: {
+                  question,
+                  answerExplanation: explanation,
+                  activityId: createdActivity.id,
+                  questionOptions: {
+                    create: options.map((option) => ({ option })),
+                  },
+                },
+              });
+
+              const createdOptions = await prisma.questionOption.findMany({
+                where: { questionId: createdQuestion.id },
+              });
+
+              for (const answer of answers) {
+                const matchingOption = createdOptions.find(
+                  (opt) => opt.option === answer
+                );
+                if (matchingOption) {
+                  await prisma.questionAnswer.create({
+                    data: {
+                      questionId: createdQuestion.id,
+                      answerId: matchingOption.id,
+                    },
+                  });
                 }
               }
             }
           }
         }
-        
-        // Create final exam questions with both courseId and activityId
+
+        // Create final exam questions and update shared questions
         if (finalExamQuestions && finalExamQuestions.length > 0) {
-          const activities = await prisma.activity.findMany({ 
-            where: { courseId },
-            include: { question: true },
-            orderBy: { order: 'asc' }
-          });
-          
           for (const examQuestion of finalExamQuestions) {
-            if (examQuestion.sourceActivityIndex !== undefined && examQuestion.sourceQuestionIndex !== undefined) {
-              // This is a reference to an existing activity question - create new final exam question
-              const activity = activities[examQuestion.sourceActivityIndex];
-              
-              if (activity) {
-                const createdQuestion = await prisma.question.create({
-                  data: {
-                    question: examQuestion.question,
-                    answerExplanation: examQuestion.explanation,
-                    courseId,
-                    activityId: activity.id,
-                    questionOptions: {
-                      create: examQuestion.options.map((option) => ({ option }))
-                    }
-                  }
+            if (
+              examQuestion.isSharedFromActivity &&
+              examQuestion.sourceActivityIndex !== undefined &&
+              examQuestion.sourceQuestionIndex !== undefined
+            ) {
+              // For shared questions: find the existing activity question and update it to include courseId
+              const activityIndex = examQuestion.sourceActivityIndex;
+              const questionIndex = examQuestion.sourceQuestionIndex;
+
+              // Find the activity that was just created
+              const activities = await prisma.activity.findMany({
+                where: { courseId },
+                orderBy: { order: "asc" },
+              });
+
+              if (activityIndex < activities.length) {
+                const targetActivity = activities[activityIndex];
+
+                // Find the corresponding question in the database
+                const existingQuestions = await prisma.question.findMany({
+                  where: { activityId: targetActivity.id },
+                  orderBy: { id: "asc" },
                 });
-                
-                const createdOptions = await prisma.questionOption.findMany({
-                  where: { questionId: createdQuestion.id }
-                });
-                
-                for (const answer of examQuestion.answers) {
-                  const matchingOption = createdOptions.find(opt => opt.option === answer);
-                  if (matchingOption) {
-                    await prisma.questionAnswer.create({
-                      data: {
-                        questionId: createdQuestion.id,
-                        answerId: matchingOption.id
-                      }
-                    });
-                  }
+
+                if (questionIndex < existingQuestions.length) {
+                  const targetQuestion = existingQuestions[questionIndex];
+
+                  // Update the question to also be part of the final exam
+                  await prisma.question.update({
+                    where: { id: targetQuestion.id },
+                    data: { courseId }, // Add courseId to mark it as final exam question
+                  });
                 }
               }
             } else {
-              // This is a new question created directly for final exam
+              // Only create standalone final exam questions (not tied to activities)
               const createdQuestion = await prisma.question.create({
                 data: {
                   question: examQuestion.question,
                   answerExplanation: examQuestion.explanation,
                   courseId,
+                  // Note: activityId is intentionally left null for standalone final exam questions
                   questionOptions: {
-                    create: examQuestion.options.map((option) => ({ option }))
-                  }
-                }
+                    create: examQuestion.options.map((option) => ({ option })),
+                  },
+                },
               });
-              
+
               const createdOptions = await prisma.questionOption.findMany({
-                where: { questionId: createdQuestion.id }
+                where: { questionId: createdQuestion.id },
               });
-              
+
               for (const answer of examQuestion.answers) {
-                const matchingOption = createdOptions.find(opt => opt.option === answer);
+                const matchingOption = createdOptions.find(
+                  (opt) => opt.option === answer
+                );
                 if (matchingOption) {
                   await prisma.questionAnswer.create({
                     data: {
                       questionId: createdQuestion.id,
-                      answerId: matchingOption.id
-                    }
+                      answerId: matchingOption.id,
+                    },
                   });
                 }
               }
