@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@heroui/react": "^2.7.10",
+    "@heroui/system": "^2.4.22",
+    "@heroui/theme": "^2.4.22",
     "@hookform/resolvers": "^3.9.1",
     "@internationalized/date": "^3.6.0",
     "@prisma/client": "^6.1.0",

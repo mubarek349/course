@@ -1,6 +1,6 @@
 "use client";
 // Ensure needed hooks are imported
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import useAction from "@/hooks/useAction";
 import useData from "@/hooks/useData";
 import { useParams, useRouter } from "next/navigation";
@@ -11,6 +11,17 @@ import {
   Circle,
   X,
   Trophy,
+  Clock,
+  BookOpen,
+  AlertCircle,
+  Target,
+  Award,
+  BarChart3,
+  Eye,
+  EyeOff,
+  RotateCcw,
+  Save,
+  Zap,
 } from "lucide-react";
 import {
   getFinalExams,
@@ -36,12 +47,20 @@ export default function Page() {
   const lang = params?.lang || "en";
   const courseId = params?.id || "";
 
+  // Enhanced state management
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [reviewMode, setReviewMode] = useState<"paged" | "all">("paged");
   const [showCongrats, setShowCongrats] = useState(false);
+  const [examStartTime, setExamStartTime] = useState<Date | null>(null);
+  const [timeSpent, setTimeSpent] = useState(0);
+  const [showHints, setShowHints] = useState(false);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [confidenceLevels, setConfidenceLevels] = useState<number[]>([]);
+  const [examProgress, setExamProgress] = useState(0);
 
   const { data, loading } = useData({ func: getFinalExams, args: [courseId] });
   const { data: status } = useData({
@@ -81,18 +100,79 @@ export default function Page() {
     });
   }, [data]);
 
+  // Initialize exam timer
+  useEffect(() => {
+    if (questions.length > 0 && !examStartTime && !submitted) {
+      setExamStartTime(new Date());
+    }
+  }, [questions.length, examStartTime, submitted]);
+
+  // Timer effect
+  useEffect(() => {
+    if (!examStartTime || submitted) return;
+    
+    const timer = setInterval(() => {
+      setTimeSpent(Math.floor((new Date().getTime() - examStartTime.getTime()) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [examStartTime, submitted]);
+
+  // Progress calculation
+  useEffect(() => {
+    const answered = answers.filter(a => a >= 0).length;
+    const progress = questions.length > 0 ? (answered / questions.length) * 100 : 0;
+    setExamProgress(progress);
+  }, [answers, questions.length]);
+
+  // Initialize confidence levels
+  useEffect(() => {
+    setConfidenceLevels(questions.map(() => 3)); // Default medium confidence
+  }, [questions.length]);
+
   useEffect(() => {
     setAnswers(questions.map((q) => q.previouslySelectedIndex ?? -1));
     setCurrent(0);
     setSelected(null);
     setSubmitted(false);
     setReviewMode("paged");
+    setFlaggedQuestions(new Set());
   }, [questions.length]);
 
   const quizDone = status === "done";
   const answeredCount = answers.filter((a) => a >= 0).length;
   const allAnswered =
     questions.length > 0 && answeredCount === questions.length;
+
+  // Helper functions
+  const formatTime = useCallback((seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  const getProgressColor = useCallback((progress: number) => {
+    if (progress < 25) return "bg-red-500";
+    if (progress < 50) return "bg-orange-500";
+    if (progress < 75) return "bg-yellow-500";
+    return "bg-green-500";
+  }, []);
+
+  const toggleQuestionFlag = useCallback((index: number) => {
+    setFlaggedQuestions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
 
   // Compute score for modal
   const score = useMemo(
@@ -107,59 +187,129 @@ export default function Page() {
   const q = questions[current];
   const effectiveSelected = answers[current] >= 0 ? answers[current] : selected;
 
-  // Review card for a single question (used in both modes)
+  // Enhanced Review card for a single question
   const ReviewCard = ({ qi, idx }: { qi: ExamQuestion; idx: number }) => {
     const selectedIdx = answers[idx];
+    const isCorrect = selectedIdx === qi.correctIndex;
+    const isFlagged = flaggedQuestions.has(idx);
+    
     return (
-      <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-4">
-        <div className="text-xs text-slate-500 mb-2">
-          Question {idx + 1} of {questions.length}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-slate-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full text-sm font-medium">
+              {lang === "en" ? "Question" : "ጥያቄ"} {idx + 1}
+            </div>
+            {isFlagged && (
+              <div className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
+                {lang === "en" ? "Flagged" : "የተማይዝ"}
+              </div>
+            )}
+          </div>
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+            isCorrect
+              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+              : selectedIdx >= 0
+              ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+          }`}>
+            {selectedIdx >= 0
+              ? isCorrect
+                ? (lang === "en" ? "Correct" : "ትክክል")
+                : (lang === "en" ? "Incorrect" : "ልርር")
+              : (lang === "en" ? "Not answered" : "አልተማለም")}
+          </div>
         </div>
-        <p className="mb-3">{qi.text}</p>
-        <div className="space-y-2">
+        
+        <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 leading-relaxed">
+          {qi.text}
+        </p>
+        
+        <div className="space-y-3 mb-4">
           {qi.options.map((opt: ExamOption, i: number) => {
-            const isCorrect = i === qi.correctIndex;
-            const isSelected = i === selectedIdx;
-            let style = "border-slate-300 dark:border-slate-700";
-            if (isCorrect)
-              style =
-                "border-emerald-500 bg-emerald-100 dark:bg-emerald-500/10";
-            else if (isSelected)
-              style = "border-rose-500 bg-rose-100 dark:bg-rose-500/10";
+            const isCorrectOption = i === qi.correctIndex;
+            const isSelectedOption = i === selectedIdx;
+            
             return (
               <div
                 key={opt.id}
-                className={`w-full text-left px-3 py-2 rounded-xl border ${style} flex items-center gap-2`}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-colors ${
+                  isCorrectOption
+                    ? "border-green-500 bg-green-50 dark:bg-green-900/20"
+                    : isSelectedOption && !isCorrectOption
+                    ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                    : "border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50"
+                }`}
               >
-                {isCorrect ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                ) : (
-                  <Circle className="w-5 h-5 text-slate-500" />
-                )}
-                <span>{opt.label}</span>
+                <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                  isCorrectOption
+                    ? "bg-green-500"
+                    : isSelectedOption
+                    ? "bg-red-500"
+                    : "bg-slate-300 dark:bg-slate-500"
+                }`}>
+                  {isCorrectOption ? (
+                    <CheckCircle2 className="w-4 h-4 text-white" />
+                  ) : isSelectedOption ? (
+                    <X className="w-4 h-4 text-white" />
+                  ) : (
+                    <Circle className="w-4 h-4 text-slate-500" />
+                  )}
+                </div>
+                <span className={`font-medium ${
+                  isCorrectOption
+                    ? "text-green-800 dark:text-green-200"
+                    : isSelectedOption && !isCorrectOption
+                    ? "text-red-800 dark:text-red-200"
+                    : "text-gray-700 dark:text-gray-300"
+                }`}>
+                  {opt.label}
+                </span>
               </div>
             );
           })}
         </div>
+        
         {qi.explanation && (
-          <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 text-sm text-slate-700 dark:text-slate-300">
-            <p className="font-medium mb-1">Explanation</p>
-            <p>{qi.explanation}</p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+            <div className="flex items-start gap-2">
+              <div className="p-1 bg-blue-100 dark:bg-blue-800/50 rounded">
+                <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="font-medium text-blue-800 dark:text-blue-200 mb-1 text-sm">
+                  {lang === "en" ? "Explanation" : "ማብራሪያ"}
+                </p>
+                <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
+                  {qi.explanation}
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
     );
   };
 
-  const handleOption = (idx: number) => {
+  const handleOption = useCallback(async (idx: number) => {
     if (quizDone || submitted) return;
+    
     setSelected(idx);
+    setAutoSaving(true);
+    
     const optionId = q.options[idx].id;
-    void action({ questionId: q.id, selectedOptionId: optionId } as any);
-    const copy = [...answers];
-    copy[current] = idx;
-    setAnswers(copy);
-  };
+    
+    try {
+      await action({ questionId: q.id, selectedOptionId: optionId } as any);
+      const copy = [...answers];
+      copy[current] = idx;
+      setAnswers(copy);
+    } catch (error) {
+      console.error('Failed to save answer:', error);
+    } finally {
+      setAutoSaving(false);
+    }
+  }, [quizDone, submitted, q, action, answers, current]);
 
   const goto = (i: number) => {
     setCurrent(i);
@@ -189,52 +339,140 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-dvh bg-background text-foreground p-4">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_300px] gap-4">
-        <div className="bg-background border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
-          <button
-            onClick={() => router.back()}
-            className="mb-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-          >
-            <ChevronLeft className="w-4 h-4" /> Back
-          </button>
-
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-semibold">Final Exam</h1>
-            {submitted && (
-              <div className="inline-flex items-center rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700">
-                <button
-                  onClick={() => setReviewMode("paged")}
-                  className={`px-3 py-1 text-sm ${
-                    reviewMode === "paged"
-                      ? "bg-slate-200 dark:bg-slate-800 font-medium"
-                      : ""
-                  }`}
-                >
-                  One-by-One
-                </button>
-                <button
-                  onClick={() => setReviewMode("all")}
-                  className={`px-3 py-1 text-sm border-l border-slate-300 dark:border-slate-700 ${
-                    reviewMode === "all"
-                      ? "bg-slate-200 dark:bg-slate-800 font-medium"
-                      : ""
-                  }`}
-                >
-                  View All
-                </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
+      {/* Professional Header */}
+      <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.back()}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">{lang === "en" ? "Back" : "ተመለስ"}</span>
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {lang === "en" ? "Final Examination" : "የመጨረሻ ፈተና"}
+                  </h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {questions.length} {lang === "en" ? "Questions" : "ጥያቄዎች"}
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {/* Timer */}
+              {examStartTime && !submitted && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="font-mono text-sm font-medium text-blue-700 dark:text-blue-300">
+                    {formatTime(timeSpent)}
+                  </span>
+                </div>
+              )}
+              
+              {/* Progress Indicator */}
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {answeredCount} / {questions.length}
+                </div>
+                <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-300 ${getProgressColor(examProgress)}`}
+                    style={{ width: `${examProgress}%` }}
+                  />
+                </div>
+              </div>
+              
+              {/* Auto-save indicator */}
+              {autoSaving && (
+                <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                  <Save className="w-3 h-3 animate-pulse" />
+                  <span>{lang === "en" ? "Saving..." : "በማስቀመጥ ላይ..."}</span>
+                </div>
+              )}
+            </div>
           </div>
-
-          {!submitted ? (
-            <>
-              <div className="text-xs text-slate-500 mb-2">
-                Question {current + 1} of {questions.length}
-              </div>
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-4">
-                <p className="mb-3">{q.text}</p>
-                <div className="space-y-2">
+        </div>
+      </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          {/* Question Panel */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 overflow-hidden">
+            {!submitted ? (
+              <div className="p-6">
+                {/* Question Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                      {lang === "en" ? "Question" : "ጥያቄ"} {current + 1}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {lang === "en" ? "of" : "ከ"} {questions.length}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Flag Question Button */}
+                    <button
+                      onClick={() => toggleQuestionFlag(current)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        flaggedQuestions.has(current)
+                          ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      }`}
+                      title={lang === "en" ? "Flag for review" : "ልሚያዌት ማይዝ"}
+                    >
+                      <Target className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Hint Toggle */}
+                    <button
+                      onClick={() => setShowHints(!showHints)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        showHints
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      }`}
+                      title={lang === "en" ? "Toggle hints" : "ማሳታ አንብር/አድርግ"}
+                    >
+                      {showHints ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Question Content */}
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 mb-6">
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed mb-4">
+                    {q.text}
+                  </p>
+                  
+                  {showHints && q.explanation && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+                            {lang === "en" ? "Hint" : "ማሳታ"}
+                          </p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            {q.explanation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* Answer Options */}
+                <div className="space-y-3 mb-6">
                   {q.options.map(
                     (opt: { id: string; label: string }, idx: number) => {
                       const active = effectiveSelected === idx;
@@ -243,218 +481,487 @@ export default function Page() {
                           key={opt.id}
                           onClick={() => handleOption(idx)}
                           disabled={submitted || status === "done"}
-                          className={`w-full text-left px-3 py-2 rounded-xl border transition flex items-center gap-2 ${
+                          className={`group w-full text-left p-4 rounded-xl border-2 transition-all duration-200 transform hover:scale-[1.02] ${
                             active
-                              ? "border-sky-500 bg-sky-100 dark:bg-sky-500/10"
-                              : "border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg"
+                              : "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-500 hover:shadow-md"
                           }`}
                         >
-                          {active ? (
-                            <CheckCircle2 className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                          ) : (
-                            <Circle className="w-5 h-5 text-slate-500" />
-                          )}
-                          <span>{opt.label}</span>
+                          <div className="flex items-center gap-3">
+                            <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              active
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-slate-300 dark:border-slate-500 group-hover:border-slate-400"
+                            }`}>
+                              {active && (
+                                <CheckCircle2 className="w-4 h-4 text-white" />
+                              )}
+                            </div>
+                            <span className={`text-base font-medium transition-colors ${
+                              active
+                                ? "text-blue-900 dark:text-blue-100"
+                                : "text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100"
+                            }`}>
+                              {opt.label}
+                            </span>
+                          </div>
                         </button>
                       );
                     }
                   )}
                 </div>
+                
+                {/* Confidence Level */}
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {lang === "en" ? "How confident are you with this answer?" : "በዚህ ምላሽ ከክኬ ስንት የማምስል አንድ አልክ?"}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <button
+                        key={level}
+                        onClick={() => {
+                          const newLevels = [...confidenceLevels];
+                          newLevels[current] = level;
+                          setConfidenceLevels(newLevels);
+                        }}
+                        className={`w-10 h-10 rounded-full border-2 transition-all ${
+                          confidenceLevels[current] === level
+                            ? "border-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
+                            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-500 hover:text-gray-700"
+                        }`}
+                        title={`${lang === "en" ? "Confidence level" : "የማምስልነት ደረጃ"} ${level}`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                    <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                      {lang === "en" ? "(1=Low, 5=High)" : "(1=ዝቅ, 5=የፈተ)"}
+                    </span>
+                  </div>
+                </div>
 
-                <div className="mt-4 flex items-center justify-between">
+                {/* Enhanced Navigation Controls */}
+                <div className="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-600">
                   <button
                     onClick={() => goto(Math.max(0, current - 1))}
                     disabled={current === 0}
-                    className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:hover:bg-transparent"
                   >
-                    Previous
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>{lang === "en" ? "Previous" : "ቀደም"}</span>
                   </button>
-                  <div className="flex items-center gap-2">
-                    {current < questions.length - 1 && (
+                  
+                  <div className="flex items-center gap-3">
+                    {/* Question Quick Nav */}
+                    <div className="hidden md:flex items-center gap-1">
+                      {questions.slice(Math.max(0, current - 2), current + 3).map((_, localIdx) => {
+                        const questionIdx = Math.max(0, current - 2) + localIdx;
+                        if (questionIdx >= questions.length) return null;
+                        const isActive = questionIdx === current;
+                        const isAnswered = answers[questionIdx] >= 0;
+                        const isFlagged = flaggedQuestions.has(questionIdx);
+                        
+                        return (
+                          <button
+                            key={questionIdx}
+                            onClick={() => goto(questionIdx)}
+                            className={`w-8 h-8 rounded-lg text-xs font-medium transition-all ${
+                              isActive
+                                ? "bg-blue-500 text-white shadow-lg scale-110"
+                                : isAnswered
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200"
+                                : isFlagged
+                                ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            }`}
+                          >
+                            {questionIdx + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {current < questions.length - 1 ? (
                       <button
-                        onClick={() =>
-                          goto(Math.min(questions.length - 1, current + 1))
-                        }
-                        className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white"
+                        onClick={() => goto(Math.min(questions.length - 1, current + 1))}
+                        className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium shadow-md hover:shadow-lg transition-all transform hover:scale-105"
                       >
-                        Next <ChevronRight className="w-4 h-4 inline ml-1" />
+                        <span>{lang === "en" ? "Next" : "ከዚህ በሐዋላ"}</span>
+                        <ChevronRight className="w-4 h-4" />
                       </button>
-                    )}
-                    {current === questions.length - 1 && (
+                    ) : (
                       <button
                         onClick={submitExam}
                         disabled={answers.some((a) => a < 0)}
-                        className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium shadow-md hover:shadow-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none disabled:shadow-none"
                       >
-                        Submit Exam
+                        <Trophy className="w-4 h-4" />
+                        <span>{lang === "en" ? "Submit Exam" : "ፈተና ማስነድ"}</span>
                       </button>
                     )}
                   </div>
                 </div>
               </div>
-            </>
-          ) : reviewMode === "paged" ? (
-            <>
-              <ReviewCard qi={q} idx={current} />
-              <div className="mt-4 flex items-center justify-between">
+            ) : (
+              <div className="p-6">
+                {/* Review Mode Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {lang === "en" ? "Exam Review" : "የፈተና ምልክት"}
+                  </h2>
+                  <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                    <button
+                      onClick={() => setReviewMode("paged")}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        reviewMode === "paged"
+                          ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                      }`}
+                    >
+                      {lang === "en" ? "Question by Question" : "ጥያቄ በጥያቄ"}
+                    </button>
+                    <button
+                      onClick={() => setReviewMode("all")}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                        reviewMode === "all"
+                          ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                      }`}
+                    >
+                      {lang === "en" ? "All Questions" : "ሁሉ ጥያቄዎች"}
+                    </button>
+                  </div>
+                </div>
+                
+                {reviewMode === "paged" ? (
+                  <div>
+                    <ReviewCard qi={q} idx={current} />
+                    <div className="mt-6 flex items-center justify-between">
+                      <button
+                        onClick={() => goto(Math.max(0, current - 1))}
+                        disabled={current === 0}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>{lang === "en" ? "Previous" : "ቀደም"}</span>
+                      </button>
+                      <button
+                        onClick={() => goto(Math.min(questions.length - 1, current + 1))}
+                        disabled={current >= questions.length - 1}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors disabled:opacity-40"
+                      >
+                        <span>{lang === "en" ? "Next" : "ከዚህ በሐዋላ"}</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      {lang === "en" ? "Reviewing all questions and answers" : "ሁሉን ጥያቄዎች እና ምላሾች መመልክት"}
+                    </div>
+                    {questions.map((qi, i) => (
+                      <ReviewCard key={qi.id} qi={qi} idx={i} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Enhanced Sidebar */}
+          <div className="space-y-6">
+            {/* Exam Statistics */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {lang === "en" ? "Progress" : "አስካክት"}
+                </h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {lang === "en" ? "Answered" : "የተማለሩ"}
+                    </span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {answeredCount} / {questions.length}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(examProgress)}`}
+                      style={{ width: `${examProgress}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {flaggedQuestions.size > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-amber-600 dark:text-amber-400">
+                      {lang === "en" ? "Flagged" : "የተማይዝ"}
+                    </span>
+                    <span className="font-medium">{flaggedQuestions.size}</span>
+                  </div>
+                )}
+                
+                {examStartTime && !submitted && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {lang === "en" ? "Time Elapsed" : "የተጠቀጠ ጊዜ"}
+                    </span>
+                    <span className="font-mono font-medium text-blue-600 dark:text-blue-400">
+                      {formatTime(timeSpent)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Question Navigation Grid */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {lang === "en" ? "Questions" : "ጥያቄዎች"}
+                </h3>
                 <button
-                  onClick={() => goto(Math.max(0, current - 1))}
-                  disabled={current === 0}
-                  className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  onClick={() => router.back()}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 >
-                  Previous
+                  <X className="w-4 h-4" />
                 </button>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                {questions.map((qi: any, i: number) => {
+                  const answered = answers[i] >= 0;
+                  const currentPage = i === current;
+                  const isCorrect = submitted && answered && answers[i] === qi.correctIndex;
+                  const isFlagged = flaggedQuestions.has(i);
+                  const isIncorrect = submitted && answered && answers[i] !== qi.correctIndex;
+                  
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => goto(i)}
+                      className={`relative h-10 rounded-lg border-2 text-xs font-medium transition-all hover:scale-105 ${
+                        currentPage
+                          ? "border-blue-500 bg-blue-500 text-white shadow-lg"
+                          : submitted
+                          ? isCorrect
+                            ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                            : isIncorrect
+                            ? "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
+                            : "border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400"
+                          : answered
+                          ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                          : "border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-gray-400"
+                      }`}
+                    >
+                      {i + 1}
+                      {isFlagged && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Legend */}
+              <div className="space-y-2 text-xs">
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() =>
-                      goto(Math.min(questions.length - 1, current + 1))
-                    }
-                    className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white"
-                  >
-                    Next <ChevronRight className="w-4 h-4 inline ml-1" />
-                  </button>
+                  <div className="w-3 h-3 bg-green-500 rounded" />
+                  <span className="text-gray-600 dark:text-gray-300">
+                    {submitted 
+                      ? (lang === "en" ? "Correct" : "ትክክል") 
+                      : (lang === "en" ? "Answered" : "የተማለ")}
+                  </span>
+                </div>
+                {submitted && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded" />
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {lang === "en" ? "Incorrect" : "ልርር"}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-amber-500 rounded-full" />
+                  <span className="text-gray-600 dark:text-gray-300">
+                    {lang === "en" ? "Flagged" : "የተማይዝ"}
+                  </span>
                 </div>
               </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="font-semibold">Review All</h2>
+            </div>
+            
+            {/* Quick Actions */}
+            {!submitted && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-6">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+                  {lang === "en" ? "Quick Actions" : "ፍጣን መጠብባዎች"}
+                </h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      // Go to first unanswered question
+                      const firstUnanswered = answers.findIndex(a => a < 0);
+                      if (firstUnanswered !== -1) goto(firstUnanswered);
+                    }}
+                    disabled={allAnswered}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
+                  >
+                    <Target className="w-4 h-4" />
+                    <span>{lang === "en" ? "Next Unanswered" : "ከዚህ የላለተማለ"}</span>
+                  </button>
+                  
+                  {flaggedQuestions.size > 0 && (
+                    <button
+                      onClick={() => {
+                        const flaggedArray = Array.from(flaggedQuestions);
+                        const nextFlagged = flaggedArray.find(q => q > current) ?? flaggedArray[0];
+                        goto(nextFlagged);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{lang === "en" ? "Review Flagged" : "የተማይድን መመልክት"}</span>
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-                {questions.map((qi, i) => (
-                  <ReviewCard key={qi.id} qi={qi} idx={i} />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Navigation Grid */}
-        <div className="bg-background border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold">Quiz navigation</h2>
-            <button
-              onClick={() => router.back()}
-              className="text-slate-500 hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {questions.map((qi: any, i: number) => {
-              const answered = answers[i] >= 0;
-              const currentPage = i === current;
-              const isCorrect = answered && answers[i] === qi.correctIndex;
-              return (
-                <button
-                  key={i}
-                  onClick={() => goto(i)}
-                  className={`h-8 rounded border text-xs ${
-                    currentPage
-                      ? "border-sky-500 text-sky-600"
-                      : submitted
-                      ? isCorrect
-                        ? "border-emerald-500 text-emerald-600"
-                        : "border-rose-500 text-rose-600"
-                      : answered
-                      ? "border-emerald-500 text-emerald-600"
-                      : "border-slate-300 dark:border-slate-700 text-slate-500"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              );
-            })}
+            )}
           </div>
         </div>
       </div>
 
-      {/* Congrats Modal */}
+      {/* Enhanced Congratulations Modal */}
       {submitted && showCongrats && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="relative w-full max-w-md bg-background border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-2xl">
-            <button
-              onClick={() => setShowCongrats(false)}
-              className="absolute top-3 right-3 text-slate-500 hover:text-foreground"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Trophy className="w-10 h-10 text-emerald-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-gray-700 overflow-hidden">
+            {/* Header with gradient */}
+            <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 p-6 text-white relative">
+              <button
+                onClick={() => setShowCongrats(false)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4">
+                  <Trophy className="w-10 h-10 text-yellow-300" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">
+                  {lang === "en" ? "Exam Completed!" : "ፈተና ተጠቆ!"}
+                </h2>
+                <p className="text-white/90">
+                  {lang === "en" 
+                    ? "Congratulations on completing your final examination" 
+                    : "የመጨረሻ ፈተናን በተሳካሁነት አቦላኤ!"}
+                </p>
               </div>
-              <h2 className="text-xl font-bold">Congratulations!</h2>
-              <p className="text-slate-600 dark:text-slate-300">
-                You have submitted the final exam.
-              </p>
-
-              {/* Result summary from readyToCertification */}
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Score Display */}
               {!certLoading && cert && (
-                <div className="w-full mt-2">
-                  <div className="flex items-center justify-center gap-2 text-sm mb-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-full border text-xs ${
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="inline-flex items-center gap-3 mb-3">
+                      <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
                         cert.result === "excellent"
-                          ? "border-emerald-500 text-emerald-600"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
                           : cert.result === "veryGood"
-                          ? "border-sky-500 text-sky-600"
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
                           : cert.result === "good"
-                          ? "border-amber-500 text-amber-600"
-                          : "border-rose-500 text-rose-600"
-                      }`}
-                    >
-                      {String(cert.result).toUpperCase()}
-                    </span>
-                    <span className="text-slate-500">
-                      {Math.round(cert.percent)}%
-                    </span>
+                          ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
+                          : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+                      }`}>
+                        {cert.result === "excellent" && (lang === "en" ? "Excellent" : "አስፈጣቕ")}
+                        {cert.result === "veryGood" && (lang === "en" ? "Very Good" : "በጣም ትርው")}
+                        {cert.result === "good" && (lang === "en" ? "Good" : "ትርው")}
+                        {cert.result === "poor" && (lang === "en" ? "Needs Improvement" : "ማካሀል ይፈልጋል")}
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {Math.round(cert.percent)}%
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-3 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-1000 ease-out ${
+                          cert.percent >= 85 ? "bg-gradient-to-r from-green-500 to-emerald-600" :
+                          cert.percent >= 70 ? "bg-gradient-to-r from-blue-500 to-indigo-600" :
+                          cert.percent >= 50 ? "bg-gradient-to-r from-yellow-500 to-amber-600" :
+                          "bg-gradient-to-r from-red-500 to-rose-600"
+                        }`}
+                        style={{
+                          width: `${Math.min(100, Math.max(0, Math.round(cert.percent || 0)))}%`,
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {lang === "en" ? "Correct answers:" : "ስሖው ምላሾች:"} 
+                      <span className="font-semibold text-gray-900 dark:text-white ml-1">
+                        {cert.correct} / {cert.total}
+                      </span>
+                    </div>
                   </div>
-                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.max(0, Math.round(cert.percent || 0))
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="mt-2 text-xs text-slate-500">
-                    Correct: {cert.correct} / {cert.total}
-                  </div>
+                  
+                  {/* Time Stats */}
+                  {examStartTime && (
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {lang === "en" ? "Time taken:" : "የተጠቀሰ ጊዜ:"}
+                        </span>
+                        <span className="font-mono font-medium text-gray-900 dark:text-white">
+                          {formatTime(timeSpent)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-
-              <div className="grid grid-cols-2 gap-2 w-full mt-2">
+              
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => {
                     setReviewMode("all");
                     setShowCongrats(false);
                   }}
-                  className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium"
                 >
-                  View All
+                  <Eye className="w-4 h-4" />
+                  <span>{lang === "en" ? "Review Answers" : "ምላሾች መመልክት"}</span>
                 </button>
                 <button
                   onClick={() => setShowCongrats(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
                 >
-                  Close
+                  <span>{lang === "en" ? "Close" : "ዘጋ"}</span>
                 </button>
               </div>
-
+              
+              {/* Certificate Button */}
               <button
                 onClick={() =>
-                  router.push(
-                    `/${lang}/@student/mycourse/${courseId}/certificate`
-                  )
+                  router.push(`/${lang}/@student/mycourse/${courseId}/certificate`)
                 }
                 disabled={!cert?.status}
-                className="mt-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none disabled:shadow-none"
               >
-                Go to Certificate
+                <Award className="w-5 h-5" />
+                <span>{lang === "en" ? "Get Certificate" : "ሰናድ አግን"}</span>
               </button>
             </div>
           </div>
