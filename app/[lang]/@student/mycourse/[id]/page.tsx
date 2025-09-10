@@ -9,6 +9,9 @@ import {
   CheckCircle2,
   Sparkles,
   X,
+  ShieldAlert,
+  Trophy,
+  Lock,
 } from "lucide-react";
 import { Accordion, AccordionItem, Skeleton, Tabs, Tab } from "@heroui/react";
 
@@ -16,6 +19,8 @@ import useData from "@/hooks/useData";
 import {
   getMySingleCourse,
   getMySingleCourseContent,
+  unlockTheFinalExamAndQuiz,
+  getFinalExamStatus,
 } from "@/actions/student/mycourse";
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
@@ -149,21 +154,34 @@ function CourseContent({
 
 // ---------------- MAIN PAGE ----------------
 export default function Page() {
+  const router = useRouter();
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
-  const id = params?.id ?? "";
+  const courseId = params?.id || "";
   const { data: session } = useSession();
   const studentId = (session?.user as any)?.id;
 
   const { data, loading } = useData({
     func: getMySingleCourse,
-    args: [studentId, id],
+    args: [studentId, courseId],
   });
 
   const { data: contentData, loading: contentLoading } = useData({
     func: getMySingleCourseContent,
-    args: [studentId, id],
+    args: [studentId, courseId],
   });
+
+  const { data: locks } = useData({
+    func: unlockTheFinalExamAndQuiz,
+    args: [courseId],
+  });
+
+  const { data: examStatus } = useData({
+    func: getFinalExamStatus,
+    args: [courseId],
+  });
+
+  const finalExamLocked = Boolean((locks as any)?.finalExamLocked);
 
   const [currentVideo, setCurrentVideo] = useState({ url: "", title: "" });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -291,6 +309,56 @@ export default function Page() {
           )}
         </div>
       )}
+      {/* Final Exam Card */}
+      <div className="mt-6">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                finalExamLocked
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-emerald-100 text-emerald-700"
+              }`}
+            >
+              {finalExamLocked ? (
+                <Lock className="w-5 h-5" />
+              ) : (
+                <Trophy className="w-5 h-5" />
+              )}
+            </div>
+            <div>
+              <div className="font-semibold">Final Exam</div>
+              <div className="text-xs text-slate-500">
+                {finalExamLocked
+                  ? "Locked until all quizzes are completed"
+                  : examStatus === "done"
+                  ? "Completed"
+                  : examStatus === "partial"
+                  ? "In progress"
+                  : "Ready when you are"}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {!finalExamLocked ? (
+              <button
+                onClick={() =>
+                  router.push(
+                    `/${lang}/@student/mycourse/${courseId}/finalexam`
+                  )
+                }
+                className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white"
+              >
+                {examStatus === "done" ? "Review" : "Start"}
+              </button>
+            ) : (
+              <span className="text-xs px-2 py-1 rounded-md bg-amber-100 text-amber-700">
+                Locked
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
