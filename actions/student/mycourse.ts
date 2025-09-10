@@ -468,6 +468,7 @@ export async function getFinalExams(courseId: string) {
     const user = await auth();
     const userId = user?.user?.id;
     if (!userId) return [];
+
     const finalExams = await prisma.question.findMany({
       where: { courseId: courseId },
       select: {
@@ -476,42 +477,197 @@ export async function getFinalExams(courseId: string) {
         questionOptions: true,
         questionAnswer: true,
         studentQuiz: {
-          where: { userId },
-          select: { studentQuizAnswers: true },
+          where: { userId, isFinalExam: true },
+          select: {
+            id: true,
+            studentQuizAnswers: {
+              select: { selectedOptionId: true },
+              orderBy: { id: "desc" },
+              // take: 1,
+            },
+          },
         },
       },
     });
-    console.log(finalExams);
-    return finalExams;
+
+    // Map latest selected option per question
+    return finalExams.map((q) => ({
+      ...q,
+      studentSelectedOptionId:
+        q.studentQuiz[0]?.studentQuizAnswers[0]?.selectedOptionId,
+    }));
   } catch (error) {
     console.error("Error fetching final exams:", error);
     return [];
   }
 }
 
-export async function getFinalExamStatus2(courseId: string) {
+export async function submitFinalExamAnswers(
+  prevState: StateType,
+  data: { questionId: string; selectedOptionId: string } | undefined
+): Promise<StateType> {
   try {
     const user = await auth();
-    const userId = user?.user?.id;
-    if (!userId) return "error" as const;
+    if (!user) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
+    const userId = user.user?.id!;
 
-    const totalQuestions = await prisma.question.count({
-      where: { courseId: courseId },
+    if (!data) {
+      return {
+        status: false,
+        cause: "invalid_data",
+        message: "No data provided",
+      } as StateType;
+    }
+    const { questionId, selectedOptionId } = data;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const option = await tx.questionOption.findFirst({
+        where: { id: selectedOptionId, questionId },
+        select: { id: true },
+      });
+      if (!option) throw new Error("invalid_option");
+
+      const studentQuiz = await tx.studentQuiz.create({
+        data: { userId, questionId, isFinalExam: true },
+      });
+
+      const studentQuizAnswer = await tx.studentQuizAnswer.create({
+        data: { studentQuizId: studentQuiz.id, selectedOptionId },
+      });
+
+      return { studentQuiz, studentQuizAnswer };
     });
-    if (totalQuestions === 0) return "no-quiz" as const;
 
-    const answeredQuestions = await prisma.studentQuiz.groupBy({
-      by: ["questionId"],
-      where: { userId, question: { courseId: courseId } },
-      _count: { questionId: true },
+    return { status: true } as StateType;
+  } catch (error: any) {
+    const cause =
+      error?.message === "invalid_option" ? "invalid_option" : "server_error";
+    return {
+      status: false,
+      cause,
+      message: "Failed to save answer",
+    } as StateType;
+  }
+}
+
+export async function readyToCertification(courseId: string) {
+  try {
+    const user = await auth();
+    if (!user) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
+    const userId = user.user?.id!;
+
+    // Find the final exam activity (last activity with questions)
+    const examActivity = await prisma.activity.findFirst({
+      where: { courseId, question: { some: {} } },
+      orderBy: { order: "desc" },
+      select: { id: true },
     });
-    const uniqueAnswered = answeredQuestions.length;
 
-    if (uniqueAnswered === 0) return "not-done" as const;
-    if (uniqueAnswered >= totalQuestions) return "done" as const;
-    return "partial" as const;
+    if (!examActivity) {
+      return {
+        status: false,
+        result: "nottaken",
+        message: "Final exam not found",
+      } as any;
+    }
+
+    // Get all questions for the final exam with their correct answer id
+    const questions = await prisma.question.findMany({
+      where: { activityId: examActivity.id },
+      select: { id: true, questionAnswer: { select: { answerId: true } } },
+    });
+
+    const total = questions.length;
+    if (total === 0) {
+      return {
+        status: false,
+        result: "nottaken",
+        message: "No questions in final exam",
+      } as any;
+    }
+
+    // Get student's latest answers for each question
+    const answers = await prisma.studentQuizAnswer.findMany({
+      where: {
+        studentQuiz: {
+          userId,
+          questionId: { in: questions.map((q) => q.id) },
+        },
+      },
+      select: {
+        selectedOptionId: true,
+        studentQuiz: { select: { questionId: true } },
+      },
+      orderBy: { id: "desc" },
+    });
+
+    // Map latest answer per question
+    const latestAnswers: Record<string, string> = {};
+    for (const ans of answers) {
+      const qid = ans.studentQuiz.questionId;
+      if (!latestAnswers[qid]) latestAnswers[qid] = ans.selectedOptionId;
+    }
+
+    // If student hasn't answered any, return nottaken
+    if (Object.keys(latestAnswers).length === 0) {
+      return {
+        status: false,
+        result: "nottaken",
+        message: "Student has not taken the final exam",
+      } as any;
+    }
+
+    // Build correct answer map
+    const correctByQid: Record<string, string | undefined> = {};
+    for (const q of questions as any[]) {
+      const qa = q.questionAnswer as any;
+      const correctId = Array.isArray(qa) ? qa[0]?.answerId : qa?.answerId;
+      correctByQid[q.id] = correctId;
+    }
+
+    // Calculate correct answers
+    let correct = 0;
+    for (const q of questions) {
+      const correctId = correctByQid[q.id];
+      if (correctId && latestAnswers[q.id] === correctId) correct++;
+    }
+
+    const percent = (correct / total) * 100;
+
+    let result: "poor" | "good" | "veryGood" | "excellent";
+    if (percent < 50) result = "poor";
+    else if (percent < 70) result = "good";
+    else if (percent < 85) result = "veryGood";
+    else result = "excellent";
+
+    // Everyone who has taken the exam can get a certificate
+    return {
+      status: true,
+      result,
+      percent,
+      progress: percent,
+      correct,
+      total,
+      canGetCertificate: true,
+      message: "Eligible for certificate",
+    } as any;
   } catch (error) {
-    console.error("Error fetching final exam status:", error);
-    return "error" as const;
+    return {
+      status: false,
+      result: "error",
+      message: "Server error",
+    } as any;
   }
 }
