@@ -5,6 +5,8 @@ import {
   getActivityQuiz,
   saveStudentQuizAnswers,
   getActivityQuizStatus,
+  unlockTheFinalExamAndQuiz,
+  readyToCertification,
 } from "@/actions/student/mycourse";
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -22,6 +24,7 @@ export default function Page() {
   const params = useParams<{ lang: string; id: string; activityId: string }>();
   const lang = params?.lang || "en";
   const activityId = params?.activityId || "";
+  const courseId = params?.id || "";
 
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -41,6 +44,24 @@ export default function Page() {
   const { data: quizStatus, loading: quizStatusLoading } = useData({
     func: getActivityQuizStatus,
     args: [activityId],
+  });
+
+  // Lock map at course level
+  const { data: locks } = useData({
+    func: unlockTheFinalExamAndQuiz,
+    args: [courseId],
+  });
+  const isLocked = useMemo(() => {
+    const act = (locks as any)?.activities?.find(
+      (a: any) => a.activityId === activityId
+    );
+    return Boolean(act?.locked);
+  }, [locks, activityId]);
+
+  // Certification readiness (after final exam)
+  const { data: cert } = useData({
+    func: readyToCertification,
+    args: [courseId],
   });
 
   const questions = useMemo(() => {
@@ -125,6 +146,7 @@ export default function Page() {
     if (showFeedback) return; // lock during feedback
     if (quizDone) return; // block when quiz completed
     if (quizPartial && answers[current] >= 0) return; // already answered
+    if (isLocked) return; // blocked by sequence lock
     setSelected(idx);
   };
 
@@ -280,6 +302,36 @@ export default function Page() {
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
 
         <div className="relative z-10 space-y-6">
+          {/* Certificate CTA */}
+          {cert?.status && (
+            <div className="rounded-2xl border border-emerald-300/50 bg-emerald-50 dark:bg-emerald-900/20 p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                <Trophy className="w-5 h-5" />
+                <span className="text-sm font-medium">
+                  Certificate is ready
+                </span>
+              </div>
+              <button
+                onClick={() =>
+                  router.push(
+                    `/${lang}/@student/mycourse/${courseId}/certificate`
+                  )
+                }
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
+              >
+                View certificate
+              </button>
+            </div>
+          )}
+
+          {/* Lock notice */}
+          {isLocked && (
+            <div className="rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-800 dark:text-amber-300 text-sm">
+              This quiz is locked. Please complete previous quizzes to unlock
+              it.
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -362,11 +414,14 @@ export default function Page() {
                     key={idx}
                     onClick={() => handleOption(idx)}
                     disabled={
+                      isLocked ||
                       showFeedback ||
                       quizDone ||
                       (quizPartial && answers[current] >= 0)
                     }
-                    className={`${base} ${style}`}
+                    className={`${base} ${style} ${
+                      isLocked ? "opacity-60 cursor-not-allowed" : ""
+                    }`}
                   >
                     {icon}
                     <span className="text-sm text-slate-800 dark:text-slate-200">
@@ -405,7 +460,6 @@ export default function Page() {
             >
               Quit Quiz
             </button>
-
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrev}
@@ -416,7 +470,9 @@ export default function Page() {
               </button>
               <button
                 onClick={handleNext}
-                disabled={selected === null && !canAdvanceWithoutSelect}
+                disabled={
+                  isLocked || (selected === null && !canAdvanceWithoutSelect)
+                }
                 className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold disabled:opacity-50 inline-flex items-center gap-2"
               >
                 {nextLabel}

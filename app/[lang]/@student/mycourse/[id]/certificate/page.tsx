@@ -1,8 +1,9 @@
 "use client";
 import useData from "@/hooks/useData";
-import { readyToCertification } from "@/actions/student/mycourse";
+import { getCertificateDetails } from "@/actions/student/mycourse";
 import { useParams, useRouter } from "next/navigation";
-import { Trophy, CheckCircle2, X } from "lucide-react";
+import { useRef } from "react";
+import { Trophy, Printer, X } from "lucide-react";
 
 export default function Page() {
   const router = useRouter();
@@ -11,9 +12,15 @@ export default function Page() {
   const courseId = params?.id || "";
 
   const { data, loading } = useData({
-    func: readyToCertification,
+    func: getCertificateDetails,
     args: [courseId],
   });
+  const ref = useRef<HTMLDivElement>(null);
+
+  const printPdf = () => {
+    // Simple print; user can save as PDF
+    window.print();
+  };
 
   if (loading) {
     return (
@@ -23,19 +30,13 @@ export default function Page() {
     );
   }
 
-  if (!data || data.result === "nottaken" || data.result === "error") {
+  if (!data?.status || data.result === "nottaken" || data.result === "error") {
     return (
       <div className="min-h-dvh bg-background text-foreground flex items-center justify-center p-6">
         <div className="max-w-md w-full border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center">
-          <div className="w-16 h-16 mx-auto rounded-full bg-rose-500/10 flex items-center justify-center mb-3">
-            <X className="w-8 h-8 text-rose-500" />
-          </div>
-          <h2 className="text-xl font-semibold mb-1">
-            Final Exam Not Completed
-          </h2>
+          <h2 className="text-xl font-semibold mb-1">Certificate Unavailable</h2>
           <p className="text-slate-600 dark:text-slate-300">
-            Please complete the final exam to become eligible for the
-            certificate.
+            Please complete the final exam first.
           </p>
           <button
             onClick={() => router.back()}
@@ -48,65 +49,99 @@ export default function Page() {
     );
   }
 
-  const percent = Math.round(data.percent || 0);
-  const result = String(data.result || "").toUpperCase();
+  const issued = new Date(data.issuedAt);
+  const issuedStr = issued.toLocaleDateString();
 
   return (
-    <div className="min-h-dvh bg-background text-foreground flex items-center justify-center p-4">
-      <div className="relative w-full max-w-xl bg-background border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-semibold">Certificate</h1>
+    <div className="min-h-dvh bg-[#f7f2e9] text-[#1f2937] p-4 print:p-0">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-4 print:hidden">
           <button
             onClick={() => router.back()}
-            className="text-slate-500 hover:text-foreground"
+            className="text-slate-600 hover:text-slate-900 inline-flex items-center gap-2"
           >
-            Close
+            <X className="w-4 h-4" /> Close
           </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={printPdf}
+              className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
+            >
+              <Printer className="w-4 h-4" /> Print / Save as PDF
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center text-center space-y-3">
-          <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center">
-            <Trophy className="w-10 h-10 text-emerald-500" />
-          </div>
-          <h2 className="text-2xl font-bold">Eligible for Certificate</h2>
-          <p className="text-slate-600 dark:text-slate-300">
-            Great job completing the course final exam.
-          </p>
-
-          <div className="flex items-center justify-center gap-2 text-sm mb-2">
-            <span
-              className={`px-2 py-0.5 rounded-full border text-xs ${
-                data.result === "excellent"
-                  ? "border-emerald-500 text-emerald-600"
-                  : data.result === "veryGood"
-                  ? "border-sky-500 text-sky-600"
-                  : data.result === "good"
-                  ? "border-amber-500 text-amber-600"
-                  : "border-slate-400 text-slate-600"
-              }`}
-            >
-              {result}
-            </span>
-            <span className="text-slate-500">{percent}%</span>
-          </div>
-          <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-emerald-500"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-          <div className="text-xs text-slate-500">
-            Correct: {data.correct} / {data.total}
+        {/* Certificate Canvas */}
+        <div
+          ref={ref}
+          className="relative bg-white shadow-2xl rounded-[24px] overflow-hidden border-8 border-[#e9d8a6] print:shadow-none print:border-0"
+        >
+          {/* Decorative header */}
+          <div className="relative h-28 bg-gradient-to-b from-[#ffe5b4] to-white flex items-center justify-center">
+            <div className="absolute inset-x-0 -top-6 h-12 bg-[#e9d8a6] rounded-b-[36px] mx-10" />
+            <div className="relative z-10 text-center">
+              <div className="text-[#2f4f4f] tracking-widest text-sm">
+                CERTIFICATE OF COMPLETION
+              </div>
+              <div className="text-3xl font-extrabold text-[#2f4f4f] mt-1">
+                {data.courseTitle}
+              </div>
+            </div>
           </div>
 
-          <button
-            onClick={() =>
-              alert("Certificate generation is not yet implemented.")
-            }
-            className="mt-4 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white"
-          >
-            Get Certificate
-          </button>
+          <div className="px-10 py-8 text-center">
+            <div className="text-sm text-slate-500">This certifies that</div>
+            <div className="mt-2 text-4xl font-bold text-[#547e4e]">
+              {data.studentName}
+            </div>
+            <div className="mt-3 text-slate-600 max-w-3xl mx-auto leading-relaxed">
+              has successfully completed the course and passed the final
+              assessment with a score of{" "}
+              <b>{Math.round(data.percent)}%</b>.
+            </div>
+
+            <div className="mt-6 flex items-center justify-center gap-6 text-sm">
+              <div className="px-3 py-1 rounded-full border border-emerald-500 text-emerald-700">
+                Result: {String(data.result).toUpperCase()}
+              </div>
+              <div className="px-3 py-1 rounded-full border border-sky-500 text-sky-700">
+                Issued: {issuedStr}
+              </div>
+              {data.instructorName && (
+                <div className="px-3 py-1 rounded-full border border-amber-500 text-amber-700">
+                  Instructor: {data.instructorName}
+                </div>
+              )}
+            </div>
+
+            {/* Seal */}
+            <div className="mt-10 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-[#e9d8a6] border-4 border-[#f1e9c9] flex items-center justify-center shadow-inner">
+                <Trophy className="w-10 h-10 text-[#8b5e34]" />
+              </div>
+            </div>
+
+            {/* Signatures */}
+            <div className="mt-10 grid grid-cols-2 gap-8 max-w-3xl mx-auto">
+              <div className="text-left">
+                <div className="h-px bg-slate-300 mb-1" />
+                <div className="text-sm font-medium">Course Instructor</div>
+                <div className="text-xs text-slate-500">
+                  {data.instructorName || "Signature"}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="h-px bg-slate-300 mb-1" />
+                <div className="text-sm font-medium">Authorized</div>
+                <div className="text-xs text-slate-500">Mube Academy</div>
+              </div>
+            </div>
+
+            <div className="mt-8 text-[10px] text-slate-400">
+              Certificate ID: {courseId}-{issued.getTime()}
+            </div>
+          </div>
         </div>
       </div>
     </div>
