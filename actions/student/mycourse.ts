@@ -240,33 +240,31 @@ export async function getActivityQuiz(activityId: string) {
         questionAnswer: true,
         answerExplanation: true,
       },
-      // orderBy: { createdAt: "asc" },
     });
 
     if (!questions.length) return null;
 
     let byQuestionId: Record<string, string | undefined> = {};
     if (userId) {
-      const prev = await prisma.studentQuiz.findMany({
+      const prevAnswers = await prisma.studentQuizAnswer.findMany({
         where: {
-          userId,
-          questionId: { in: questions.map((q) => q.id) },
-        },
-        select: {
-          questionId: true,
-          studentQuizAnswers: {
-            // orderBy: { createdAt: "desc" },
-            take: 1,
-            select: { selectedOptionId: true },
+          studentQuiz: {
+            userId,
+            questionId: { in: questions.map((q) => q.id) },
           },
         },
-        // orderBy: { createdAt: "desc" },
+        select: {
+          selectedOptionId: true,
+          studentQuiz: { select: { questionId: true, id: true } },
+        },
+        orderBy: { id: "desc" },
       });
 
-      byQuestionId = prev.reduce((acc, row) => {
-        acc[row.questionId] = row.studentQuizAnswers[0]?.selectedOptionId;
-        return acc;
-      }, {} as Record<string, string | undefined>);
+      for (const ans of prevAnswers) {
+        const qid = ans.studentQuiz.questionId;
+        if (byQuestionId[qid]) continue; // keep latest due to desc order
+        byQuestionId[qid] = ans.selectedOptionId;
+      }
     }
 
     return questions.map((q) => ({
@@ -364,5 +362,312 @@ export async function saveStudentQuizAnswers(
   } catch (error) {
     console.error("Error saving student quiz answers", error);
     // return null;
+  }
+}
+
+export async function getFinalExam(courseId: string) {
+  try {
+    const user = await auth();
+    const userId = user?.user?.id || undefined;
+
+    // Find the last activity with questions in this course (treated as Final Exam)
+    const examActivity = await prisma.activity.findFirst({
+      where: { courseId, question: { some: {} } },
+      orderBy: { order: "desc" },
+      select: { id: true },
+    });
+
+    if (!examActivity) return null;
+
+    const questions = await prisma.question.findMany({
+      where: { activityId: examActivity.id },
+      select: {
+        id: true,
+        question: true,
+        questionOptions: true,
+        questionAnswer: true,
+        answerExplanation: true,
+      },
+    });
+
+    if (!questions.length) return null;
+
+    let byQuestionId: Record<string, string | undefined> = {};
+    if (userId) {
+      const prevAnswers = await prisma.studentQuizAnswer.findMany({
+        where: {
+          studentQuiz: {
+            userId,
+            questionId: { in: questions.map((q) => q.id) },
+          },
+        },
+        select: {
+          selectedOptionId: true,
+          studentQuiz: { select: { questionId: true, id: true } },
+        },
+        orderBy: { id: "desc" },
+      });
+
+      for (const ans of prevAnswers) {
+        const qid = ans.studentQuiz.questionId;
+        if (byQuestionId[qid]) continue;
+        byQuestionId[qid] = ans.selectedOptionId;
+      }
+    }
+
+    return questions.map((q) => ({
+      ...q,
+      studentSelectedOptionId: byQuestionId[q.id],
+    }));
+  } catch (error) {
+    console.error("Error fetching final exam:", error);
+    return null;
+  }
+}
+
+export async function getFinalExamStatus(courseId: string) {
+  try {
+    const user = await auth();
+    const userId = user?.user?.id;
+    if (!userId) return "error" as const;
+
+    const examActivity = await prisma.activity.findFirst({
+      where: { courseId, question: { some: {} } },
+      orderBy: { order: "desc" },
+      select: { id: true },
+    });
+
+    if (!examActivity) return "no-quiz" as const;
+
+    const questions = await prisma.question.findMany({
+      where: { activityId: examActivity.id },
+      select: { id: true },
+    });
+
+    const total = questions.length;
+    if (total === 0) return "no-quiz" as const;
+
+    const answered = await prisma.studentQuiz.groupBy({
+      by: ["questionId"],
+      where: { userId, questionId: { in: questions.map((q) => q.id) } },
+      _count: { questionId: true },
+    });
+    const uniqueAnswered = answered.length;
+
+    if (uniqueAnswered === 0) return "not-done" as const;
+    if (uniqueAnswered >= total) return "done" as const;
+    return "partial" as const;
+  } catch (error) {
+    console.error("Error fetching final exam status:", error);
+    return "error" as const;
+  }
+}
+
+export async function getFinalExams(courseId: string) {
+  try {
+    const user = await auth();
+    const userId = user?.user?.id;
+    if (!userId) return [];
+
+    const finalExams = await prisma.question.findMany({
+      where: { courseId: courseId },
+      select: {
+        id: true,
+        question: true,
+        questionOptions: true,
+        questionAnswer: true,
+        studentQuiz: {
+          where: { userId, isFinalExam: true },
+          select: {
+            id: true,
+            studentQuizAnswers: {
+              select: { selectedOptionId: true },
+              orderBy: { id: "desc" },
+              // take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    // Map latest selected option per question
+    return finalExams.map((q) => ({
+      ...q,
+      studentSelectedOptionId:
+        q.studentQuiz[0]?.studentQuizAnswers[0]?.selectedOptionId,
+    }));
+  } catch (error) {
+    console.error("Error fetching final exams:", error);
+    return [];
+  }
+}
+
+export async function submitFinalExamAnswers(
+  prevState: StateType,
+  data: { questionId: string; selectedOptionId: string } | undefined
+): Promise<StateType> {
+  try {
+    const user = await auth();
+    if (!user) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
+    const userId = user.user?.id!;
+
+    if (!data) {
+      return {
+        status: false,
+        cause: "invalid_data",
+        message: "No data provided",
+      } as StateType;
+    }
+    const { questionId, selectedOptionId } = data;
+
+    const result = await prisma.$transaction(async (tx) => {
+      const option = await tx.questionOption.findFirst({
+        where: { id: selectedOptionId, questionId },
+        select: { id: true },
+      });
+      if (!option) throw new Error("invalid_option");
+
+      const studentQuiz = await tx.studentQuiz.create({
+        data: { userId, questionId, isFinalExam: true },
+      });
+
+      const studentQuizAnswer = await tx.studentQuizAnswer.create({
+        data: { studentQuizId: studentQuiz.id, selectedOptionId },
+      });
+
+      return { studentQuiz, studentQuizAnswer };
+    });
+
+    return { status: true } as StateType;
+  } catch (error: any) {
+    const cause =
+      error?.message === "invalid_option" ? "invalid_option" : "server_error";
+    return {
+      status: false,
+      cause,
+      message: "Failed to save answer",
+    } as StateType;
+  }
+}
+
+export async function readyToCertification(courseId: string) {
+  try {
+    const user = await auth();
+    if (!user) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
+    const userId = user.user?.id!;
+
+    // Find the final exam activity (last activity with questions)
+    const examActivity = await prisma.activity.findFirst({
+      where: { courseId, question: { some: {} } },
+      orderBy: { order: "desc" },
+      select: { id: true },
+    });
+
+    if (!examActivity) {
+      return {
+        status: false,
+        result: "nottaken",
+        message: "Final exam not found",
+      } as any;
+    }
+
+    // Get all questions for the final exam with their correct answer id
+    const questions = await prisma.question.findMany({
+      where: { activityId: examActivity.id },
+      select: { id: true, questionAnswer: { select: { answerId: true } } },
+    });
+
+    const total = questions.length;
+    if (total === 0) {
+      return {
+        status: false,
+        result: "nottaken",
+        message: "No questions in final exam",
+      } as any;
+    }
+
+    // Get student's latest answers for each question
+    const answers = await prisma.studentQuizAnswer.findMany({
+      where: {
+        studentQuiz: {
+          userId,
+          questionId: { in: questions.map((q) => q.id) },
+        },
+      },
+      select: {
+        selectedOptionId: true,
+        studentQuiz: { select: { questionId: true } },
+      },
+      orderBy: { id: "desc" },
+    });
+
+    // Map latest answer per question
+    const latestAnswers: Record<string, string> = {};
+    for (const ans of answers) {
+      const qid = ans.studentQuiz.questionId;
+      if (!latestAnswers[qid]) latestAnswers[qid] = ans.selectedOptionId;
+    }
+
+    // If student hasn't answered any, return nottaken
+    if (Object.keys(latestAnswers).length === 0) {
+      return {
+        status: false,
+        result: "nottaken",
+        message: "Student has not taken the final exam",
+      } as any;
+    }
+
+    // Build correct answer map
+    const correctByQid: Record<string, string | undefined> = {};
+    for (const q of questions as any[]) {
+      const qa = q.questionAnswer as any;
+      const correctId = Array.isArray(qa) ? qa[0]?.answerId : qa?.answerId;
+      correctByQid[q.id] = correctId;
+    }
+
+    // Calculate correct answers
+    let correct = 0;
+    for (const q of questions) {
+      const correctId = correctByQid[q.id];
+      if (correctId && latestAnswers[q.id] === correctId) correct++;
+    }
+
+    const percent = (correct / total) * 100;
+
+    let result: "poor" | "good" | "veryGood" | "excellent";
+    if (percent < 50) result = "poor";
+    else if (percent < 70) result = "good";
+    else if (percent < 85) result = "veryGood";
+    else result = "excellent";
+
+    // Everyone who has taken the exam can get a certificate
+    return {
+      status: true,
+      result,
+      percent,
+      progress: percent,
+      correct,
+      total,
+      canGetCertificate: true,
+      message: "Eligible for certificate",
+    } as any;
+  } catch (error) {
+    return {
+      status: false,
+      result: "error",
+      message: "Server error",
+    } as any;
   }
 }
