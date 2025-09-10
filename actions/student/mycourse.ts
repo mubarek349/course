@@ -365,82 +365,15 @@ export async function saveStudentQuizAnswers(
   }
 }
 
-export async function getFinalExam(courseId: string) {
-  try {
-    const user = await auth();
-    const userId = user?.user?.id || undefined;
-
-    // Find the last activity with questions in this course (treated as Final Exam)
-    const examActivity = await prisma.activity.findFirst({
-      where: { courseId, question: { some: {} } },
-      orderBy: { order: "desc" },
-      select: { id: true },
-    });
-
-    if (!examActivity) return null;
-
-    const questions = await prisma.question.findMany({
-      where: { activityId: examActivity.id },
-      select: {
-        id: true,
-        question: true,
-        questionOptions: true,
-        questionAnswer: true,
-        answerExplanation: true,
-      },
-    });
-
-    if (!questions.length) return null;
-
-    let byQuestionId: Record<string, string | undefined> = {};
-    if (userId) {
-      const prevAnswers = await prisma.studentQuizAnswer.findMany({
-        where: {
-          studentQuiz: {
-            userId,
-            questionId: { in: questions.map((q) => q.id) },
-          },
-        },
-        select: {
-          selectedOptionId: true,
-          studentQuiz: { select: { questionId: true, id: true } },
-        },
-        orderBy: { id: "desc" },
-      });
-
-      for (const ans of prevAnswers) {
-        const qid = ans.studentQuiz.questionId;
-        if (byQuestionId[qid]) continue;
-        byQuestionId[qid] = ans.selectedOptionId;
-      }
-    }
-
-    return questions.map((q) => ({
-      ...q,
-      studentSelectedOptionId: byQuestionId[q.id],
-    }));
-  } catch (error) {
-    console.error("Error fetching final exam:", error);
-    return null;
-  }
-}
-
 export async function getFinalExamStatus(courseId: string) {
   try {
     const user = await auth();
     const userId = user?.user?.id;
     if (!userId) return "error" as const;
 
-    const examActivity = await prisma.activity.findFirst({
-      where: { courseId, question: { some: {} } },
-      orderBy: { order: "desc" },
-      select: { id: true },
-    });
-
-    if (!examActivity) return "no-quiz" as const;
-
+    // Get all final exam questions for this course
     const questions = await prisma.question.findMany({
-      where: { activityId: examActivity.id },
+      where: { courseId },
       select: { id: true },
     });
 
@@ -449,7 +382,11 @@ export async function getFinalExamStatus(courseId: string) {
 
     const answered = await prisma.studentQuiz.groupBy({
       by: ["questionId"],
-      where: { userId, questionId: { in: questions.map((q) => q.id) } },
+      where: { 
+        userId, 
+        questionId: { in: questions.map((q) => q.id) },
+        isFinalExam: true 
+      },
       _count: { questionId: true },
     });
     const uniqueAnswered = answered.length;
@@ -474,6 +411,7 @@ export async function getFinalExams(courseId: string) {
       select: {
         id: true,
         question: true,
+        answerExplanation: true,
         questionOptions: true,
         questionAnswer: true,
         studentQuiz: {
@@ -568,24 +506,9 @@ export async function readyToCertification(courseId: string) {
     }
     const userId = user.user?.id!;
 
-    // Find the final exam activity (last activity with questions)
-    const examActivity = await prisma.activity.findFirst({
-      where: { courseId, question: { some: {} } },
-      orderBy: { order: "desc" },
-      select: { id: true },
-    });
-
-    if (!examActivity) {
-      return {
-        status: false,
-        result: "nottaken",
-        message: "Final exam not found",
-      } as any;
-    }
-
-    // Get all questions for the final exam with their correct answer id
+    // Get all final exam questions for this course with their correct answer id
     const questions = await prisma.question.findMany({
-      where: { activityId: examActivity.id },
+      where: { courseId },
       select: { id: true, questionAnswer: { select: { answerId: true } } },
     });
 
@@ -598,12 +521,13 @@ export async function readyToCertification(courseId: string) {
       } as any;
     }
 
-    // Get student's latest answers for each question
+    // Get student's latest answers for each question (final exam only)
     const answers = await prisma.studentQuizAnswer.findMany({
       where: {
         studentQuiz: {
           userId,
           questionId: { in: questions.map((q) => q.id) },
+          isFinalExam: true,
         },
       },
       select: {

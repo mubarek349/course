@@ -13,7 +13,7 @@ import {
   Trophy,
 } from "lucide-react";
 import {
-  getFinalExam,
+  getFinalExams,
   getFinalExamStatus,
   submitFinalExamAnswers,
   readyToCertification,
@@ -43,7 +43,7 @@ export default function Page() {
   const [reviewMode, setReviewMode] = useState<"paged" | "all">("paged");
   const [showCongrats, setShowCongrats] = useState(false);
 
-  const { data, loading } = useData({ func: getFinalExam, args: [courseId] });
+  const { data, loading } = useData({ func: getFinalExams, args: [courseId] });
   const { data: status } = useData({
     func: getFinalExamStatus,
     args: [courseId],
