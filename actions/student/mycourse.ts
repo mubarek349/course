@@ -151,23 +151,15 @@ export async function getMySingleCourseContent(
 ) {
   try {
     const order = await prisma.order.findFirst({
-      where: {
-        userId: studentId,
-        courseId: courseId,
-        status: "paid",
-      },
+      where: { userId: studentId, courseId: courseId, status: "paid" },
     });
 
     if (!order) {
-      // If no paid order is found, the user doesn't have access.
       return null;
     }
 
-    // If the user has paid, fetch the course details.
     const course = await prisma.course.findUnique({
-      where: {
-        id: courseId,
-      },
+      where: { id: courseId },
       select: {
         id: true,
         titleEn: true,
@@ -204,11 +196,8 @@ export async function getMySingleCourseContent(
       },
     });
 
-    if (!course) {
-      return null;
-    }
+    if (!course) return null;
 
-    // Convert Decimal fields to numbers
     const fuad = {
       ...course,
       activity: course.activity.map((act) => ({
@@ -217,9 +206,22 @@ export async function getMySingleCourseContent(
           ? act.question.length > 0
           : !!act.question,
       })),
-    };
-    console.log(fuad);
-    return fuad;
+    } as any;
+
+    // Identify the final exam as the last activity that has a quiz
+    const examAct =
+      [...fuad.activity].reverse().find((a: any) => a.hasQuiz) || null;
+
+    return {
+      ...fuad,
+      finalExam: examAct
+        ? {
+            activityId: examAct.id,
+            titleEn: "Final Exam",
+            titleAm: "መጨረሻ ፈተና",
+          }
+        : null,
+    } as any;
   } catch (error) {
     console.error("Error fetching single course:", error);
     return null;
@@ -596,192 +598,11 @@ export async function readyToCertification(courseId: string) {
   }
 }
 
-export async function unlockTheFinalExamAndQuiz(courseId: string) {
-  try {
-    const user = await auth();
-    if (!user) {
-      return {
-        status: false,
-        cause: "unauthenticated",
-        message: "Unauthenticated",
-      } as any;
-    }
-    const userId = user.user?.id!;
-
-    // Fetch course activities with their questions
-    const activities = await prisma.activity.findMany({
-      where: { courseId },
-      orderBy: { order: "asc" },
-      select: {
-        id: true,
-        order: true,
-        titleEn: true,
-        titleAm: true,
-        question: { select: { id: true } },
-      },
-    });
-
-    if (!activities.length) {
-      return { status: true, activities: [], finalExamLocked: false } as any;
-    }
-
-    const allQuestionIds = activities.flatMap((a) =>
-      a.question.map((q) => q.id)
-    );
-
-    // If no quiz questions at all, nothing to lock
-    if (allQuestionIds.length === 0) {
-      return {
-        status: true,
-        activities: activities.map((a) => ({
-          activityId: a.id,
-          order: a.order,
-          titleEn: a.titleEn,
-          titleAm: a.titleAm,
-          totalQuestions: 0,
-          answeredQuestions: 0,
-          quizStatus: "no-quiz" as const,
-          locked: false,
-        })),
-        finalExamLocked: false,
-      } as any;
-    }
-
-    // Fetch unique answered questions for this user across these activities
-    const answered = await prisma.studentQuiz.groupBy({
-      by: ["questionId"],
-      where: { userId, questionId: { in: allQuestionIds } },
-      _count: { questionId: true },
-    });
-    const answeredSet = new Set(answered.map((a) => a.questionId));
-
-    // Build activity quiz statuses
-    const activityRows = activities.map((a) => {
-      const qids = a.question.map((q) => q.id);
-      const total = qids.length;
-      const answeredCount = qids.reduce(
-        (acc, id) => acc + (answeredSet.has(id) ? 1 : 0),
-        0
-      );
-      let quizStatus: "done" | "partial" | "not-done" | "no-quiz";
-      if (total === 0) quizStatus = "no-quiz";
-      else if (answeredCount === 0) quizStatus = "not-done";
-      else if (answeredCount >= total) quizStatus = "done";
-      else quizStatus = "partial";
-      return {
-        activityId: a.id,
-        order: a.order,
-        titleEn: a.titleEn,
-        titleAm: a.titleAm,
-        totalQuestions: total,
-        answeredQuestions: answeredCount,
-        quizStatus,
-        locked: false, // fill later
-      };
-    });
-
-    // Apply sequential locking among quiz-bearing activities
-    let lockNext = false;
-    for (const row of activityRows) {
-      if (row.totalQuestions === 0) {
-        row.locked = false; // no quiz to lock
-        continue;
-      }
-      if (lockNext) {
-        row.locked = true;
-      } else {
-        row.locked = false;
-      }
-      if (row.quizStatus !== "done") {
-        lockNext = true; // all subsequent quiz activities are locked
-      }
-    }
-
-    const finalExamLocked = activityRows
-      .filter((r) => r.totalQuestions > 0)
-      .some((r) => r.quizStatus !== "done");
-
-    // Determine next activity to unlock (first locked quiz activity)
-    const nextLocked = activityRows.find(
-      (r) => r.locked && r.totalQuestions > 0
-    );
-
-    return {
-      status: true,
-      activities: activityRows,
-      finalExamLocked,
-      nextUnlockActivityId: nextLocked?.activityId ?? null,
-    } as any;
-  } catch (error) {
-    console.error("Error computing locks:", error);
-    return { status: false, message: "Server error" } as any;
-  }
+/* Duplicate unlockTheFinalExamAndQuiz removed to avoid redeclaration error. The canonical implementation appears earlier in this file and returns:
+{
+  status: true,
+  activities: activityRows,
+  finalExamLocked,
+  nextUnlockActivityId
 }
-
-export async function getCertificateDetails(courseId: string) {
-  try {
-    const user = await auth();
-    if (!user) {
-      return {
-        status: false,
-        cause: "unauthenticated",
-        message: "Unauthenticated",
-      } as any;
-    }
-    const userId = user.user?.id!;
-
-    // Fetch course basic info
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-      select: {
-        id: true,
-        titleEn: true,
-        titleAm: true,
-        instructor: { select: { firstName: true, fatherName: true } },
-      },
-    });
-
-    // Fetch student info (best-effort across possible fields)
-    let studentName = user.user?.name || "";
-    try {
-      const dbUser: any = await (prisma as any).user?.findUnique?.({
-        where: { id: userId },
-        select: {
-          firstName: true,
-          fatherName: true,
-          lastName: true,
-          name: true,
-          email: true,
-        },
-      });
-      if (dbUser) {
-        const parts = [
-          dbUser.firstName,
-          dbUser.fatherName,
-          dbUser.lastName,
-        ].filter(Boolean);
-        studentName =
-          parts.join(" ") || dbUser.name || dbUser.email || studentName;
-      }
-    } catch {}
-
-    const cert = await readyToCertification(courseId as string);
-    const courseTitle = course?.titleEn || course?.titleAm || "Course";
-    const instructorName = course?.instructor
-      ? [course.instructor.firstName, course.instructor.fatherName]
-          .filter(Boolean)
-          .join(" ")
-      : undefined;
-
-    return {
-      status: true,
-      studentName,
-      courseTitle,
-      instructorName,
-      issuedAt: new Date().toISOString(),
-      ...cert,
-    } as any;
-  } catch (err) {
-    return { status: false, message: "Server error" } as any;
-  }
-}
+*/
