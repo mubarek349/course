@@ -39,16 +39,24 @@ export default function Page() {
     args: [activityId],
   });
   const { action, isPending } = useAction(saveStudentQuizAnswers, undefined, {
-    error: lang == "en" ? "Sending message failed" : "መልእክት መላክ አልተሳካም",
-    success: lang == "en" ? "Message sent successfully" : "መልእክት በተሳካ ሁኔታ ተልኳል",
+    error: lang == "en" 
+      ? { title: "Failed to Save Answer", description: "Your quiz answer could not be saved. Please check your connection and try again." }
+      : { title: "መልስ ማስቀመጥ አልተሳካም", description: "የፈተና መልስዎ ሊቀመጥ አልተቻለም። ግንኙነትዎን በማረጋገጥ እንደገና ይሞክሩ።" },
+    success: lang == "en" 
+      ? { title: "Answer Saved Successfully", description: "Your quiz answer has been recorded and saved automatically." }
+      : { title: "መልስ በተሳካ ሁኔታ ተቀምጧል", description: "የፈተና መልስዎ በራስ-ሰር ተመዝግቦ ተቀምጧል።" },
   });
 
   const { action: clearAction, isPending: isClearPending } = useAction(
     clearStudentQuizAnswers,
     undefined,
     {
-      error: lang == "en" ? "Failed to clear quiz answers" : "የፈተና መልሶች መደምሰስ አልተሳካም",
-      success: lang == "en" ? "Quiz cleared successfully" : "ፈተና በተሳካ ሁኔታ ተደምስሷል",
+      error: lang == "en" 
+        ? { title: "Unable to Clear Quiz", description: "We couldn't reset your quiz answers. Please try again or contact support if the issue persists." }
+        : { title: "ፈተናን ማጽዳት አልተቻለም", description: "የፈተና መልሶችዎን ዳግም ማስተካከል አልተቻለም። እንደገና ይሞክሩ ወይም ችግሩ ቢቀጥል ድጋፍ ያግኙ።" },
+      success: lang == "en" 
+        ? { title: "Quiz Reset Complete", description: "Your quiz has been cleared successfully. You can now start fresh with all questions." }
+        : { title: "ፈተና ዳግም ማስጀመር ተጠናቋል", description: "ፈተናዎ በተሳካ ሁኔታ ተጸዳ። አሁን ከሁሉም ጥያቄዎች ጋር አዲስ ጀምር ይችላሉ።" },
     }
   );
 
@@ -278,8 +286,8 @@ export default function Page() {
   const handleRetakeQuiz = async () => {
     // Show confirmation dialog
     const confirmMessage = lang === "en" 
-      ? "Are you sure you want to retake this quiz? This will clear all your previous answers and you'll start fresh."
-      : "የዚህን ፈተና እንደገና መውሰድ ይፈልጋሉ? የዚህ ሁሉ የተቀደሙ መልሶች ይጠቓል እና ከመጀመሪ ይጀምራሉ።";
+      ? "Are you sure you want to retake this quiz?\n\nThis action will permanently clear all your previous answers and reset your progress. You will start the quiz from the beginning with a fresh attempt.\n\nThis action cannot be undone."
+      : "የዚህን ፈተና እንደገና መውሰድ ይፈልጋሉ?\n\nየዚህ እርምጃ ሁሉንም የተቀደሙ መልሶችዎን በቋሚነት ይሰርዛል እና የእርስዎን እድገት ዳግም ያስጀምራል። ፈተናዎን ከመጀመሪያ ጋር አዲስ ሙከራ ያደርጋሉ።\n\nይህ እርምጃ መሰረዝ አይችልም።";
     
     if (!window.confirm(confirmMessage)) {
       return;
@@ -378,7 +386,7 @@ export default function Page() {
                     {isClearPending ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>{lang === "en" ? "Clearing..." : "በመድረስ ላይ..."}</span>
+                        <span>{lang === "en" ? "Resetting..." : "በማስተካከል ላይ..."}</span>
                       </>
                     ) : (
                       <>

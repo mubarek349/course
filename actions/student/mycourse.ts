@@ -378,7 +378,7 @@ export async function saveStudentQuizAnswers(
     return {
       status: true,
       message: "Answer saved successfully",
-    } as StateType;
+    };
   } catch (error: any) {
     console.error("Error saving student quiz answers", error);
     const cause =

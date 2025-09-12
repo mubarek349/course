@@ -68,8 +68,12 @@ export default function Page() {
     args: [courseId],
   });
   const { action } = useAction(submitFinalExamAnswers, undefined, {
-    error: lang === "en" ? "Saving answer failed" : "መልስ ማስቀመጥ አልተሳካም",
-    success: lang === "en" ? "Answer saved" : "መልስ ተቀምጧል",
+    error: lang === "en" 
+      ? { title: "Failed to Save Final Exam Answer", description: "Unable to save your answer for the final examination. Please verify your internet connection and try again." }
+      : { title: "የመጨረሻ ፈተና መልስ ማስቀመጥ አልተሳካም", description: "ለመጨረሻ ፈተና መልስዎ ማስቀመጥ አልተቻለም። የኢንተርኔት ግንቡገት በማረጋገጥ እንደገና ይሞክሩ።" },
+    success: lang === "en" 
+      ? { title: "Answer Saved Successfully", description: "Your final exam answer has been recorded and automatically saved to the system." }
+      : { title: "መልስ በተሳካ ሁኔታ ተቀምጧል", description: "የመጨረሻ ፈተና መልስዎ ተመዝግቦ በሳላቢት ተቀምጧል።" },
   });
   const { data: cert, loading: certLoading } = useData({
     func: readyToCertification,
