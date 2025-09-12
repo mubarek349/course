@@ -347,12 +347,12 @@ export async function saveStudentQuizAnswers(
 
       // Use upsert to handle both new and updated answers for activity quizzes
       const studentQuiz = await tx.studentQuiz.upsert({
-        where: { 
-          userId_questionId: { userId, questionId } 
+        where: {
+          userId_questionId: { userId, questionId },
         },
-        update: { 
+        update: {
           isFinalExam: false,
-          takenAt: new Date()
+          takenAt: new Date(),
         },
         create: {
           userId,
@@ -409,10 +409,10 @@ export async function getFinalExamStatus(courseId: string) {
 
     const answered = await prisma.studentQuiz.groupBy({
       by: ["questionId"],
-      where: { 
-        userId, 
+      where: {
+        userId,
         questionId: { in: questions.map((q) => q.id) },
-        isFinalExam: true 
+        isFinalExam: true,
       },
       _count: { questionId: true },
     });
@@ -501,17 +501,17 @@ export async function submitFinalExamAnswers(
 
       // Use upsert to handle both new and updated answers
       const studentQuiz = await tx.studentQuiz.upsert({
-        where: { 
-          userId_questionId: { userId, questionId } 
+        where: {
+          userId_questionId: { userId, questionId },
         },
-        update: { 
+        update: {
           isFinalExam: true,
-          takenAt: new Date()
+          takenAt: new Date(),
         },
-        create: { 
-          userId, 
-          questionId, 
-          isFinalExam: true 
+        create: {
+          userId,
+          questionId,
+          isFinalExam: true,
         },
       });
 
@@ -685,7 +685,7 @@ export async function clearStudentQuizAnswers(
         where: {
           studentQuiz: {
             userId,
-            questionId: { in: questions.map(q => q.id) },
+            questionId: { in: questions.map((q) => q.id) },
             isFinalExam: false, // Only clear activity quiz answers, not final exam
           },
         },
@@ -695,7 +695,7 @@ export async function clearStudentQuizAnswers(
       await tx.studentQuiz.deleteMany({
         where: {
           userId,
-          questionId: { in: questions.map(q => q.id) },
+          questionId: { in: questions.map((q) => q.id) },
           isFinalExam: false,
         },
       });
@@ -724,7 +724,7 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
         activities: [],
         finalExamLocked: true,
         nextUnlockActivityId: null,
-        message: "Unauthenticated"
+        message: "Unauthenticated",
       };
     }
 
@@ -738,9 +738,9 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
         titleAm: true,
         order: true,
         question: {
-          select: { id: true }
-        }
-      }
+          select: { id: true },
+        },
+      },
     });
 
     if (activities.length === 0) {
@@ -748,7 +748,7 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
         status: true,
         activities: [],
         finalExamLocked: false,
-        nextUnlockActivityId: null
+        nextUnlockActivityId: null,
       };
     }
 
@@ -759,27 +759,27 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
         return {
           activityId: activity.id,
           completed: true,
-          locked: false
+          locked: false,
         };
       }
 
       // Check if all questions in this activity are answered
-      const questionIds = activity.question.map(q => q.id);
+      const questionIds = activity.question.map((q) => q.id);
       const answeredQuestions = await prisma.studentQuiz.groupBy({
         by: ["questionId"],
         where: {
           userId,
           questionId: { in: questionIds },
-          isFinalExam: false // Only count activity quiz answers
+          isFinalExam: false, // Only count activity quiz answers
         },
-        _count: { questionId: true }
+        _count: { questionId: true },
       });
 
       const completed = answeredQuestions.length >= questionIds.length;
       return {
         activityId: activity.id,
         completed,
-        locked: false // Will be determined by sequential logic
+        locked: false, // Will be determined by sequential logic
       };
     });
 
@@ -788,8 +788,10 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
     // Apply sequential access logic
     let nextUnlockActivityId: string | null = null;
     const activityRows = activities.map((activity, index) => {
-      const completion = completionStatuses.find(c => c.activityId === activity.id);
-      
+      const completion = completionStatuses.find(
+        (c) => c.activityId === activity.id
+      );
+
       // First activity is always unlocked
       if (index === 0) {
         if (!completion?.completed && !nextUnlockActivityId) {
@@ -799,19 +801,19 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
           ...activity,
           ...completion,
           locked: false,
-          question: activity.question // Include question data for frontend
+          question: activity.question, // Include question data for frontend
         };
       }
 
       // Check if previous activity is completed
       const prevCompletion = completionStatuses[index - 1];
       const locked = !prevCompletion?.completed;
-      
+
       // Mark as next unlockable if current is locked and prev is completed
       if (locked && prevCompletion?.completed && !nextUnlockActivityId) {
         nextUnlockActivityId = activity.id;
       }
-      
+
       // If this activity is unlocked but not completed, it's the next to work on
       if (!locked && !completion?.completed && !nextUnlockActivityId) {
         nextUnlockActivityId = activity.id;
@@ -821,19 +823,19 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
         ...activity,
         ...completion,
         locked,
-        question: activity.question // Include question data for frontend
+        question: activity.question, // Include question data for frontend
       };
     });
 
     // Final exam is locked until all activities are completed
-    const allActivitiesCompleted = completionStatuses.every(c => c.completed);
+    const allActivitiesCompleted = completionStatuses.every((c) => c.completed);
     const finalExamLocked = !allActivitiesCompleted;
 
     return {
       status: true,
       activities: activityRows,
       finalExamLocked,
-      nextUnlockActivityId
+      nextUnlockActivityId,
     };
   } catch (error) {
     console.error("Error in unlockTheFinalExamAndQuiz:", error);
@@ -842,7 +844,66 @@ export async function unlockTheFinalExamAndQuiz(courseId: string) {
       activities: [],
       finalExamLocked: true,
       nextUnlockActivityId: null,
-      message: "Server error"
+      message: "Server error",
     };
+  }
+}
+
+export async function getCertificateDetails(courseId: string) {
+  try {
+    const user = await auth();
+    const userId = user?.user?.id;
+    if (!userId) {
+      return { status: false, message: "Unauthenticated" } as any;
+    }
+
+    // Fetch course info and instructor
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: {
+        titleEn: true,
+        titleAm: true,
+        instructor: { select: { firstName: true, fatherName: true } },
+      },
+    });
+
+    // Fetch student name
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, fatherName: true, lastName: true },
+    });
+    const studentName = [u?.firstName, u?.fatherName, u?.lastName]
+      .filter(Boolean)
+      .join(" ");
+
+    // Compute certification readiness for result and percent
+    const cert = await readyToCertification(courseId);
+    if (!cert?.status) {
+      return { status: false, message: cert?.message || "Not eligible" } as any;
+    }
+
+    const courseTitle = course?.titleEn || course?.titleAm || "Course";
+    const instructorName = course?.instructor
+      ? [course.instructor.firstName, course.instructor.fatherName]
+          .filter(Boolean)
+          .join(" ")
+      : undefined;
+
+    const issuedAt = new Date().toISOString();
+    const qrcode = `/en/@student/mycourse/${courseId}/finalexam`;
+
+    return {
+      status: true,
+      courseTitle,
+      studentName,
+      instructorName,
+      percent: cert.percent,
+      result: cert.result,
+      issuedAt,
+      qrcode,
+    } as any;
+  } catch (error) {
+    console.error("Error in getCertificateDetails:", error);
+    return { status: false, message: "Server error" } as any;
   }
 }
