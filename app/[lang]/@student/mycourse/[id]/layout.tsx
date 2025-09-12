@@ -59,7 +59,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() =>
                 router.push(
-                  `/${lang}/@student/mycourse/${courseId}/${nextUnlock}`
+                  `/${lang}/mycourse/${courseId}/${nextUnlock}`
                 )
               }
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white inline-flex items-center gap-2"
@@ -95,7 +95,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() =>
                 router.push(
-                  `/${lang}/@student/mycourse/${courseId}/${nextUnlock}`
+                  `/${lang}/mycourse/${courseId}/${nextUnlock}`
                 )
               }
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white inline-flex items-center gap-2"
@@ -128,7 +128,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() =>
                 router.push(
-                  `/${lang}/@student/mycourse/${courseId}/certificate`
+                  `/${lang}/mycourse/${courseId}/certificate`
                 )
               }
               className="text-sm px-3 py-1 rounded-md bg-white/15 hover:bg-white/25 inline-flex items-center gap-1"

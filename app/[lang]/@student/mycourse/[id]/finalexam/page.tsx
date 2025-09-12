@@ -955,7 +955,7 @@ export default function Page() {
               {/* Certificate Button */}
               <button
                 onClick={() =>
-                  router.push(`/${lang}/@student/mycourse/${courseId}/certificate`)
+                  router.push(`/${lang}/mycourse/${courseId}/certificate`)
                 }
                 disabled={!cert?.status}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:transform-none disabled:shadow-none"

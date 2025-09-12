@@ -345,11 +345,25 @@ export async function saveStudentQuizAnswers(
         throw new Error("invalid_option");
       }
 
-      const studentQuiz = await tx.studentQuiz.create({
-        data: {
+      // Use upsert to handle both new and updated answers for activity quizzes
+      const studentQuiz = await tx.studentQuiz.upsert({
+        where: { 
+          userId_questionId: { userId, questionId } 
+        },
+        update: { 
+          isFinalExam: false,
+          takenAt: new Date()
+        },
+        create: {
           userId,
           questionId,
+          isFinalExam: false,
         },
+      });
+
+      // Delete existing answers for this quiz (if any) and create new one
+      await tx.studentQuizAnswer.deleteMany({
+        where: { studentQuizId: studentQuiz.id },
       });
 
       const studentQuizAnswer = await tx.studentQuizAnswer.create({
@@ -361,9 +375,20 @@ export async function saveStudentQuizAnswers(
 
       return { studentQuiz, studentQuizAnswer };
     });
-  } catch (error) {
+
+    return {
+      status: true,
+      message: "Answer saved successfully",
+    } as StateType;
+  } catch (error: any) {
     console.error("Error saving student quiz answers", error);
-    // return null;
+    const cause =
+      error?.message === "invalid_option" ? "invalid_option" : "server_error";
+    return {
+      status: false,
+      cause,
+      message: "Failed to save answer",
+    } as StateType;
   }
 }
 
@@ -467,14 +492,32 @@ export async function submitFinalExamAnswers(
     const { questionId, selectedOptionId } = data;
 
     const result = await prisma.$transaction(async (tx) => {
+      // Validate the selected option belongs to the question
       const option = await tx.questionOption.findFirst({
         where: { id: selectedOptionId, questionId },
         select: { id: true },
       });
       if (!option) throw new Error("invalid_option");
 
-      const studentQuiz = await tx.studentQuiz.create({
-        data: { userId, questionId, isFinalExam: true },
+      // Use upsert to handle both new and updated answers
+      const studentQuiz = await tx.studentQuiz.upsert({
+        where: { 
+          userId_questionId: { userId, questionId } 
+        },
+        update: { 
+          isFinalExam: true,
+          takenAt: new Date()
+        },
+        create: { 
+          userId, 
+          questionId, 
+          isFinalExam: true 
+        },
+      });
+
+      // Delete existing answers for this quiz (if any) and create new one
+      await tx.studentQuizAnswer.deleteMany({
+        where: { studentQuizId: studentQuiz.id },
       });
 
       const studentQuizAnswer = await tx.studentQuizAnswer.create({
@@ -598,11 +641,208 @@ export async function readyToCertification(courseId: string) {
   }
 }
 
-/* Duplicate unlockTheFinalExamAndQuiz removed to avoid redeclaration error. The canonical implementation appears earlier in this file and returns:
-{
-  status: true,
-  activities: activityRows,
-  finalExamLocked,
-  nextUnlockActivityId
+export async function clearStudentQuizAnswers(
+  prevState: StateType,
+  data: { activityId: string } | undefined
+): Promise<StateType> {
+  try {
+    const user = await auth();
+    if (!user) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
+    const userId = user.user?.id!;
+
+    if (!data) {
+      return {
+        status: false,
+        cause: "invalid_data",
+        message: "No data provided",
+      } as StateType;
+    }
+    const { activityId } = data;
+
+    // Get all questions for this activity
+    const questions = await prisma.question.findMany({
+      where: { activityId },
+      select: { id: true },
+    });
+
+    if (questions.length === 0) {
+      return {
+        status: true,
+        message: "No questions found for this activity",
+      } as StateType;
+    }
+
+    // Delete all student quiz answers for this activity
+    await prisma.$transaction(async (tx) => {
+      // First, delete all quiz answers
+      await tx.studentQuizAnswer.deleteMany({
+        where: {
+          studentQuiz: {
+            userId,
+            questionId: { in: questions.map(q => q.id) },
+            isFinalExam: false, // Only clear activity quiz answers, not final exam
+          },
+        },
+      });
+
+      // Then, delete all student quiz records
+      await tx.studentQuiz.deleteMany({
+        where: {
+          userId,
+          questionId: { in: questions.map(q => q.id) },
+          isFinalExam: false,
+        },
+      });
+    });
+
+    return {
+      status: true,
+      message: "Quiz answers cleared successfully",
+    } as StateType;
+  } catch (error) {
+    console.error("Error clearing student quiz answers:", error);
+    return {
+      status: false,
+      cause: "server_error",
+      message: "Failed to clear quiz answers",
+    } as StateType;
+  }
 }
-*/
+export async function unlockTheFinalExamAndQuiz(courseId: string) {
+  try {
+    const user = await auth();
+    const userId = user?.user?.id;
+    if (!userId) {
+      return {
+        status: false,
+        activities: [],
+        finalExamLocked: true,
+        nextUnlockActivityId: null,
+        message: "Unauthenticated"
+      };
+    }
+
+    // Get all activities for the course in order
+    const activities = await prisma.activity.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+      select: {
+        id: true,
+        titleEn: true,
+        titleAm: true,
+        order: true,
+        question: {
+          select: { id: true }
+        }
+      }
+    });
+
+    if (activities.length === 0) {
+      return {
+        status: true,
+        activities: [],
+        finalExamLocked: false,
+        nextUnlockActivityId: null
+      };
+    }
+
+    // Get completion status for each activity
+    const activityCompletionPromises = activities.map(async (activity) => {
+      if (activity.question.length === 0) {
+        // No quiz means always unlocked
+        return {
+          activityId: activity.id,
+          completed: true,
+          locked: false
+        };
+      }
+
+      // Check if all questions in this activity are answered
+      const questionIds = activity.question.map(q => q.id);
+      const answeredQuestions = await prisma.studentQuiz.groupBy({
+        by: ["questionId"],
+        where: {
+          userId,
+          questionId: { in: questionIds },
+          isFinalExam: false // Only count activity quiz answers
+        },
+        _count: { questionId: true }
+      });
+
+      const completed = answeredQuestions.length >= questionIds.length;
+      return {
+        activityId: activity.id,
+        completed,
+        locked: false // Will be determined by sequential logic
+      };
+    });
+
+    const completionStatuses = await Promise.all(activityCompletionPromises);
+
+    // Apply sequential access logic
+    let nextUnlockActivityId: string | null = null;
+    const activityRows = activities.map((activity, index) => {
+      const completion = completionStatuses.find(c => c.activityId === activity.id);
+      
+      // First activity is always unlocked
+      if (index === 0) {
+        if (!completion?.completed && !nextUnlockActivityId) {
+          nextUnlockActivityId = activity.id;
+        }
+        return {
+          ...activity,
+          ...completion,
+          locked: false,
+          question: activity.question // Include question data for frontend
+        };
+      }
+
+      // Check if previous activity is completed
+      const prevCompletion = completionStatuses[index - 1];
+      const locked = !prevCompletion?.completed;
+      
+      // Mark as next unlockable if current is locked and prev is completed
+      if (locked && prevCompletion?.completed && !nextUnlockActivityId) {
+        nextUnlockActivityId = activity.id;
+      }
+      
+      // If this activity is unlocked but not completed, it's the next to work on
+      if (!locked && !completion?.completed && !nextUnlockActivityId) {
+        nextUnlockActivityId = activity.id;
+      }
+
+      return {
+        ...activity,
+        ...completion,
+        locked,
+        question: activity.question // Include question data for frontend
+      };
+    });
+
+    // Final exam is locked until all activities are completed
+    const allActivitiesCompleted = completionStatuses.every(c => c.completed);
+    const finalExamLocked = !allActivitiesCompleted;
+
+    return {
+      status: true,
+      activities: activityRows,
+      finalExamLocked,
+      nextUnlockActivityId
+    };
+  } catch (error) {
+    console.error("Error in unlockTheFinalExamAndQuiz:", error);
+    return {
+      status: false,
+      activities: [],
+      finalExamLocked: true,
+      nextUnlockActivityId: null,
+      message: "Server error"
+    };
+  }
+}
