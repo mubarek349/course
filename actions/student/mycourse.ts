@@ -348,10 +348,9 @@ export async function saveStudentQuizAnswers(
       // Use upsert to handle both new and updated answers for activity quizzes
       const studentQuiz = await tx.studentQuiz.upsert({
         where: { 
-          userId_questionId: { userId, questionId } 
+          userId_questionId_isFinalExam: { userId, questionId, isFinalExam: false } 
         },
         update: { 
-          isFinalExam: false,
           takenAt: new Date()
         },
         create: {
@@ -502,10 +501,9 @@ export async function submitFinalExamAnswers(
       // Use upsert to handle both new and updated answers
       const studentQuiz = await tx.studentQuiz.upsert({
         where: { 
-          userId_questionId: { userId, questionId } 
+          userId_questionId_isFinalExam: { userId, questionId, isFinalExam: true } 
         },
         update: { 
-          isFinalExam: true,
           takenAt: new Date()
         },
         create: { 

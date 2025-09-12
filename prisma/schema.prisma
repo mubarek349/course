@@ -212,7 +212,7 @@ model studentQuiz {
   takenAt            DateTime            @default(now())
   studentQuizAnswers studentQuizAnswer[]
 
-  @@unique([userId, questionId])
+  @@unique([userId, questionId, isFinalExam])
   @@index([questionId])
   @@index([userId])
 }
