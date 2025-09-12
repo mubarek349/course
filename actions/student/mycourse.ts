@@ -379,7 +379,7 @@ export async function saveStudentQuizAnswers(
     return {
       status: true,
       message: "Answer saved successfully",
-    } as StateType;
+    } as unknown as StateType;
   } catch (error: any) {
     console.error("Error saving student quiz answers", error);
     const cause =
@@ -675,7 +675,7 @@ export async function clearStudentQuizAnswers(
       return {
         status: true,
         message: "No questions found for this activity",
-      } as StateType;
+      } as unknown as StateType;
     }
 
     // Delete all student quiz answers for this activity
@@ -704,7 +704,7 @@ export async function clearStudentQuizAnswers(
     return {
       status: true,
       message: "Quiz answers cleared successfully",
-    } as StateType;
+    } as unknown as StateType;
   } catch (error) {
     console.error("Error clearing student quiz answers:", error);
     return {
