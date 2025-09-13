@@ -5,6 +5,8 @@ import { getCertificateDetails } from "@/actions/student/mycourse";
 import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Trophy, Printer, X, ChevronLeft, ChevronRight } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 type CertificateData = {
   status: boolean;
@@ -86,6 +88,20 @@ function EnglishCertification({
       ? "جيد"
       : "ضعيف";
 
+  // Replace printPdf with downloadPdf
+  const downloadPdf = async () => {
+    if (!ref.current) return;
+    const canvas = await html2canvas(ref.current, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    pdf.save("certificate.pdf");
+  };
+
   return (
     <div
       id="certificate-print"
@@ -157,10 +173,10 @@ function EnglishCertification({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={onPrint}
+              onClick={downloadPdf}
               className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
             >
-              <Printer className="w-4 h-4" /> Print / Save as PDF
+              <Printer className="w-4 h-4" /> Download Certificate
             </button>
           </div>
         </div>
@@ -355,6 +371,20 @@ function AmharicCertification({
       ? "جيد"
       : "ضعيف";
 
+  // Replace printPdf with downloadPdf
+  const downloadPdf = async () => {
+    if (!ref.current) return;
+    const canvas = await html2canvas(ref.current, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [canvas.width, canvas.height],
+    });
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    pdf.save("certificate.pdf");
+  };
+
   return (
     <div
       id="certificate-print"
@@ -426,10 +456,10 @@ function AmharicCertification({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={onPrint}
+              onClick={downloadPdf}
               className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
             >
-              <Printer className="w-4 h-4" /> download certificate
+              <Printer className="w-4 h-4" /> Download Certificate
             </button>
           </div>
         </div>
