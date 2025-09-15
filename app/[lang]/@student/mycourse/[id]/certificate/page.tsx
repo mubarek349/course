@@ -1,5 +1,6 @@
 "use client";
 import useData from "@/hooks/useData";
+import QRCode from "qrcode";
 import Image from "next/image";
 import { getCertificateDetails } from "@/actions/student/mycourse";
 import { useParams, useRouter } from "next/navigation";
@@ -7,6 +8,7 @@ import { useRef, useState } from "react";
 import { Trophy, Printer, X, ChevronLeft, ChevronRight } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useEffect } from "react";
 
 type CertificateData = {
   status: boolean;
@@ -41,7 +43,7 @@ function EnglishCertification({
   currentLabel,
 }: CertificationProps) {
   const ref = useRef<HTMLDivElement>(null);
-
+  const [qrCodeData, setQrCodeData] = useState("");
   const issued = new Date(data.issuedAt);
   const issuedStr = issued.toLocaleDateString();
   const percent = Math.round(data.percent || 0);
@@ -56,15 +58,19 @@ function EnglishCertification({
       : "border-rose-500 text-rose-700";
 
   const certificateId = `${courseId}-${issued.getTime()}`;
-  const qrPath =
-    data.qrcode || `/${lang}/@student/mycourse/${courseId}/finalexam`;
-  const qrData =
-    typeof window !== "undefined"
-      ? new URL(qrPath, window.location.origin).toString()
-      : qrPath;
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-    qrData
-  )}`;
+  const qrPath = data.qrcode || `/${lang}/mycourse/${courseId}/finalexam`;
+  // const qrData =
+  //   typeof window !== "undefined"
+  //     ? new URL(qrPath, window.location.origin).toString()
+  //     : qrPath;
+  // const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+  //   qrData
+  // )}`;
+  // Generate QR code when qrPath changes
+
+  useEffect(() => {
+    QRCode.toDataURL(qrPath, { width: 120 }).then(setQrCodeData);
+  }, [qrPath]);
 
   // Signature and stamp assets (place images under /public/assets/cert/)
   const signInstructor = "/sign.png";
@@ -290,7 +296,7 @@ function EnglishCertification({
             <div className="mt-8 flex items-center justify-center gap-4">
               <div className="text-xs text-slate-500">Scan to verify</div>
               <div className="bg-white p-2 rounded-md border border-slate-200">
-                <img src={qrSrc} alt="QR code" width={60} height={60} />
+                <img src={qrCodeData} alt="QR code" width={60} height={60} />
               </div>
             </div>
 
@@ -324,10 +330,12 @@ function AmharicCertification({
   currentLabel,
 }: CertificationProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [qrCodeData, setQrCodeData] = useState("");
 
   const issued = new Date(data.issuedAt);
   const issuedStr = issued.toLocaleDateString();
   const percent = Math.round(data.percent || 0);
+
   const result = String(data.result || "").toLowerCase();
   const resultBadge =
     result === "excellent"
@@ -341,13 +349,20 @@ function AmharicCertification({
   const certificateId = `${courseId}-${issued.getTime()}`;
   const qrPath =
     data.qrcode || `/${lang}/@student/mycourse/${courseId}/finalexam`;
-  const qrData =
-    typeof window !== "undefined"
-      ? new URL(qrPath, window.location.origin).toString()
-      : qrPath;
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-    qrData
-  )}`;
+  // const qrData =
+  //   typeof window !== "undefined"
+  //     ? new URL(qrPath, window.location.origin).toString()
+  //     : qrPath;
+  // const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+  //   qrData
+  // )}`;
+  useEffect(() => {
+    async function generateQr() {
+      const url = await QRCode.toDataURL(qrPath, { width: 120 });
+      setQrCodeData(url);
+    }
+    generateQr();
+  }, [qrPath]);
 
   // Signature and stamp assets (place images under /public/assets/cert/)
   const signInstructor = "/sign.png";
@@ -574,7 +589,7 @@ function AmharicCertification({
             <div className="mt-8 flex items-center justify-center gap-4">
               <div className="text-xs text-slate-500">Scan to verify</div>
               <div className="bg-white p-2 rounded-md border border-slate-200">
-                <img src={qrSrc} alt="QR code" width={60} height={60} />
+                <img src={qrCodeData} alt="QR code" width={60} height={60} />
               </div>
             </div>
 
