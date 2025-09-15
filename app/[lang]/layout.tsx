@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
-import React from "react";
+import React, { use } from "react";
 
 export default async function Layout({
   pending,
@@ -47,3 +47,4 @@ export default async function Layout({
     ? student
     : children;
 }
+

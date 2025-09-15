@@ -13,6 +13,7 @@ import {
   Trophy,
   Lock,
   Circle,
+  MessageCircle,
 } from "lucide-react";
 import { Accordion, AccordionItem, Skeleton, Tabs, Tab } from "@heroui/react";
 
@@ -27,6 +28,7 @@ import {
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseTopOverview from "@/components/courseTopOverview";
+import VideoQA from "@/components/VideoQA";
 import { useSession } from "next-auth/react";
 
 // ---------------- COURSE CONTENT COMPONENT ----------------
@@ -42,7 +44,7 @@ function CourseContent({
 }: {
   contentData: any;
   contentLoading: boolean;
-  onSelectVideo: (url: string, title: string) => void;
+  onSelectVideo: (url: string, title: string, subActivityId?: string) => void;
   lang: string;
   currentVideoUrl: string;
   courseId: string;
@@ -126,7 +128,8 @@ function CourseContent({
         onClick={() =>
           onSelectVideo(
             contentData.video,
-            lang === "en" ? contentData.titleEn : contentData.titleAm
+            lang === "en" ? contentData.titleEn : contentData.titleAm,
+            "" // Introduction video
           )
         }
       >
@@ -194,7 +197,8 @@ function CourseContent({
                     onClick={() =>
                       onSelectVideo(
                         sub.video,
-                        lang === "en" ? sub.titleEn : sub.titleAm
+                        lang === "en" ? sub.titleEn : sub.titleAm,
+                        sub.id
                       )
                     }
                     className={`flex items-center gap-2 cursor-pointer p-3 rounded ${
@@ -435,7 +439,7 @@ export default function Page() {
 
   const finalExamLocked = Boolean((locks as any)?.finalExamLocked);
 
-  const [currentVideo, setCurrentVideo] = useState({ url: "", title: "" });
+  const [currentVideo, setCurrentVideo] = useState({ url: "", title: "", subActivityId: "" });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -443,12 +447,13 @@ export default function Page() {
       setCurrentVideo({
         url: data.video,
         title: lang === "en" ? data.titleEn : data.titleAm,
+        subActivityId: "", // Introduction video doesn't have subActivityId
       });
     }
   }, [data, lang]);
 
-  const handleSelectVideo = (videoUrl: string, videoTitle: string) => {
-    setCurrentVideo({ url: videoUrl, title: videoTitle });
+  const handleSelectVideo = (videoUrl: string, videoTitle: string, subActivityId?: string) => {
+    setCurrentVideo({ url: videoUrl, title: videoTitle, subActivityId: subActivityId || "" });
     setIsSidebarOpen(false);
   };
 
@@ -472,7 +477,7 @@ export default function Page() {
       ),
       className: "md:hidden", // hide on desktop
     },
-    // AI Assistant (mobile only)
+    // AI Assistant
     {
       id: "ai",
       label: "AI Assistant",
@@ -482,13 +487,6 @@ export default function Page() {
           <span>AI Assistant coming soon.</span>
         </div>
       ),
-      // className: "md:hidden", // hide on desktop
-    },
-    // Q&A (always visible)
-    {
-      id: "q&a",
-      label: lang === "en" ? "Q&A" : "ጥያቄ እና መልስ",
-      content: <div className="p-4">Q&A section coming soon.</div>,
     },
   ];
 
@@ -520,6 +518,27 @@ export default function Page() {
                 video: currentVideo.url,
               }}
             />
+
+            {/* Q&A SECTION - Only show for subactivity videos */}
+            {currentVideo.subActivityId && (
+              <div className="p-4 md:p-8">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <MessageCircle className="w-6 h-6 text-primary" />
+                      <h2 className="text-xl font-semibold">
+                        {lang === "en" ? "Questions & Answers" : "ጥያቄዎች እና መልሶች"}
+                      </h2>
+                    </div>
+                    <VideoQA 
+                      subActivityId={currentVideo.subActivityId}
+                      lang={lang}
+                      currentTime={0} // TODO: Get actual video time from player
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* COURSE TABS */}
             <div className="p-4 md:p-8">
