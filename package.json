@@ -27,6 +27,7 @@
     "formidable": "^3.5.4",
     "framer-motion": "^11.18.1",
     "grammy": "^1.33.0",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",
     "lodash": "^4.17.21",
