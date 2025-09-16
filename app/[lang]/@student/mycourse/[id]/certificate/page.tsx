@@ -117,22 +117,20 @@ function EnglishCertification({
             <p>
               This certificate is hereby awarded to {data.studentName} for
               successfully completing this course and passing the final
-              assessment with a score of{" "}
-              <b>{Math.round(data.percent)}%</b>. This achievement
-              reflects dedication, strong performance, and a commitment to
-              continuous learning. Final result: <b>{resultLabel}</b>.
-              Issued on <b>{issuedStr}</b>.
+              assessment with a score of <b>{Math.round(data.percent)}%</b>.
+              This achievement reflects dedication, strong performance, and a
+              commitment to continuous learning. Final result:{" "}
+              <b>{resultLabel}</b>. Issued on <b>{issuedStr}</b>.
             </p>
           </div>
           {/* Vertical divider for desktop/print */}
           <div className="flex w-px bg-slate-300 mx-0 my-4 print:my-0 print:mx-0" />
           <div className="flex-1 p-4 text-right" lang="ar" dir="rtl">
             <p>
-              يشهد مركز دار الكبرى لتعليم القرآن والعلوم الدينية بأن
-              المتعلم {data.studentName} قد أكمل هذا المساق بنجاح واجتاز
-              التقييم النهائي بنسبة <b>{Math.round(data.percent)}%</b>.
-              ويعكس ذلك تفوقه والتزامه بالجد والاجتهاد والتعلم المستمر.
-              النتيجة النهائية:
+              يشهد مركز دار الكبرى لتعليم القرآن والعلوم الدينية بأن المتعلم{" "}
+              {data.studentName} قد أكمل هذا المساق بنجاح واجتاز التقييم النهائي
+              بنسبة <b>{Math.round(data.percent)}%</b>. ويعكس ذلك تفوقه والتزامه
+              بالجد والاجتهاد والتعلم المستمر. النتيجة النهائية:
               <b> {resultLabelAr}</b>. تاريخ الإصدار: <b>{issuedStr}</b>.
             </p>
           </div>
@@ -287,9 +285,9 @@ function AmharicCertification({
         <div className="mt-5 max-w-4xl mx-auto flex flex-row items-stretch gap-0 text-slate-700 leading-relaxed text-left">
           <div className="flex-1 p-4">
             <p>
-              እ.ኤ.አ {data.studentName} ይህን ኮርስ በተሳካ ሁኔታ ተጠናቅቋል እና የመጨረሻውን
-              ግምገማ በ <b>{Math.round(data.percent)}%</b> ውጤት አልፏል። ይህ ስኬት
-              ትጉህነት፣ ጥረት እና በቀጣይ መማር ላይ ያለ ቁርጠኝነትን ያሳያል። መጨረሻ ውጤት:
+              እ.ኤ.አ {data.studentName} ይህን ኮርስ በተሳካ ሁኔታ ተጠናቅቋል እና የመጨረሻውን ግምገማ በ{" "}
+              <b>{Math.round(data.percent)}%</b> ውጤት አልፏል። ይህ ስኬት ትጉህነት፣ ጥረት እና
+              በቀጣይ መማር ላይ ያለ ቁርጠኝነትን ያሳያል። መጨረሻ ውጤት:
               <b> {resultLabelAm}</b>። የተሰጠበት ቀን: <b>{issuedStr}</b>።
             </p>
           </div>
@@ -297,11 +295,10 @@ function AmharicCertification({
           <div className="flex w-px bg-slate-300 mx-0 my-4 print:my-0 print:mx-0" />
           <div className="flex-1 p-4 text-right" lang="ar" dir="rtl">
             <p>
-              يشهد مركز دار الكبرى لتعليم القرآن والعلوم الدينية بأن
-              المتعلم {data.studentName} قد أكمل هذا المساق بنجاح واجتاز
-              التقييم النهائي بنسبة <b>{Math.round(data.percent)}%</b>.
-              ويعكس ذلك تفوقه والتزامه بالجد والاجتهاد والتعلم المستمر.
-              النتيجة النهائية:
+              يشهد مركز دار الكبرى لتعليم القرآن والعلوم الدينية بأن المتعلم{" "}
+              {data.studentName} قد أكمل هذا المساق بنجاح واجتاز التقييم النهائي
+              بنسبة <b>{Math.round(data.percent)}%</b>. ويعكس ذلك تفوقه والتزامه
+              بالجد والاجتهاد والتعلم المستمر. النتيجة النهائية:
               <b> {resultLabelAr}</b>. تاريخ الإصدار: <b>{issuedStr}</b>.
             </p>
           </div>
@@ -359,6 +356,7 @@ export default function Page() {
   const lang = params?.lang || "en";
   const courseId = params?.id || "";
   const certificateRef = useRef<HTMLDivElement>(null);
+  const scrollWrapperRef = useRef<HTMLDivElement>(null); // add this ref
 
   const { data, loading } = useData({
     func: getCertificateDetails,
@@ -369,36 +367,59 @@ export default function Page() {
   const [activeIdx, setActiveIdx] = useState(0); // 0: English, 1: Amharic
   const labels = ["English", "Amharic"];
 
+  const A4_WIDTH = 1123; // px (A4 landscape at 96dpi)
+  const A4_HEIGHT = 794; // px
+
   // Enhanced download function with desktop layout forcing
   const handleDownload = async () => {
     const node = certificateRef.current;
+    const scrollWrapper = scrollWrapperRef.current;
     if (!node) return;
 
-    // Force desktop layout for export
+    // Save original styles
+    const originalWidth = node.style.width;
+    const originalHeight = node.style.height;
+    const originalBoxShadow = node.style.boxShadow;
+    const originalBorder = node.style.border;
+
+    // Remove scroll and set A4 landscape size for export
+    if (scrollWrapper) scrollWrapper.style.overflow = "visible";
+    node.style.width = `${A4_WIDTH}px`;
+    node.style.height = `${A4_HEIGHT}px`;
+    node.style.boxShadow = "none";
+    node.style.border = "none";
     node.classList.add("force-desktop");
-    window.scrollTo(0, 0); // Prevent clipping on mobile
+    window.scrollTo(0, 0);
 
     try {
       const dataUrl = await toPng(node, {
         cacheBust: true,
         pixelRatio: 2,
+        width: A4_WIDTH,
+        height: A4_HEIGHT,
       });
 
-      const img = document.createElement('img') as HTMLImageElement;
+      const img = document.createElement("img") as HTMLImageElement;
       img.src = dataUrl;
       img.onload = () => {
         const pdf = new jsPDF({
           orientation: "landscape",
           unit: "px",
-          format: [img.width, img.height],
+          format: [A4_WIDTH, A4_HEIGHT],
         });
 
-        pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
+        pdf.addImage(dataUrl, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
         pdf.save("certificate.pdf");
       };
     } catch (error) {
       console.error("Failed to generate certificate:", error);
     } finally {
+      // Restore styles
+      if (scrollWrapper) scrollWrapper.style.overflow = "auto";
+      node.style.width = originalWidth;
+      node.style.height = originalHeight;
+      node.style.boxShadow = originalBoxShadow;
+      node.style.border = originalBorder;
       node.classList.remove("force-desktop");
     }
   };
@@ -464,13 +485,27 @@ export default function Page() {
             print-color-adjust: exact;
             background: #f7f2e9 !important;
           }
+          .certificate-scroll-wrapper {
+            overflow: visible !important;
+          }
+          .certificate-a4 {
+            width: 1123px !important;
+            height: 794px !important;
+            min-width: 1123px !important;
+            min-height: 794px !important;
+            max-width: 1123px !important;
+            max-height: 794px !important;
+            box-shadow: none !important;
+            border: none !important;
+            page-break-inside: avoid !important;
+          }
           html,
           body {
             margin: 0 !important;
             padding: 0 !important;
           }
           @page {
-            size: A4;
+            size: A4 landscape;
             margin: 0;
           }
         }
@@ -482,11 +517,11 @@ export default function Page() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 print:hidden gap-3">
             {/* Left: Close button */}
             <button
-                onClick={handleDownload}
-                className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> Download Certificate
-              </button>
+              onClick={handleDownload}
+              className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
+            >
+              <Printer className="w-4 h-4" /> Download Certificate
+            </button>
 
             {/* Center: Language switcher and navigation */}
             <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -525,8 +560,30 @@ export default function Page() {
           </div>
 
           {/* Certificate Canvas */}
-          <div className="certificate-scroll-wrapper">
-            <div ref={certificateRef}>
+          <div
+            className="certificate-scroll-wrapper w-full overflow-x-auto"
+            ref={scrollWrapperRef}
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <div
+              ref={certificateRef}
+              className="certificate-a4 mx-auto overflow-auto"
+              style={{
+                width: `${A4_WIDTH}px`,
+                minWidth: `${A4_WIDTH}px`,
+                maxWidth: `${A4_WIDTH}px`,
+                // Remove height constraints for UI scroll, only set in print
+                ...(typeof window !== "undefined" &&
+                !window.matchMedia("print").matches
+                  ? { height: "auto", minHeight: "0", maxHeight: "none" }
+                  : {
+                      height: `${A4_HEIGHT}px`,
+                      minHeight: `${A4_HEIGHT}px`,
+                      maxHeight: `${A4_HEIGHT}px`,
+                    }),
+                background: "#fff",
+              }}
+            >
               {activeIdx === 0 ? (
                 <EnglishCertification
                   data={cert}
@@ -542,7 +599,7 @@ export default function Page() {
               )}
             </div>
           </div>
-          
+
           {/* Mobile download button - positioned below certificate */}
           <div className="md:hidden mt-4 flex justify-center print:hidden">
             <button
@@ -553,7 +610,7 @@ export default function Page() {
             </button>
           </div>
         </div>
-        
+
         {/* Mobile scroll hint */}
         <div className="lg:hidden text-center mt-4 print:hidden">
           <p className="text-sm text-slate-500">
