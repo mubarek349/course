@@ -12,6 +12,36 @@
     display: none;
   }
 
+  /* Enable scrollbars for certificate page */
+  #certificate-print {
+    scrollbar-width: thin;
+    scrollbar-color: #6b7280 #f1f5f9;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+  
+  #certificate-print::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+    display: block !important;
+  }
+  
+  #certificate-print::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  
+  #certificate-print::-webkit-scrollbar-thumb {
+    background: #6b7280;
+    border-radius: 4px;
+    border: 1px solid #9ca3af;
+  }
+  
+  #certificate-print::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+
   .animate-rotate {
     animation: rotate;
     animation-timeline: view();
@@ -135,16 +165,19 @@
   width: 1200px !important;
   min-width: 1200px !important;
   flex-shrink: 0 !important;
+  overflow: visible !important;
 }
 
 .certificate-scroll-wrapper {
   overflow-x: auto !important;
-  overflow-y: hidden !important;
+  overflow-y: visible !important;
   -webkit-overflow-scrolling: touch !important;
   border: 2px solid #d1d5db;
   border-radius: 8px;
   padding: 8px;
   background: #f8fafc;
+  width: 100%;
+  min-width: 100%;
 }
 
 /* Always visible scrollbar for certificate wrapper */
