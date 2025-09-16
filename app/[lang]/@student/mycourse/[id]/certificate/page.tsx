@@ -165,8 +165,8 @@ function EnglishCertification({
         }
       `}</style>
 
-      <div className="w-full h-full flex justify-center items-start p-4 overflow-auto ">
-        <div className="w-full max-w-5xl min-w-0">
+      <div className="w-dvh h-full flex justify-center items-start p-1 overflow-auto ">
+        <div className="w-dvh max-w-5xl min-w-0">
           <div className="flex items-center justify-between mb-4 print:hidden">
             <button
               onClick={onBack}
