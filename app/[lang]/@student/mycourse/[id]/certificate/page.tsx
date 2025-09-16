@@ -234,7 +234,7 @@ function EnglishCertification({
                 {data.studentName}
               </div>
               {/* Bilingual body: English (left) + Arabic (right) with vertical divider */}
-              <div className="mt-5 max-w-4xl mx-auto flex flex-col md:flex-row items-stretch gap-0 text-slate-700 leading-relaxed text-left">
+              <div className="mt-5 max-w-4xl mx-auto flex flex-row items-stretch gap-0 text-slate-700 leading-relaxed text-left">
                 <div className="flex-1 p-4">
                   <p>
                     This certificate is hereby awarded to {data.studentName} for
@@ -247,7 +247,7 @@ function EnglishCertification({
                   </p>
                 </div>
                 {/* Vertical divider for desktop/print */}
-                <div className="hidden md:flex w-px bg-slate-300 mx-0 my-4 print:my-0 print:mx-0" />
+                <div className="flex w-px bg-slate-300 mx-0 my-4 print:my-0 print:mx-0" />
                 <div className="flex-1 p-4 text-right" lang="ar" dir="rtl">
                   <p>
                     يشهد مركز دار الكبرى لتعليم القرآن والعلوم الدينية بأن
@@ -532,7 +532,7 @@ function AmharicCertification({
                 {data.studentName}
               </div>
               {/* Bilingual body: Amharic (left) + Arabic (right) with vertical divider */}
-              <div className="mt-5 max-w-4xl mx-auto flex flex-col md:flex-row items-stretch gap-0 text-slate-700 leading-relaxed text-left">
+              <div className="mt-5 max-w-4xl mx-auto flex flex-row items-stretch gap-0 text-slate-700 leading-relaxed text-left">
                 <div className="flex-1 p-4">
                   <p>
                     እ.ኤ.አ {data.studentName} ይህን ኮርስ በተሳካ ሁኔታ ተጠናቅቋል እና የመጨረሻውን
@@ -542,7 +542,7 @@ function AmharicCertification({
                   </p>
                 </div>
                 {/* Vertical divider for desktop/print */}
-                <div className="hidden md:flex w-px bg-slate-300 mx-0 my-4 print:my-0 print:mx-0" />
+                <div className="flex w-px bg-slate-300 mx-0 my-4 print:my-0 print:mx-0" />
                 <div className="flex-1 p-4 text-right" lang="ar" dir="rtl">
                   <p>
                     يشهد مركز دار الكبرى لتعليم القرآن والعلوم الدينية بأن

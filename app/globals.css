@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 @layer components {
-  * {
+  /* Hide scrollbars for most elements except certificate page */
+  *:not(#certificate-print):not(#certificate-print *) {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  *::-webkit-scrollbar {
+  *:not(#certificate-print):not(#certificate-print *)::-webkit-scrollbar {
     display: none;
   }
 
@@ -120,4 +121,94 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Certificate responsive styles */
+.force-desktop {
+  width: 1200px !important;
+  min-width: 1200px !important;
+  transform: scale(1) !important;
+  transform-origin: top left !important;
+}
+
+.certificate-container {
+  width: 1200px !important;
+  min-width: 1200px !important;
+  flex-shrink: 0 !important;
+}
+
+.certificate-scroll-wrapper {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f8fafc;
+}
+
+/* Always visible scrollbar for certificate wrapper */
+.certificate-scroll-wrapper::-webkit-scrollbar {
+  height: 12px !important;
+  display: block !important;
+  background: transparent;
+}
+
+.certificate-scroll-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+  border-radius: 6px !important;
+  margin: 0 4px;
+}
+
+.certificate-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #6b7280 !important;
+  border-radius: 6px !important;
+  border: 1px solid #9ca3af;
+}
+
+.certificate-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #4b5563 !important;
+}
+
+.certificate-scroll-wrapper::-webkit-scrollbar-thumb:active {
+  background: #374151 !important;
+}
+
+@media (max-width: 768px) {
+  .certificate-container {
+    transform-origin: top left;
+    transform: scale(0.7);
+    width: 1200px !important;
+    min-width: 1200px !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .certificate-scroll-wrapper {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .certificate-scroll-wrapper::-webkit-scrollbar {
+    height: 10px !important;
+    display: block !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .certificate-container {
+    transform: scale(0.55);
+    width: 1200px !important;
+    min-width: 1200px !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .certificate-container {
+    transform: scale(0.4);
+    width: 1200px !important;
+    min-width: 1200px !important;
+    flex-shrink: 0 !important;
+  }
 }
