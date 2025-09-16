@@ -164,19 +164,29 @@ function EnglishCertification({
           }
         }
       `}</style>
+      <div className="w-full h-full flex justify-center items-start p-2 sm:p-4 overflow-auto">
+        <div className="w-full max-w-6xl min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 print:hidden">
+            {/* Top row on mobile: Close and Download */}
+            <div className="flex items-center justify-between sm:justify-start">
+              <button
+                onClick={onBack}
+                className="text-slate-600 hover:text-slate-900 inline-flex items-center gap-2"
+              >
+                <X className="w-4 h-4" /> Close
+              </button>
+              
+              {/* Download button visible on mobile */}
+              <button
+                onClick={handleDownload}
+                className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2 sm:hidden"
+              >
+                <Printer className="w-4 h-4" /> Download
+              </button>
+            </div>
 
-      <div className="w-dvh h-full flex justify-center items-start p-1 overflow-auto ">
-        <div className="w-dvh max-w-5xl min-w-0">
-          <div className="flex items-center justify-between mb-4 print:hidden">
-            <button
-              onClick={onBack}
-              className="text-slate-600 hover:text-slate-900 inline-flex items-center gap-2"
-            >
-              <X className="w-4 h-4" /> Close
-            </button>
-
-            {/* center: navigation */}
-            <div className="flex items-center gap-3">
+            {/* Navigation - centered on mobile and desktop */}
+            <div className="flex items-center justify-center gap-3">
               <button
                 onClick={onPrev}
                 className="p-2 rounded-md border border-slate-300 hover:bg-slate-50"
@@ -185,7 +195,7 @@ function EnglishCertification({
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-sm text-slate-600">
+              <span className="text-sm text-slate-600 whitespace-nowrap">
                 {currentLabel} Certificate
               </span>
               <button
@@ -198,7 +208,8 @@ function EnglishCertification({
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Download button for desktop */}
+            <div className="hidden sm:flex items-center gap-2">
               <button
                 onClick={handleDownload}
                 className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
