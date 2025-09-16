@@ -7,7 +7,7 @@ import React from "react";
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button, Link } from "@heroui/react";
 import { useSession } from "next-auth/react";
 
@@ -15,6 +15,7 @@ export default function Page() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang ?? "en";
   const { data: session } = useSession();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const studentId = (session?.user as any)?.id;
 
   const { data, loading } = useData({

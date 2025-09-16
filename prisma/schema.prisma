@@ -126,7 +126,8 @@ model Course {
   activity       Activity[]
   order          Order[]
   incomeRate     IncomeRate[]
-  question    question[]
+  question       question[]
+  chatQuestions VideoQuestion[]
 }
 
 model Requirement {
@@ -165,7 +166,6 @@ model SubActivity {
   order           Int
   video           String
   studentProgress studentProgress[]
-  videoQuestions  VideoQuestion[]
 }
 
 model question {
@@ -307,16 +307,19 @@ model VideoQuestion {
   id            String @id @default(cuid())
   student       User   @relation("StudentVideoQuestions", fields: [studentId], references: [id], onDelete: Cascade)
   studentId     String
-  subActivity   SubActivity @relation(fields: [subActivityId], references: [id], onDelete: Cascade)
-  subActivityId String
+  course        Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId      String
+  subActivityId String? // Optional reference to specific sub-activity for context
   question      String @db.Text
   timestamp     Int?   // Video timestamp in seconds where question was asked
+  type          String @default("course") // "course" for introduction video, "activity" for sub-activity video
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   responses     VideoResponse[]
 
-  @@index([subActivityId])
+  @@index([courseId])
   @@index([studentId])
+  @@index([subActivityId])
 }
 
 model VideoResponse {

@@ -11,6 +11,11 @@
     display: none;
   }
 
+  /* Fix for mobile viewport height issues */
+  .h-dvh {
+    height: 100dvh; /* Dynamic viewport height for better mobile support */
+  }
+
   .animate-rotate {
     animation: rotate;
     animation-timeline: view();
@@ -120,4 +125,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Ensure proper scrolling behavior on mobile */
+@media (max-width: 768px) {
+  .mobile-scroll-fix {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix for bottom padding on mobile to account for browser UI */
+  .mobile-bottom-fix {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

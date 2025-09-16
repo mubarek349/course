@@ -21,19 +21,11 @@ export async function submitVideoResponse(
     const videoQuestion = await prisma.videoQuestion.findUnique({
       where: { id: videoQuestionId },
       include: {
-        subActivity: {
-          include: {
-            activity: {
-              include: {
-                course: true,
-              },
-            },
-          },
-        },
+        course: true,
       },
     });
 
-    if (!videoQuestion || videoQuestion.subActivity.activity.course.instructorId !== instructorId) {
+    if (!videoQuestion || videoQuestion.course.instructorId !== instructorId) {
       throw new Error("Access denied to this question");
     }
 
@@ -74,13 +66,9 @@ export async function getInstructorVideoQuestions(courseId?: string) {
     const instructorId = session.user.id;
 
     const whereClause: any = {
-      subActivity: {
-        activity: {
-          course: {
-            instructorId,
-            ...(courseId && { id: courseId }),
-          },
-        },
+      course: {
+        instructorId,
+        ...(courseId && { id: courseId }),
       },
     };
 
@@ -94,22 +82,10 @@ export async function getInstructorVideoQuestions(courseId?: string) {
             lastName: true,
           },
         },
-        subActivity: {
+        course: {
           select: {
             titleEn: true,
             titleAm: true,
-            activity: {
-              select: {
-                titleEn: true,
-                titleAm: true,
-                course: {
-                  select: {
-                    titleEn: true,
-                    titleAm: true,
-                  },
-                },
-              },
-            },
           },
         },
         responses: {

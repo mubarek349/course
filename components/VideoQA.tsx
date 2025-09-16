@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -23,7 +22,9 @@ import {
   Reply,
   Trash2,
   Edit3,
-  Plus
+  Plus,
+  Bot,
+  Sparkles
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { 
@@ -56,28 +57,33 @@ interface VideoQuestion {
 }
 
 interface VideoQAProps {
-  subActivityId: string;
+  courseId: string;
+  subActivityId?: string; // Optional - for backwards compatibility
   lang: string;
   currentTime?: number; // Current video timestamp
 }
 
-export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAProps) {
+export default function VideoQA({ courseId, subActivityId, lang, currentTime }: VideoQAProps) {
   const { data: session } = useSession();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [questions, setQuestions] = useState<VideoQuestion[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isAIMode, setIsAIMode] = useState(true);
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Fetch questions on component mount
   useEffect(() => {
     loadQuestions();
-  }, [subActivityId]);
+  }, [courseId, subActivityId]);
 
   const loadQuestions = async () => {
     setLoading(true);
     try {
-      const result = await getVideoQuestions(subActivityId);
+      // Always pass courseId, subActivityId is optional
+      const result = await getVideoQuestions(courseId, subActivityId);
       if (result.success && result.data) {
         // Convert Date objects to strings for compatibility
         const questionsWithStringDates = result.data.map(q => ({
@@ -100,26 +106,65 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
   const handleSubmitQuestion = async () => {
     if (!newQuestion.trim()) return;
 
-    setSubmitting(true);
-    try {
-      const result = await submitVideoQuestion(
-        subActivityId,
-        newQuestion.trim(),
-        currentTime ? Math.floor(currentTime) : undefined
-      );
-      
-      if (result.success) {
-        setNewQuestion("");
-        onClose();
-        await loadQuestions(); // Refresh questions
-      } else {
-        alert(lang === "en" ? "Failed to submit question" : "ጥያቄን ማስገባት አልተሳካም");
+    if (isAIMode) {
+      await handleAIQuestion();
+    } else {
+      setSubmitting(true);
+      try {
+        // Always pass courseId, subActivityId is optional (can be undefined)
+        const result = await submitVideoQuestion(
+          courseId,
+          newQuestion.trim(),
+          currentTime ? Math.floor(currentTime) : undefined,
+          subActivityId // This can be undefined for course-level questions
+        );
+        
+        if (result.success) {
+          setNewQuestion("");
+          onClose();
+          await loadQuestions(); // Refresh questions
+        } else {
+          alert(lang === "en" ? "Failed to submit question" : "ጥያቄን ማስገባት አልተሳካም");
+        }
+      } catch (error) {
+        console.error("Error submitting question:", error);
+        alert(lang === "en" ? "Error submitting question" : "ጥያቄን በማስገባት ላይ ስህተት");
+      } finally {
+        setSubmitting(false);
       }
+    }
+  };
+
+  const handleAIQuestion = async () => {
+    setAiLoading(true);
+    setAiResponse("");
+    
+    try {
+      // Simulate AI response - replace with actual AI API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const responses = {
+        en: [
+          "Based on the video content, here's what I understand: This topic relates to the key concepts we've been discussing. Let me break it down for you...",
+          "That's a great question! From the video, we can see that this concept is important because it helps us understand...",
+          "I can help clarify this topic. The video explains that this is a fundamental principle that...",
+          "This is an excellent point to explore. The video content suggests that we should consider..."
+        ],
+        am: [
+          "በቪዲዮው ይዘት መሰረት፣ እኔ የምረዳው ይህ ነው፡ ይህ ርዕስ ከምንወያይባቸው ቁልፍ ጽንሰ-ሀሳቦች ጋር ይዛመዳል። ለእርስዎ እከፋፍለዋለሁ...",
+          "በጣም ጥሩ ጥያቄ ነው! ከቪዲዮው፣ ይህ ጽንሰ-ሀሳብ አስፈላጊ መሆኑን ማየት እንችላለን ምክንያቱም እኛን ለመረዳት ይረዳናል...",
+          "ይህንን ርዕስ ለማብራራት እችላለሁ። ቪዲዮው ይህ መሰረታዊ መርህ እንደሆነ ያብራራል...",
+          "ይህ ለመዳሰስ እጅግ በጣም ጥሩ ነጥብ ነው። የቪዲዮው ይዘት እንድናስብ ይጠቁማል..."
+        ]
+      };
+      
+      const randomResponse = responses[lang as keyof typeof responses][Math.floor(Math.random() * 4)];
+      setAiResponse(randomResponse);
     } catch (error) {
-      console.error("Error submitting question:", error);
-      alert(lang === "en" ? "Error submitting question" : "ጥያቄን በማስገባት ላይ ስህተት");
+      console.error("Error getting AI response:", error);
+      setAiResponse(lang === "en" ? "Sorry, I couldn't process your question right now. Please try again." : "ይቅርታ፣ ጥያቄዎን አሁን ማስኬድ አልቻልኩም። እባክዎ እንደገና ይሞክሩ።");
     } finally {
-      setSubmitting(false);
+      setAiLoading(false);
     }
   };
 
@@ -151,32 +196,118 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-primary" />
+          {isAIMode ? <Bot className="w-5 h-5 text-purple-500" /> : <MessageCircle className="w-5 h-5 text-primary" />}
           <h3 className="text-lg font-semibold">
-            {lang === "en" ? "Questions & Answers" : "ጥያቄዎች እና መልሶች"}
+            {isAIMode 
+              ? (lang === "en" ? "AI Assistant" : "AI ረዳት")
+              : (lang === "en" ? "Questions & Answers" : "ጥያቄዎች እና መልሶች")
+            }
           </h3>
-          <Chip size="sm" variant="flat" color="primary">
-            {questions.length}
-          </Chip>
+          {!isAIMode && (
+            <Chip size="sm" variant="flat" color="primary">
+              {questions.length}
+            </Chip>
+          )}
         </div>
         
-        <Button
-          color="primary"
-          startContent={<Plus className="w-4 h-4" />}
-          onPress={onOpen}
-          size="sm"
-        >
-          {lang === "en" ? "Ask Question" : "ጥያቄ ጠይቅ"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <Button
+              size="sm"
+              variant={isAIMode ? "solid" : "light"}
+              color={isAIMode ? "secondary" : "default"}
+              onPress={() => setIsAIMode(true)}
+              startContent={<Sparkles className="w-3 h-3" />}
+              className="text-xs"
+            >
+              AI
+            </Button>
+            <Button
+              size="sm"
+              variant={!isAIMode ? "solid" : "light"}
+              color={!isAIMode ? "primary" : "default"}
+              onPress={() => setIsAIMode(false)}
+              startContent={<MessageCircle className="w-3 h-3" />}
+              className="text-xs"
+            >
+              Q&A
+            </Button>
+          </div>
+          
+          <Button
+            color={isAIMode ? "secondary" : "primary"}
+            startContent={isAIMode ? <Bot className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            onPress={onOpen}
+            size="sm"
+          >
+            {isAIMode 
+              ? (lang === "en" ? "Ask AI" : "AI ጠይቅ")
+              : (lang === "en" ? "Ask Question" : "ጥያቄ ጠይቅ")
+            }
+          </Button>
+        </div>
       </div>
 
-      {/* Questions List */}
-      {loading ? (
-        <div className="space-y-3">
+      {/* AI Mode Content */}
+      {isAIMode ? (
+        <div className="flex-1 flex flex-col">
+          {aiResponse ? (
+            <Card className="border-l-4 border-l-purple-500">
+              <CardBody className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    icon={<Bot className="w-4 h-4" />}
+                    className="bg-purple-500 text-white"
+                    size="sm"
+                  />
+                  <div>
+                    <p className="font-medium text-sm flex items-center gap-2">
+                      AI Assistant
+                      <Chip size="sm" color="secondary" variant="flat">
+                        {lang === "en" ? "AI" : "AI"}
+                      </Chip>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {lang === "en" ? "Just now" : "አሁን"}
+                    </p>
+                  </div>
+                </div>
+                <div className="ml-11">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    {lang === "en" ? "Your question:" : "ጥያቄዎ:"} {newQuestion}
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {aiResponse}
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className="flex-1 flex items-center justify-center">
+              <CardBody className="text-center py-8">
+                <Bot className="w-12 h-12 text-purple-300 mx-auto mb-3" />
+                <p className="text-gray-500 mb-2">
+                  {lang === "en" 
+                    ? "AI Assistant is ready to help!" 
+                    : "AI ረዳት ለመርዳት ዝግጁ ነው!"}
+                </p>
+                <p className="text-sm text-gray-400">
+                  {lang === "en" 
+                    ? "Ask any question about the video content and get instant answers." 
+                    : "ስለ ቪዲዮው ይዘት ማንኛውንም ጥያቄ ጠይቅ እና ፈጣን መልስ ያግኙ።"}
+                </p>
+              </CardBody>
+            </Card>
+          )}
+        </div>
+      ) : (
+        /* Questions List */
+        loading ? (
+        <div className="space-y-3 flex-1 overflow-y-auto">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardBody className="space-y-3">
@@ -187,7 +318,7 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
           ))}
         </div>
       ) : questions.length === 0 ? (
-        <Card>
+        <Card className="flex-1 flex items-center justify-center">
           <CardBody className="text-center py-8">
             <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">
@@ -198,7 +329,7 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
           </CardBody>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto">
           {questions.map((question) => (
             <Card key={question.id} className="border-l-4 border-l-primary">
               <CardBody className="space-y-3">
@@ -291,6 +422,7 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
             </Card>
           ))}
         </div>
+      )
       )}
 
       {/* Add Question Modal */}
@@ -299,10 +431,24 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                {lang === "en" ? "Ask a Question" : "ጥያቄ ጠይቅ"}
-                {currentTime && (
+                <div className="flex items-center gap-2">
+                  {isAIMode ? <Bot className="w-5 h-5 text-purple-500" /> : <MessageCircle className="w-5 h-5 text-primary" />}
+                  {isAIMode 
+                    ? (lang === "en" ? "Ask AI Assistant" : "AI ረዳትን ጠይቅ")
+                    : (lang === "en" ? "Ask a Question" : "ጥያቄ ጠይቅ")
+                  }
+                </div>
+                {currentTime && !isAIMode && (
                   <p className="text-sm text-gray-500">
                     {lang === "en" ? "Question at" : "ጥያቄ በ"} {formatTimestamp(Math.floor(currentTime))}
+                  </p>
+                )}
+                {isAIMode && (
+                  <p className="text-sm text-purple-600 dark:text-purple-400">
+                    {lang === "en" 
+                      ? "Get instant AI-powered answers about the video content"
+                      : "ስለ ቪዲዮው ይዘት ፈጣን AI-ተኮር መልሶችን ያግኙ"
+                    }
                   </p>
                 )}
               </ModalHeader>
@@ -311,28 +457,42 @@ export default function VideoQA({ subActivityId, lang, currentTime }: VideoQAPro
                   value={newQuestion}
                   onValueChange={setNewQuestion}
                   placeholder={
-                    lang === "en" 
-                      ? "What would you like to ask about this video?"
-                      : "ስለዚህ ቪዲዮ ምን መጠየቅ ይፈልጋሉ?"
+                    isAIMode
+                      ? (lang === "en" 
+                          ? "Ask AI anything about this video content..."
+                          : "ስለዚህ ቪዲዮ ይዘት ማንኛውንም ነገር AI ጠይቅ...")
+                      : (lang === "en" 
+                          ? "What would you like to ask about this video?"
+                          : "ስለዚህ ቪዲዮ ምን መጠየቅ ይፈልጋሉ?")
                   }
                   minRows={3}
                   maxRows={6}
                 />
+                {aiLoading && (
+                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                    <Bot className="w-4 h-4 animate-pulse" />
+                    <span className="text-sm">
+                      {lang === "en" ? "AI is thinking..." : "AI እያሰበ ነው..."}
+                    </span>
+                  </div>
+                )}
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
                   {lang === "en" ? "Cancel" : "ተወው"}
                 </Button>
                 <Button
-                  color="primary"
+                  color={isAIMode ? "secondary" : "primary"}
                   onPress={handleSubmitQuestion}
-                  isDisabled={!newQuestion.trim() || submitting}
-                  isLoading={submitting}
-                  startContent={!submitting && <Send className="w-4 h-4" />}
+                  isDisabled={!newQuestion.trim() || submitting || aiLoading}
+                  isLoading={submitting || aiLoading}
+                  startContent={!submitting && !aiLoading && (isAIMode ? <Bot className="w-4 h-4" /> : <Send className="w-4 h-4" />)}
                 >
-                  {submitting 
-                    ? (lang === "en" ? "Submitting..." : "በመላክ ላይ...")
-                    : (lang === "en" ? "Submit Question" : "ጥያቄ ላክ")
+                  {(submitting || aiLoading)
+                    ? (lang === "en" ? "Processing..." : "በማስኬድ ላይ...")
+                    : isAIMode
+                      ? (lang === "en" ? "Ask AI" : "AI ጠይቅ")
+                      : (lang === "en" ? "Submit Question" : "ጥያቄ ላክ")
                   }
                 </Button>
               </ModalFooter>

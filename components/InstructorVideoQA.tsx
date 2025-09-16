@@ -44,22 +44,15 @@ interface VideoQuestion {
   question: string;
   timestamp?: number | null;
   createdAt: string;
+  type: string; // "course" or "activity"
   student: {
     firstName: string;
     fatherName: string;
     lastName: string;
   };
-  subActivity: {
+  course: {
     titleEn: string;
     titleAm: string;
-    activity: {
-      titleEn: string;
-      titleAm: string;
-      course: {
-        titleEn: string;
-        titleAm: string;
-      };
-    };
   };
   responses: {
     id: string;
@@ -79,31 +72,34 @@ interface InstructorVideoQAProps {
 }
 
 export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAProps) {
+  console.log("[DEBUG] InstructorVideoQA component executing with props:", { lang, courseId });
+  
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [questions, setQuestions] = useState<VideoQuestion[]>([]);
-  const [filteredQuestions, setFilteredQuestions] = useState<VideoQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [selectedQuestion, setSelectedQuestion] = useState<VideoQuestion | null>(null);
-  const [responseText, setResponseText] = useState("");
-  const [editingResponse, setEditingResponse] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "answered" | "unanswered">("all");
+  const [selectedQuestion, setSelectedQuestion] = useState<VideoQuestion | null>(null);
+  const [responseText, setResponseText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [editingResponse, setEditingResponse] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
+  // Load questions on component mount
   useEffect(() => {
+    console.log("[DEBUG] useEffect triggered - loading questions");
     loadQuestions();
   }, [courseId]);
 
-  useEffect(() => {
-    filterQuestions();
-  }, [questions, searchTerm, filterType]);
-
   const loadQuestions = async () => {
+    console.log("[DEBUG] loadQuestions called");
     setLoading(true);
     setError(null);
     try {
-      const result = await getInstructorVideoQuestions(courseId);
+      console.log("[DEBUG] Calling getInstructorVideoQuestions...");
+      const result = await getInstructorVideoQuestions();
+      console.log("[DEBUG] getInstructorVideoQuestions result:", result);
       
       if (result.success && result.data) {
         // Convert Date objects to strings for compatibility
@@ -115,44 +111,38 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
             createdAt: r.createdAt.toString()
           }))
         }));
+        console.log("[DEBUG] Setting questions:", questionsWithStringDates.length);
         setQuestions(questionsWithStringDates);
       } else {
-        setError(result.error || 'Unknown error occurred');
-        setQuestions([]);
+        console.log("[DEBUG] Error in result:", result.error);
+        setError(result.error || "Failed to load questions");
       }
     } catch (error) {
-      console.error("Error loading questions:", error);
-      setError('Failed to load questions. Please try again.');
-      setQuestions([]);
+      console.error("[DEBUG] Error loading questions:", error);
+      setError("Error loading questions");
     } finally {
       setLoading(false);
     }
   };
 
-  const filterQuestions = () => {
-    let filtered = questions;
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (q) =>
-          q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          q.student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          q.student.fatherName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          q.subActivity.titleEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          q.subActivity.titleAm.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply answer status filter
-    if (filterType === "answered") {
-      filtered = filtered.filter((q) => q.responses.length > 0);
-    } else if (filterType === "unanswered") {
-      filtered = filtered.filter((q) => q.responses.length === 0);
-    }
-
-    setFilteredQuestions(filtered);
-  };
+  // Filter questions based on search and filter
+  const filteredQuestions = questions.filter((q) => {
+    // Filter by search term
+    const matchesSearch = !searchTerm || 
+      q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.student.fatherName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.course.titleEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.course.titleAm.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by type
+    const matchesFilter = 
+      filterType === "all" ||
+      (filterType === "answered" && q.responses.length > 0) ||
+      (filterType === "unanswered" && q.responses.length === 0);
+    
+    return matchesSearch && matchesFilter;
+  });
 
   const handleSubmitResponse = async () => {
     if (!selectedQuestion || !responseText.trim()) return;
@@ -349,15 +339,12 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
                   <BookOpen className="w-4 h-4" />
                   <span>
                     {lang === "en" 
-                      ? question.subActivity.activity.course.titleEn
-                      : question.subActivity.activity.course.titleAm
-                    } • {lang === "en" 
-                      ? question.subActivity.activity.titleEn
-                      : question.subActivity.activity.titleAm
-                    } • {lang === "en"
+                      ? question.course.titleEn
+                      : question.course.titleAm
+                    } • {question.type === "course" ? (lang === "en" ? "Introduction" : "መግቢያ") : (lang === "en" ? "Activity" : "እንቅስቃሴ")}
                       ? question.subActivity.titleEn
                       : question.subActivity.titleAm
-                    }
+                    
                   </span>
                 </div>
 

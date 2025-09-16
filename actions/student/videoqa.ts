@@ -4,11 +4,12 @@ import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-// Submit a video question by a student
+// Submit a video question by a student - supports both course and activity context
 export async function submitVideoQuestion(
-  subActivityId: string,
+  courseId: string,
   question: string,
-  timestamp?: number
+  timestamp?: number,
+  subActivityId?: string // Optional for sub-activity videos
 ) {
   try {
     const session = await auth();
@@ -18,37 +19,43 @@ export async function submitVideoQuestion(
 
     const studentId = session.user.id;
 
-    // Verify the student has access to this subactivity
-    const subActivity = await prisma.subActivity.findUnique({
-      where: { id: subActivityId },
-      include: {
-        activity: {
-          include: {
-            course: {
-              include: {
-                order: {
-                  where: {
-                    userId: studentId,
-                    status: "paid",
-                  },
-                },
-              },
-            },
-          },
-        },
+    // Verify the student has access to this course
+    const order = await prisma.order.findFirst({
+      where: {
+        userId: studentId,
+        courseId: courseId,
+        status: "paid",
       },
     });
 
-    if (!subActivity || subActivity.activity.course.order.length === 0) {
-      throw new Error("Access denied to this video");
+    if (!order) {
+      throw new Error("Access denied to this course");
+    }
+
+    // If subActivityId is provided, verify it belongs to the course
+    if (subActivityId) {
+      const subActivity = await prisma.subActivity.findUnique({
+        where: { id: subActivityId },
+        include: {
+          activity: {
+            select: { courseId: true },
+          },
+        },
+      });
+
+      if (!subActivity || subActivity.activity.courseId !== courseId) {
+        throw new Error("Sub-activity does not belong to this course");
+      }
     }
 
     const videoQuestion = await prisma.videoQuestion.create({
       data: {
         studentId,
-        subActivityId,
+        courseId,
+        subActivityId: subActivityId || null,
         question,
         timestamp,
+        type: subActivityId ? "activity" : "course", // Type indicates video context
       },
       include: {
         student: {
@@ -58,7 +65,7 @@ export async function submitVideoQuestion(
             lastName: true,
           },
         },
-        subActivity: {
+        course: {
           select: {
             titleEn: true,
             titleAm: true,
@@ -75,8 +82,8 @@ export async function submitVideoQuestion(
   }
 }
 
-// Get video questions for a specific subactivity
-export async function getVideoQuestions(subActivityId: string) {
+// Get video questions for a specific course (all questions when subActivityId is not provided)
+export async function getVideoQuestions(courseId: string, subActivityId?: string) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -85,33 +92,35 @@ export async function getVideoQuestions(subActivityId: string) {
 
     const userId = session.user.id;
 
-    // Verify user has access to this subactivity
-    const subActivity = await prisma.subActivity.findUnique({
-      where: { id: subActivityId },
-      include: {
-        activity: {
-          include: {
-            course: {
-              include: {
-                order: {
-                  where: {
-                    userId,
-                    status: "paid",
-                  },
-                },
-              },
-            },
-          },
-        },
+    // Verify user has access to this course
+    const order = await prisma.order.findFirst({
+      where: {
+        userId,
+        courseId,
+        status: "paid",
       },
     });
 
-    if (!subActivity || subActivity.activity.course.order.length === 0) {
-      throw new Error("Access denied to this video");
+    if (!order) {
+      throw new Error("Access denied to this course");
     }
 
+    // Build where clause based on context
+    const whereClause: any = {
+      courseId,
+    };
+
+    // If subActivityId is provided, filter by it (for backwards compatibility)
+    // If not provided, get ALL questions for the course (both introduction and activity videos)
+    if (subActivityId) {
+      whereClause.subActivityId = subActivityId;
+      whereClause.type = "activity";
+    }
+    // Note: When subActivityId is not provided, we get ALL questions for the course
+    // This includes both course introduction questions (type: "course") and activity questions (type: "activity")
+
     const questions = await prisma.videoQuestion.findMany({
-      where: { subActivityId },
+      where: whereClause,
       include: {
         student: {
           select: {
@@ -160,10 +169,11 @@ export async function deleteVideoQuestion(questionId: string) {
     // Verify the question belongs to the current user
     const question = await prisma.videoQuestion.findUnique({
       where: { id: questionId },
+      select: { studentId: true },
     });
 
     if (!question || question.studentId !== studentId) {
-      throw new Error("Access denied");
+      throw new Error("Access denied to this question");
     }
 
     await prisma.videoQuestion.delete({

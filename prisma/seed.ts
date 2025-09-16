@@ -17,6 +17,18 @@ import prisma from "@/lib/db";
         },
       },
     });
+    const student = await prisma.user.create({
+      data: {
+        role: "student",
+        firstName: "mubarek",
+        fatherName: "ahmed",
+        lastName: "mohammed",
+        phoneNumber: "0942303571",
+        password:
+          "$2a$12$Wt8Q9Q23DmCEiVPucCrTcOTxtYRkNUhK5MoyaJotYBc1RbJdUbk0W",
+       status:"active",
+      },
+    });
 
     const instructor = await prisma.user.create({
       data: {

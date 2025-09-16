@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import InstructorVideoQA from "@/components/InstructorVideoQA";
 
 export default function VideoQAPage() {
-  const params = useParams<{ lang: string; id?: string }>();
+  const params = useParams<{ lang: string; courseId?: string }>();
   const lang = params?.lang || "en";
-  const courseId = params?.id; // Optional course filter
+  const courseId = params?.courseId; // Optional course filter
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
