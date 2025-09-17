@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center">

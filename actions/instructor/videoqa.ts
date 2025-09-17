@@ -65,6 +65,7 @@ export async function getInstructorVideoQuestions(courseId?: string) {
 
     const instructorId = session.user.id;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const whereClause: any = {
       course: {
         instructorId,

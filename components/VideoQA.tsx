@@ -18,10 +18,8 @@ import {
   MessageCircle, 
   Send, 
   Clock, 
-  User, 
   Reply,
   Trash2,
-  Edit3,
   Plus,
   Bot,
   Sparkles
@@ -77,6 +75,7 @@ export default function VideoQA({ courseId, subActivityId, lang, currentTime }: 
   // Fetch questions on component mount
   useEffect(() => {
     loadQuestions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, subActivityId]);
 
   const loadQuestions = async () => {
