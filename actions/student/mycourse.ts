@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
-import { StateType, TStudent, TTableData } from "@/lib/definations";
-import bcryptjs from "bcryptjs";
-import { Selection } from "@heroui/react";
-import { $Enums } from "@prisma/client";
+import { StateType } from "@/lib/definations";
+// import bcryptjs from "bcryptjs";
+// import { Selection } from "@heroui/react";
+// import { $Enums } from "@prisma/client";
 
 export async function getAllMyCourses(studentId: string) {
   // get the student id from the session or request context
@@ -246,7 +247,7 @@ export async function getActivityQuiz(activityId: string) {
 
     if (!questions.length) return null;
 
-    let byQuestionId: Record<string, string | undefined> = {};
+    const byQuestionId: Record<string, string | undefined> = {};
     if (userId) {
       const prevAnswers = await prisma.studentQuizAnswer.findMany({
         where: {
@@ -323,7 +324,14 @@ export async function saveStudentQuizAnswers(
         message: "Unauthenticated",
       } as StateType;
     }
-    const userId = user.user?.id!;
+    const userId = user.user?.id;
+    if (!userId) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
 
     // Destructure questionId and selectedOptionId from data
     if (!data) {
@@ -335,7 +343,7 @@ export async function saveStudentQuizAnswers(
     }
     const { questionId, selectedOptionId } = data;
 
-    const result = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Ensure the selected option belongs to the question
       const option = await tx.questionOption.findFirst({
         where: { id: selectedOptionId, questionId },
@@ -347,11 +355,15 @@ export async function saveStudentQuizAnswers(
 
       // Use upsert to handle both new and updated answers for activity quizzes
       const studentQuiz = await tx.studentQuiz.upsert({
-        where: { 
-          userId_questionId_isFinalExam: { userId, questionId, isFinalExam: false } 
+        where: {
+          userId_questionId_isFinalExam: {
+            userId,
+            questionId,
+            isFinalExam: false,
+          },
         },
-        update: { 
-          takenAt: new Date()
+        update: {
+          takenAt: new Date(),
         },
         create: {
           userId,
@@ -365,14 +377,12 @@ export async function saveStudentQuizAnswers(
         where: { studentQuizId: studentQuiz.id },
       });
 
-      const studentQuizAnswer = await tx.studentQuizAnswer.create({
+      await tx.studentQuizAnswer.create({
         data: {
           studentQuizId: studentQuiz.id,
           selectedOptionId,
         },
       });
-
-      return { studentQuiz, studentQuizAnswer };
     });
 
     return {
@@ -479,7 +489,14 @@ export async function submitFinalExamAnswers(
         message: "Unauthenticated",
       } as StateType;
     }
-    const userId = user.user?.id!;
+    const userId = user.user?.id;
+    if (!userId) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
 
     if (!data) {
       return {
@@ -490,7 +507,7 @@ export async function submitFinalExamAnswers(
     }
     const { questionId, selectedOptionId } = data;
 
-    const result = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Validate the selected option belongs to the question
       const option = await tx.questionOption.findFirst({
         where: { id: selectedOptionId, questionId },
@@ -500,11 +517,15 @@ export async function submitFinalExamAnswers(
 
       // Use upsert to handle both new and updated answers
       const studentQuiz = await tx.studentQuiz.upsert({
-        where: { 
-          userId_questionId_isFinalExam: { userId, questionId, isFinalExam: true } 
+        where: {
+          userId_questionId_isFinalExam: {
+            userId,
+            questionId,
+            isFinalExam: true,
+          },
         },
-        update: { 
-          takenAt: new Date()
+        update: {
+          takenAt: new Date(),
         },
         create: {
           userId,
@@ -518,11 +539,9 @@ export async function submitFinalExamAnswers(
         where: { studentQuizId: studentQuiz.id },
       });
 
-      const studentQuizAnswer = await tx.studentQuizAnswer.create({
+      await tx.studentQuizAnswer.create({
         data: { studentQuizId: studentQuiz.id, selectedOptionId },
       });
-
-      return { studentQuiz, studentQuizAnswer };
     });
 
     return { status: true } as StateType;
@@ -547,7 +566,14 @@ export async function readyToCertification(courseId: string) {
         message: "Unauthenticated",
       } as StateType;
     }
-    const userId = user.user?.id!;
+    const userId = user.user?.id;
+    if (!userId) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
 
     // Get all final exam questions for this course with their correct answer id
     const questions = await prisma.question.findMany({
@@ -630,7 +656,7 @@ export async function readyToCertification(courseId: string) {
       canGetCertificate: true,
       message: "Eligible for certificate",
     } as any;
-  } catch (error) {
+  } catch {
     return {
       status: false,
       result: "error",
@@ -652,7 +678,14 @@ export async function clearStudentQuizAnswers(
         message: "Unauthenticated",
       } as StateType;
     }
-    const userId = user.user?.id!;
+    const userId = user.user?.id;
+    if (!userId) {
+      return {
+        status: false,
+        cause: "unauthenticated",
+        message: "Unauthenticated",
+      } as StateType;
+    }
 
     if (!data) {
       return {
@@ -899,6 +932,7 @@ export async function getCertificateDetails(courseId: string) {
       result: cert.result,
       issuedAt,
       qrcode,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
   } catch (error) {
     console.error("Error in getCertificateDetails:", error);

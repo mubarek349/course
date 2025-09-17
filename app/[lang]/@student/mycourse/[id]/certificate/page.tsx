@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import useData from "@/hooks/useData";
 import QRCode from "qrcode";
@@ -5,7 +6,7 @@ import Image from "next/image";
 import { getCertificateDetails } from "@/actions/student/mycourse";
 import { useParams, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { Trophy, Printer, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trophy, Printer, ChevronLeft, ChevronRight } from "lucide-react";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { useEffect } from "react";
@@ -34,10 +35,10 @@ function EnglishCertification({
   const [qrCodeData, setQrCodeData] = useState("");
   const issued = new Date(data.issuedAt);
   const issuedStr = issued.toLocaleDateString();
-  const percent = Math.round(data.percent || 0);
+  // const percent = Math.round(data.percent || 0);
   const result = String(data.result || "").toLowerCase();
 
-  const certificateId = `${courseId}-${issued.getTime()}`;
+  // const certificateId = `${courseId}-${issued.getTime()}`;
   const qrPath = data.qrcode || `/${lang}/mycourse/${courseId}/finalexam`;
 
   // Generate QR code when qrPath changes
@@ -196,11 +197,11 @@ function AmharicCertification({
 
   const issued = new Date(data.issuedAt);
   const issuedStr = issued.toLocaleDateString();
-  const percent = Math.round(data.percent || 0);
+  // const percent = Math.round(data.percent || 0);
 
   const result = String(data.result || "").toLowerCase();
 
-  const certificateId = `${courseId}-${issued.getTime()}`;
+  // const certificateId = `${courseId}-${issued.getTime()}`;
   const qrPath =
     data.qrcode || `/${lang}/@student/mycourse/${courseId}/finalexam`;
 
@@ -424,9 +425,9 @@ export default function Page() {
     }
   };
 
-  const printPdf = () => {
-    window.print(); // prints current visible certificate
-  };
+  // const printPdf = () => {
+  //   window.print(); // prints current visible certificate
+  // };
 
   const goPrev = () => setActiveIdx((i) => (i === 0 ? 1 : i - 1));
   const goNext = () => setActiveIdx((i) => (i === 1 ? 0 : i + 1));

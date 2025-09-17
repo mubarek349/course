@@ -87,6 +87,7 @@ function CourseContent({
     };
 
     fetchQuizStatuses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentData?.activity]);
 
   // Function to refresh quiz status for a specific activity
@@ -529,7 +530,7 @@ export default function Page() {
                   {lang === "en" ? "Questions & Answers" : "ጥያቄዎች እና መልሶች"}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
-                  {lang === "en" 
+                  {lang === "en"
                     ? "Ask questions and get answers from instructors"
                     : "ጥያቄዎችን ጠይቁ እና ከአስተማሪዎች መልሶችን ያግኙ"}
                 </p>
@@ -537,10 +538,7 @@ export default function Page() {
             </div>
           </div>
           <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
-            <TraditionalQA
-              courseId={courseId}
-              lang={lang}
-            />
+            <TraditionalQA courseId={courseId} lang={lang} />
           </div>
         </div>
       ),
@@ -561,7 +559,7 @@ export default function Page() {
                   {lang === "en" ? "AI Assistant" : "AI ረዳት"}
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
-                  {lang === "en" 
+                  {lang === "en"
                     ? "Get instant AI-powered answers about the course"
                     : "ስለ ኮርሱ ፈጣን AI-ተኮር መልሶችን ያግኙ"}
                 </p>
@@ -569,10 +567,7 @@ export default function Page() {
             </div>
           </div>
           <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
-            <AIAssistant
-              courseId={courseId}
-              lang={lang}
-            />
+            <AIAssistant courseId={courseId} lang={lang} />
           </div>
         </div>
       ),
@@ -613,22 +608,32 @@ export default function Page() {
             {/* COURSE TABS */}
             <div className="flex-1 min-h-0">
               <div className="p-0 sm:p-4 md:p-8 h-full">
-                <Tabs aria-label="Course Information" items={courseTabs} className="w-full h-full flex flex-col">
-                  {(item) => (
-                    <Tab
-                      key={item.id}
-                      title={item.label}
-                      className={item.className}
-                    >
-                      {/* Added flex container with proper height handling for mobile */}
-                      <div className="p-2 sm:py-4 flex-1 min-h-0 overflow-y-auto h-full">
-                        <div className="h-full flex flex-col">
-                          {item.content}
-                        </div>
-                      </div>
-                    </Tab>
-                  )}
-                </Tabs>
+                <div className="h-full flex flex-col">
+                  <div className="flex">
+                    <div className="w-auto">
+                      <Tabs
+                        aria-label="Course Information"
+                        items={courseTabs}
+                        className="w-auto"
+                      >
+                        {(item) => (
+                          <Tab
+                            key={item.id}
+                            title={item.label}
+                            className={item.className}
+                          >
+                            <div className="p-2 sm:py-4 flex-1 min-h-0 overflow-y-auto h-full">
+                              <div className="h-full flex flex-col max-w-4xl mx-auto">
+                                {item.content}
+                              </div>
+                            </div>
+                          </Tab>
+                        )}
+                      </Tabs>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
