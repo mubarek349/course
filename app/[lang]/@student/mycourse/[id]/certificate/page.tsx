@@ -201,8 +201,7 @@ function AmharicCertification({
   const result = String(data.result || "").toLowerCase();
 
   const certificateId = `${courseId}-${issued.getTime()}`;
-  const qrPath =
-    data.qrcode || `/${lang}/@student/mycourse/${courseId}/finalexam`;
+  const qrPath = data.qrcode || `/${lang}/mycourse/${courseId}/finalexam`;
 
   useEffect(() => {
     async function generateQr() {
@@ -546,16 +545,6 @@ export default function Page() {
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
-            </div>
-
-            {/* Right: Download button - Hidden on mobile */}
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={handleDownload}
-                className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> Download Certificate
-              </button>
             </div>
           </div>
 
