@@ -13,7 +13,8 @@ import { RemoveManager } from "./removeManager";
 import { Permission } from "./permission";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en",
     [tableData, setTableData] = useState<TTableData>({
       search: "",
       currentPage: 1,

@@ -23,12 +23,10 @@ import {
   MessageCircle,
   Send,
   Clock,
-  User,
   Reply,
   Edit3,
   Trash2,
   Search,
-  Filter,
   BookOpen,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -84,7 +82,6 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
   const [responseText, setResponseText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [editingResponse, setEditingResponse] = useState<string | null>(null);
-  const [editText, setEditText] = useState("");
 
   // Load questions on component mount
   useEffect(() => {

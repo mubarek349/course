@@ -16,7 +16,7 @@ export default function SearchBar() {
     router.push(
       pathname +
         "?" +
-        addQuery(searchParams.toString(), [
+        addQuery((searchParams?.toString() ?? ""), [
           {
             name: "search",
             value: search,
@@ -35,7 +35,7 @@ export default function SearchBar() {
         className="[&>input]:bg-white/50 [&>input]:backdrop-blur [&>input]:rounded-full focus-visible:[&>input]:rounded-full"
       />
       <p className="px-4 content-center text-center">
-        {(searchParams.get("date")
+        {(searchParams?.get("date")
           ? new Date(searchParams.get("date")!)
           : new Date()
         ).toDateString()}

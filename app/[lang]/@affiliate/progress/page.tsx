@@ -10,7 +10,8 @@ import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en",
     localTimeZone = useMemo(() => getLocalTimeZone(), []),
     [tableData, setTableData] = useState<
       TTableData & { date: { start: Date; end: Date } }

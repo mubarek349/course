@@ -24,7 +24,8 @@ export function Permission({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en",
     router = useRouter(),
     [input, setInput] = useState<string[]>(permission),
     { action, isPending } = useAction(registerPermission, undefined, {

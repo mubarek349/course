@@ -18,7 +18,6 @@ import { sendMessageToAll } from "@/lib/action/message"; // Import the function
 import { getCourses } from "@/lib/data/course";
 import Loading from "@/components/loading";
 import useAction from "@/hooks/useAction"; // Import useAction hook
-import { useParams } from "next/navigation";
 
 const formSchema = z.object({
   courseId: z.array(z.string({ message: "" })),
@@ -46,8 +45,7 @@ export default function Page() {
 
   // const [courseOptions, setCourseOptions] = useState([]);
 
-  const {} = useParams<{ lang: string }>(),
-    { data, loading } = useData({
+  const { data, loading } = useData({
       func: getCourses,
       args: [],
     });
@@ -127,7 +125,7 @@ export default function Page() {
             }}
           >
             {data.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
+              <SelectItem key={course.id}>
                 {course.titleEn}
               </SelectItem>
             ))}

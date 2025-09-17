@@ -27,7 +27,9 @@ export default function RemoveInstructor({
         onClose();
       },
     }),
-    { lang } = useParams<{ lang: string }>();
+    params= useParams<{ lang: string}>();
+          const lang = params?.lang || "en";
+          
 
   return (
     <Modal

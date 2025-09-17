@@ -35,7 +35,8 @@ export default function Payment({
   title: string;
   price: number;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+ const params = useParams<{ lang: string }>();
+              const lang = params?.lang || "en",
     formSchema = z.object({
       id: z.string({ message: "" }).nonempty("ID is required"),
       fullName: z.string({ message: "" }).nonempty("Name is required"),

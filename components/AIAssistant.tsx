@@ -13,14 +13,14 @@ import {
   ModalFooter,
   useDisclosure,
 } from "@heroui/react";
-import { Bot, Send, Sparkles } from "lucide-react";
+import { Bot} from "lucide-react";
 
 interface AIAssistantProps {
   courseId: string;
   lang: string;
 }
 
-export default function AIAssistant({ courseId, lang }: AIAssistantProps) {
+export default function AIAssistant({ lang }: AIAssistantProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newQuestion, setNewQuestion] = useState("");
   const [aiResponse, setAiResponse] = useState("");

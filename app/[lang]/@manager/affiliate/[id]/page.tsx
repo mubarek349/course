@@ -15,8 +15,10 @@ import { useParams } from "next/navigation";
 import React, { useState } from "react";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id: string }>(),
-    [tableData, setTableData] = useState<
+  const params= useParams<{ lang: string ,id:string}>();
+      const lang = params?.lang || "en",
+      id = params?.id || "",
+      [tableData, setTableData] = useState<
       TTableData & { id: string; date: { start: Date; end: Date } }
     >({
       search: "",

@@ -8,7 +8,7 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     router = useRouter();
 
   useEffect(() => {
-    if (!["en", "am"].includes(pathname.split("/")[1])) {
+    if (!["en", "am"].includes(pathname?.split("/")[1] || "")) {
       router.replace(`/en/`);
     }
   });

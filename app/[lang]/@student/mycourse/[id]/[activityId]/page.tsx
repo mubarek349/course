@@ -597,7 +597,7 @@ export default function Page() {
               </div>
 
               {/* Fixed Footer Actions */}
-              <div className="border-t border-slate-200 dark:border-slate-700 bg-background/95 backdrop-blur-sm p-6">
+              <div className="border-t border-slate-200 dark:border-slate-700 bg-background/95 backdrop-blur-sm p-6sticky bottom-0 z-10">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={handleQuit}

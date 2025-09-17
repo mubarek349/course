@@ -36,8 +36,8 @@ export default function Page() {
 }
 
 function HeroPage() {
-  const { lang } = useParams<{ lang: string }>();
-
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
     <div className="relative h-dvh md:p-48 grid snap-start ">
       <motion.div
@@ -169,7 +169,8 @@ function HeroPage() {
 }
 
 function About() {
-  const { lang } = useParams<{ lang: string }>();
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
     <div
       id="about"
@@ -196,7 +197,8 @@ function About() {
 }
 
 function Service() {
-  const { lang } = useParams<{ lang: string }>();
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
     <div className="py-40 px-4 md:px-40 md:h-dvh flex max-md:flex-col gap-10 snap-start">
       <motion.div
@@ -282,8 +284,9 @@ function Service() {
 }
 
 function About2() {
-  const { lang } = useParams<{ lang: string }>();
-  return (
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
+   return (
     <div className="relative h-dvh p-4 md:p-10 md:pt-32 bg-[url('/who-reads-quran.png')] bg-no-repeat bg-[65%_10%] bg-cover border-b-4 border-primary grid snap-start ">
       <div className="md:w-1/2 h-fit py-4 md:p-10 bg-background/50 backdrop-blur rounded-xl border border-background shadow-[0_0_10px_-5px_#0ea5e9] grid place-content-center autoShow-bottom">
         <p className="pb-2 md:pb-10 font-[900] md:text-3xl text-center">
@@ -329,7 +332,8 @@ function About2() {
 }
 
 function Information() {
-  const { lang } = useParams<{ lang: string }>();
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
     <div className="p-4 md:p-10 pt-32 md:pt-96 snap-start">
       <p className="font-[900] text-2xl text-center">
@@ -384,7 +388,8 @@ function Information() {
 }
 
 function Service2() {
-  const { lang } = useParams<{ lang: string }>();
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
   return (
     <div className="md: pt-40 snap-start ">
       <p className="font-[900] text-xl md:text-2xl text-center">
@@ -487,8 +492,8 @@ function Service2() {
 // }
 
 function Contact() {
-  const { lang } = useParams<{ lang: string }>(),
-    formSchema = z.object({
+  const params= useParams<{ lang: string }>();
+  const lang = params?.lang || "en",  formSchema = z.object({
       name: z.string({ message: "" }).nonempty("Full Name is required"),
       phoneNumber: z
         .string({ message: "" })
@@ -542,7 +547,8 @@ function Contact() {
 }
 
 // function Footer() {
-//   const { lang } = useParams<{lang:string}>();
+//  const params = useParams<{ lang: string }>();
+            //  const lang = params?.lang || "en",
 //   return (
 //     <div className=" bg-foreground/20 primary-500/80 backdrop-blur-3xl text-background ">
 //       <div className="p-4 md:py-10 flex items-center max-md:flex-col max-md:divide-y md:divide-x-2 divide-background">

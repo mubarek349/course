@@ -55,7 +55,7 @@ export default function SubActivityVideoUpload({
       }
 
       onVideoSelect(filename.replace(/\.[^/.]+$/, "") + ".mp4");
-    } catch (error) {
+    } catch {
       alert(lang === "en" ? "Upload failed" : "መስቀል አልተሳካም");
     } finally {
       setIsUploading(false);

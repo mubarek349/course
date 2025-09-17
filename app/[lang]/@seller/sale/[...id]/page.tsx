@@ -16,63 +16,71 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export default function Page() {
-  const {
-      lang,
-      id: [id, price, title],
-    } = useParams<{ lang: string; id: string[] }>(),
-    formSchema = z.intersection(
-      studentSchema,
-      z.object({
-        transactionImage: z
-          .string({ message: "" })
-          .nonempty("Transaction Image is required"),
-        transactionNumber: z
-          .string({ message: "" })
-          .nonempty("Transaction Number is required"),
-        transactionAmount: z.coerce
-          .number({ message: "Transaction Amount is required" })
-          .gte(
-            Number(price) || 0,
-            `It must be greater than or equal to ${Number(price) || 0}`
-          ),
-        price: z.coerce
-          .number({ message: "required" })
-          .gt(0, "It must be greater than 0"),
-      })
-    ),
-    { handleSubmit, register, getValues, setValue, formState } = useForm<
-      z.infer<typeof formSchema>
-    >({
-      resolver: zodResolver(formSchema),
-      defaultValues: {
-        id,
-        firstName: "",
-        fatherName: "",
-        lastName: "",
-        gender: "Female",
-        age: "",
-        country: "",
-        region: "",
-        city: "",
-        phoneNumber: "",
-        transactionImage: "",
-        transactionNumber: "",
-        transactionAmount: Number(price) || 0,
-        price: Number(price) || 0,
-      },
-    }),
-    [img, setImg] = useState<string>(),
-    router = useRouter(),
-    { action, isPending, state } = useAction(sale, undefined, {
-      success: lang == "en" ? "Sale completed" : "ሽያጩ ተጠናቅቋል",
-      error: lang == "en" ? "Sale failed" : "ሽያጭ አልተሳካም።",
-      onSuccess(state) {
-        if (state.status) {
-          router.push(`/${lang}/course`);
-        }
-      },
-      onError() {},
-    });
+  const params = useParams<{ lang: string; id: string[] }>();
+  const lang = params?.lang || "";
+  const idParams = params?.id || [];
+  
+  // Extract id, price, and title from the array
+  const id = idParams[0] || "";
+  const price = idParams[1] || "";
+  const title = idParams[2] || "";
+
+  const formSchema = z.intersection(
+    studentSchema,
+    z.object({
+      transactionImage: z
+        .string({ message: "" })
+        .nonempty("Transaction Image is required"),
+      transactionNumber: z
+        .string({ message: "" })
+        .nonempty("Transaction Number is required"),
+      transactionAmount: z.coerce
+        .number({ message: "Transaction Amount is required" })
+        .gte(
+          Number(price) || 0,
+          `It must be greater than or equal to ${Number(price) || 0}`
+        ),
+      price: z.coerce
+        .number({ message: "required" })
+        .gt(0, "It must be greater than 0"),
+    })
+  );
+
+  const { handleSubmit, register, getValues, setValue, formState } = useForm<
+    z.infer<typeof formSchema>
+  >({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      id,
+      firstName: "",
+      fatherName: "",
+      lastName: "",
+      gender: "Female",
+      age: "",
+      country: "",
+      region: "",
+      city: "",
+      phoneNumber: "",
+      transactionImage: "",
+      transactionNumber: "",
+      transactionAmount: Number(price) || 0,
+      price: Number(price) || 0,
+    },
+  });
+
+  const [img, setImg] = useState<string>();
+  const router = useRouter();
+  
+  const { action, isPending, state } = useAction(sale, undefined, {
+    success: lang == "en" ? "Sale completed" : "ሽያጩ ተጠናቅቋል",
+    error: lang == "en" ? "Sale failed" : "ሽያጭ አልተሳካም።",
+    onSuccess(state) {
+      if (state.status) {
+        router.push(`/${lang}/course`);
+      }
+    },
+    onError() {},
+  });
 
   return (
     <div className="grid justify-center overflow-auto">

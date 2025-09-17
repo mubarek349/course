@@ -5,9 +5,9 @@ import useData from "@/hooks/useData";
 import { useParams, useRouter } from "next/navigation";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+ const params= useParams<{ lang: string }>();
+         const lang = params?.lang || "en",
     router = useRouter();
-
   useData({
     func: getPermission,
     args: [],

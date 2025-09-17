@@ -15,8 +15,9 @@ export default function OrderProgressOverviewForSeller({
   thisDaySales: number;
   thisDayIncome: number;
 }) {
-  const searchParams = useSearchParams(),
-    { lang } = useParams<{ lang: string }>();
+  const searchParams = useSearchParams();
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
 
   return (
     <div className="md:p-2 grid gap-1 md:gap-4 md:grid-cols-3  ">
@@ -39,7 +40,7 @@ export default function OrderProgressOverviewForSeller({
       <div className="p-2 bg-primary-600/20 grid grid-cols-2 rounded-md md:rounded-full divide-x-2 divide-primary-600/20 overflow-hidden text-center">
         <div className="p-2  ">
           <p className="text-sm">
-            {searchParams.get("date")
+            {searchParams?.get("date")
               ? new Date(searchParams.get("date")!).toString().slice(3, 7)
               : lang == "en"
               ? "This Month"
@@ -50,7 +51,7 @@ export default function OrderProgressOverviewForSeller({
         </div>
         <div className="p-2 ">
           <p className="text-sm">
-            {searchParams.get("date")
+            {searchParams?.get("date")
               ? new Date(searchParams.get("date")!).toString().slice(3, 7)
               : "This Month"}{" "}
             {lang == "en" ? "Income" : "ገቢ"}
@@ -67,7 +68,7 @@ export default function OrderProgressOverviewForSeller({
       <div className="p-2 bg-primary-600/20 grid grid-cols-2 rounded-md md:rounded-full divide-x-2 divide-primary-600/20 overflow-hidden text-center">
         <div className="p-2  ">
           <p className="text-sm">
-            {searchParams.get("date")
+            {searchParams?.get("date")
               ? `${new Date(searchParams.get("date")!).getDate()}th Day`
               : lang == "en"
               ? "Today"
@@ -78,7 +79,7 @@ export default function OrderProgressOverviewForSeller({
         </div>
         <div className="p-2 ">
           <p className="text-sm">
-            {searchParams.get("date")
+            {searchParams?.get("date")
               ? `${new Date(searchParams.get("date")!).getDate()}th Day`
               : lang == "en"
               ? "Today"

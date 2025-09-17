@@ -9,8 +9,9 @@ import CustomTable from "@/components/ui/custom-table";
 import { getCourses } from "@/actions/instructor/course";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
-    [tableData, setTableData] = useState<TTableData>({
+  const params= useParams<{ lang: string }>();
+    const lang = params?.lang || "en",
+      [tableData, setTableData] = useState<TTableData>({
       search: "",
       selectedKeys: new Set([]),
       visibleColumns: "all",

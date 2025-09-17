@@ -44,8 +44,9 @@ export default function Registration({
   onClose: () => void;
   refresh: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
-    { handleSubmit, register, formState, setValue, reset } = useForm<
+  const params= useParams<{ lang: string}>();
+        const lang = params?.lang || "en",
+          { handleSubmit, register, formState, setValue, reset } = useForm<
       z.infer<typeof formSchema>
     >({
       resolver: zodResolver(formSchema),

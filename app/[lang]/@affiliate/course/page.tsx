@@ -12,8 +12,8 @@ import { useSession } from "next-auth/react";
 import { getCourses } from "@/actions/common/course";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
-    { data: session } = useSession(),
+ const params= useParams<{ lang: string }>();
+   const lang = params?.lang || "en",{ data: session } = useSession(),
     [tableData, setTableData] = useState<TTableData>({
       search: "",
       currentPage: 1,

@@ -24,7 +24,8 @@ import {
 import { useParams } from "next/navigation";
 
 export default function User() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en",
     formSchema = z.object({
       password: z.string({ message: "" }).nonempty("Password is required"),
       confirmPassword: z

@@ -19,7 +19,9 @@ export default function RemoveStudent({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+          const lang = params?.lang || "en",
+        
     { action, isPending } = useAction(removeStudent, undefined, {
       success:
         lang == "en" ? "successfully deleted student" : "ተማሪ በተሳካ ሁኔታ ተሰርዟል",
