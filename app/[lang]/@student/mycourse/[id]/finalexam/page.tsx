@@ -208,7 +208,7 @@ export default function Page() {
             </div>
             {isFlagged && (
               <div className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
-                {lang === "en" ? "Flagged" : "የተማይዝ"}
+                {lang === "en" ? "Flagged" : "የተማይвиз"}
               </div>
             )}
           </div>
@@ -345,9 +345,9 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 overflow-hidden">
       {/* Professional Header */}
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 shadow-sm">
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -409,7 +409,7 @@ export default function Page() {
         </div>
       </div>
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 h-[calc(100vh-120px)] overflow-y-auto">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
           {/* Question Panel */}
           <div className="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 overflow-hidden">
@@ -435,7 +435,7 @@ export default function Page() {
                           ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       }`}
-                      title={lang === "en" ? "Flag for review" : "ልሚያዌት ማይዝ"}
+                      title={lang === "en" ? "Flag for review" : "ልሚያዌት ማይвиз"}
                     >
                       <Target className="w-4 h-4" />
                     </button>
@@ -710,7 +710,7 @@ export default function Page() {
                 {flaggedQuestions.size > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-amber-600 dark:text-amber-400">
-                      {lang === "en" ? "Flagged" : "የተማይዝ"}
+                      {lang === "en" ? "Flagged" : "የተማይвиз"}
                     </span>
                     <span className="font-medium">{flaggedQuestions.size}</span>
                   </div>
@@ -799,7 +799,7 @@ export default function Page() {
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-amber-500 rounded-full" />
                   <span className="text-gray-600 dark:text-gray-300">
-                    {lang === "en" ? "Flagged" : "የተማይዝ"}
+                    {lang === "en" ? "Flagged" : "የተማይвиз"}
                   </span>
                 </div>
               </div>
