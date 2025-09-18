@@ -47,7 +47,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   // Block final exam if locked
   if (isFinalExam && finalExamLocked) {
     return (
-      <div className="min-h-dvh bg-background text-foreground flex items-center justify-center p-6">
+      <div className="h-full bg-background text-foreground flex items-center justify-center p-6">
         <div className="max-w-md w-full border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center mb-3">
             <Lock className="w-8 h-8 text-amber-600" />

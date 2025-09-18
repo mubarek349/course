@@ -29,7 +29,6 @@ import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseTopOverview from "@/components/courseTopOverview";
 import TraditionalQA from "@/components/TraditionalQA";
-import AIAssistant from "@/components/AIAssistant";
 import { useSession } from "next-auth/react";
 import ChatComponent from "@/components/ui/chatComponent";
 

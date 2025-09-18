@@ -24,7 +24,7 @@ const studentNav = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <UserLayout list={studentNav}>
-      <main className="overflow-y-auto">
+      <main className="grid overflow-y-auto">
         {children}
       </main>
     </UserLayout>

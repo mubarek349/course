@@ -75,7 +75,7 @@ function Page() {
   }));
 
   return (
-    <div className="p-1 md:p-6 h-full">
+    <div className="p-1 md:p-6 h-full flex flex-col">
       <h1 className="text-3xl font-bold mb-2">
         {lang === "en" ? "Welcome back" : "እንኳን በደህና መጡ"}{" "}
         {user?.name || "Student"}!
