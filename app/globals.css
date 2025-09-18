@@ -3,12 +3,18 @@
 @tailwind utilities;
 
 @layer components {
-  /* Hide scrollbars for most elements except certificate page */
-  *:not(#certificate-print):not(#certificate-print *) {
+  /* Enable scrolling for main content areas */
+  .scrollable {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbars for most elements except certificate page and scrollable areas */
+  *:not(#certificate-print):not(#certificate-print *):not(.scrollable):not(.scrollable *) {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  *:not(#certificate-print):not(#certificate-print *)::-webkit-scrollbar {
+  *:not(#certificate-print):not(#certificate-print *):not(.scrollable):not(.scrollable *)::-webkit-scrollbar {
     display: none;
   }
 
@@ -225,5 +231,11 @@
   /* Fix for bottom padding on mobile to account for browser UI */
   .mobile-bottom-fix {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Ensure body and html can scroll */
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
   }
 }
