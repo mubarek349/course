@@ -70,7 +70,7 @@ function EnglishCertification({
   return (
     <div
       ref={ref}
-      className="relative bg-white shadow-2xl rounded-[24px] overflow-hidden border-8 border-[#e9d8a6] print:shadow-none print:border-0 certificate-container"
+      className="relative shadow-2xl rounded-[24px] overflow-hidden border-8 border-[#e9d8a6] print:shadow-none print:border-0 certificate-container"
     >
       {/* Decorative header with bilingual center name and logo on the same x axis */}
       <div className="relative h-36 bg-gradient-to-b from-[#ffe5b4] to-white flex flex-col justify-center">
@@ -202,8 +202,7 @@ function AmharicCertification({
   const result = String(data.result || "").toLowerCase();
 
   // const certificateId = `${courseId}-${issued.getTime()}`;
-  const qrPath =
-    data.qrcode || `/${lang}/@student/mycourse/${courseId}/finalexam`;
+  const qrPath = data.qrcode || `/${lang}/mycourse/${courseId}/finalexam`;
 
   useEffect(() => {
     async function generateQr() {
@@ -237,7 +236,7 @@ function AmharicCertification({
   return (
     <div
       ref={ref}
-      className="relative bg-white shadow-2xl rounded-[24px] overflow-hidden border-8 border-[#e9d8a6] print:shadow-none print:border-0 certificate-container"
+      className="relative shadow-2xl rounded-[24px] overflow-hidden border-8 border-[#e9d8a6] print:shadow-none print:border-0 certificate-container"
     >
       {/* Decorative header with bilingual center name and logo on the same x axis */}
       <div className="relative h-36 bg-gradient-to-b from-[#ffe5b4] to-white flex flex-col justify-center">
@@ -356,7 +355,7 @@ export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
   const courseId = params?.id || "";
-  const certificateRef = useRef<HTMLDivElement>(null);
+  const certRef = useRef<HTMLDivElement>(null); // rename from certificateRef
   const scrollWrapperRef = useRef<HTMLDivElement>(null); // add this ref
 
   const { data, loading } = useData({
@@ -371,56 +370,37 @@ export default function Page() {
   const A4_WIDTH = 1123; // px (A4 landscape at 96dpi)
   const A4_HEIGHT = 794; // px
 
-  // Enhanced download function with desktop layout forcing
+  // Replace handleDownload with your requested implementation
   const handleDownload = async () => {
-    const node = certificateRef.current;
-    const scrollWrapper = scrollWrapperRef.current;
+    const node = certRef.current;
     if (!node) return;
 
-    // Save original styles
-    const originalWidth = node.style.width;
-    const originalHeight = node.style.height;
-    const originalBoxShadow = node.style.boxShadow;
-    const originalBorder = node.style.border;
-
-    // Remove scroll and set A4 landscape size for export
-    if (scrollWrapper) scrollWrapper.style.overflow = "visible";
-    node.style.width = `${A4_WIDTH}px`;
-    node.style.height = `${A4_HEIGHT}px`;
-    node.style.boxShadow = "none";
-    node.style.border = "none";
+    // Force desktop layout for export
     node.classList.add("force-desktop");
-    window.scrollTo(0, 0);
+
+    window.scrollTo(0, 0); // Prevent clipping on mobile
 
     try {
       const dataUrl = await toPng(node, {
         cacheBust: true,
         pixelRatio: 2,
-        width: A4_WIDTH,
-        height: A4_HEIGHT,
       });
 
-      const img = document.createElement("img") as HTMLImageElement;
+      const img = new window.Image();
       img.src = dataUrl;
       img.onload = () => {
         const pdf = new jsPDF({
           orientation: "landscape",
           unit: "px",
-          format: [A4_WIDTH, A4_HEIGHT],
+          format: [img.width, img.height],
         });
 
-        pdf.addImage(dataUrl, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
+        pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
         pdf.save("certificate.pdf");
       };
     } catch (error) {
       console.error("Failed to generate certificate:", error);
     } finally {
-      // Restore styles
-      if (scrollWrapper) scrollWrapper.style.overflow = "auto";
-      node.style.width = originalWidth;
-      node.style.height = originalHeight;
-      node.style.boxShadow = originalBoxShadow;
-      node.style.border = originalBorder;
       node.classList.remove("force-desktop");
     }
   };
@@ -464,9 +444,12 @@ export default function Page() {
   return (
     <div
       id="certificate-print"
-      className="w-full h-screen text-[#1f2937] p-0 print:p-0 overflow-y-auto overflow-x-auto"
+      className="w-full min-h-screen text-[#1f2937] p-0 print:p-0"
+      style={{
+        overflowX: "auto", // Enable horizontal scroll on the page itself
+        overflowY: "auto",
+      }}
     >
-      {/* Hide everything except the certificate on print */}
       <style jsx global>{`
         @media print {
           /* Hide entire app except the certificate area */
@@ -510,9 +493,35 @@ export default function Page() {
             margin: 0;
           }
         }
+        /* Remove x-scroll from certificate-scroll-wrapper, allow on page */
+        .certificate-scroll-wrapper {
+          width: 100%;
+          overflow-x: visible !important;
+          overflow-y: visible;
+        }
+        @media (min-width: 1123px) {
+          .certificate-scroll-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 100vw;
+          }
+        }
+        .certificate-a4 {
+          width: 1123px;
+          min-width: 1123px;
+          max-width: 1123px;
+          margin-left: auto;
+          margin-right: auto;
+          overflow: visible !important;
+        }
+        /* Prevent body horizontal scrollbars (handled by #certificate-print) */
+        body {
+          overflow-x: hidden !important;
+        }
       `}</style>
-
-      <div className="w-full h-dvh flex flex-col justify-start items-center p-4 overflow-y-auto overflow-x-auto">
+      <div className=" bg-red-500 w-full min-h-dvh flex flex-col justify-start items-center p-4">
         <div className="w-full max-w-none min-w-0 flex flex-col ">
           {/* Common Navigation - Outside of certificate functions */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 print:hidden gap-3">
@@ -548,31 +557,19 @@ export default function Page() {
                 </button>
               </div>
             </div>
-
-            {/* Right: Download button - Hidden on mobile */}
-            <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={handleDownload}
-                className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-2"
-              >
-                <Printer className="w-4 h-4" /> Download Certificate
-              </button>
-            </div>
           </div>
 
           {/* Certificate Canvas */}
-          <div
-            className="certificate-scroll-wrapper w-full overflow-x-auto"
-            ref={scrollWrapperRef}
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
+          <div className="certificate-scroll-wrapper" ref={scrollWrapperRef}>
             <div
-              ref={certificateRef}
-              className="certificate-a4 mx-auto overflow-auto"
+              ref={certRef} // use certRef here
+              className="certificate-a4"
               style={{
                 width: `${A4_WIDTH}px`,
                 minWidth: `${A4_WIDTH}px`,
                 maxWidth: `${A4_WIDTH}px`,
+                marginLeft: "auto",
+                marginRight: "auto",
                 // Remove height constraints for UI scroll, only set in print
                 ...(typeof window !== "undefined" &&
                 !window.matchMedia("print").matches
@@ -583,6 +580,7 @@ export default function Page() {
                       maxHeight: `${A4_HEIGHT}px`,
                     }),
                 background: "#fff",
+                overflow: "visible",
               }}
             >
               {activeIdx === 0 ? (
@@ -600,23 +598,6 @@ export default function Page() {
               )}
             </div>
           </div>
-
-          {/* Mobile download button - positioned below certificate */}
-          <div className="md:hidden mt-4 flex justify-center print:hidden">
-            <button
-              onClick={handleDownload}
-              className="w-full max-w-sm px-4 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center justify-center gap-2 text-base font-medium"
-            >
-              <Printer className="w-5 h-5" /> Download Certificate
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile scroll hint */}
-        <div className="lg:hidden text-center mt-4 print:hidden">
-          <p className="text-sm text-slate-500">
-            ← Scroll horizontally to view full certificate →
-          </p>
         </div>
       </div>
     </div>
