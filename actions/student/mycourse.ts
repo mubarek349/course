@@ -95,6 +95,7 @@ export async function getMySingleCourse(studentId: string, courseId: string) {
         requirement: true,
         courseFor: true,
         video: true,
+        pdfData: true, // Add PDF field
         price: true,
         thumbnail: true,
         level: true,
@@ -166,6 +167,7 @@ export async function getMySingleCourseContent(
         titleEn: true,
         titleAm: true,
         video: true,
+        pdfData: true, // Add PDF field
         requirement: true,
         courseFor: true,
         aboutEn: true,
@@ -201,28 +203,9 @@ export async function getMySingleCourseContent(
 
     const fuad = {
       ...course,
-      activity: course.activity.map((act) => ({
-        ...act,
-        hasQuiz: Array.isArray(act.question)
-          ? act.question.length > 0
-          : !!act.question,
-      })),
     } as any;
 
-    // Identify the final exam as the last activity that has a quiz
-    const examAct =
-      [...fuad.activity].reverse().find((a: any) => a.hasQuiz) || null;
-
-    return {
-      ...fuad,
-      finalExam: examAct
-        ? {
-            activityId: examAct.id,
-            titleEn: "Final Exam",
-            titleAm: "መጨረሻ ፈተና",
-          }
-        : null,
-    } as any;
+    return fuad;
   } catch (error) {
     console.error("Error fetching single course:", error);
     return null;

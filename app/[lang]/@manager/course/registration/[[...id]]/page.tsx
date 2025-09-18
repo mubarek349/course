@@ -35,6 +35,7 @@ import {
   Save,
   ArrowLeft,
   FileText,
+  File,
 } from "lucide-react";
 import { useState } from "react";
 import FinalExamManager from "@/components/FinalExamManager";
@@ -43,10 +44,14 @@ export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [selectedPdfFile, setSelectedPdfFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [isPdfUploading, setIsPdfUploading] = useState(false);
 
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
+  const [pdfUrl, setPdfUrl] = useState<string>("");
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
 
@@ -63,6 +68,7 @@ export default function Page() {
         instructorId: "",
         thumbnail: "",
         video: "",
+        pdf: "",
         price: 0,
         currency: "ETB",
         level: "beginner",
@@ -166,7 +172,8 @@ export default function Page() {
             titleAm: activity.titleAm,
             subActivity: activity.subActivity,
             questions:
-              activity.questions?.map((q) => ({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              activity.questions?.map((q: any) => ({
                 question: q.question,
                 options: q.options,
                 answers: q.answers,
@@ -178,6 +185,10 @@ export default function Page() {
 
         if (data.video) {
           setVideoPreviewUrl(data.video);
+        }
+
+        if (data.pdfData) {
+          setPdfUrl(data.pdfData);
         }
 
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
@@ -201,6 +212,41 @@ export default function Page() {
     setValue("video", file.name, { shouldValidate: false, shouldDirty: true });
     if (!watch("thumbnail")) {
       setValue("thumbnail", "/darulkubra.png", { shouldValidate: false });
+    }
+  };
+
+  const handlePdfSelect = async (file: File) => {
+    setIsPdfUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("pdf", file);
+      const response = await fetch("/api/upload-pdf", {
+        method: "POST",
+        body: formData,
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setValue("pdf", result.pdfUrl);
+        setPdfUrl(result.pdfUrl);
+      } else {
+        alert(lang === "en" ? "PDF upload failed" : "የፒዲኤፍ መስቀል አልተሳካም");
+      }
+    } catch {
+      alert(lang === "en" ? "PDF upload error" : "የፒዲኤፍ የመስቀል ስህተት");
+    } finally {
+      setIsPdfUploading(false);
+    }
+  };
+
+  const handlePdfRemove = () => {
+    const confirmMessage =
+      lang === "en"
+        ? "Are you sure you want to delete this PDF?"
+        : "ይህን ፒዲኤፍ መሰረዝ እርግጠኛ ነዎት?";
+    if (confirm(confirmMessage)) {
+      setSelectedPdfFile(null);
+      setPdfUrl("");
+      setValue("pdf", "", { shouldValidate: false, shouldDirty: true });
     }
   };
 
@@ -305,7 +351,7 @@ export default function Page() {
   // Show loading state while essential data is loading
   if (channelsLoading || instructorsLoading || (isEditing && courseLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="h-full flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <Card className="p-8 shadow-lg">
           <div className="flex items-center gap-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
@@ -321,7 +367,7 @@ export default function Page() {
   return (
     instructors &&
     channels && (
-      <div className="min-h-screen overflow-auto bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
         <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
           {/* Header Section */}
           <div className="relative">
@@ -425,6 +471,86 @@ export default function Page() {
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
                 />
+                
+                {/* PDF Upload Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <File className="w-5 h-5 text-red-500" />
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {lang === "en" ? "Course PDF Material" : "የኮርስ ፒዲኤፍ ቁሳቁስ"}
+                    </h3>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all hover:border-primary-400 hover:bg-primary-50/50">
+                    {pdfUrl ? (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <File className="w-8 h-8 text-red-500" />
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {lang === "en" ? "Uploaded PDF" : "የተሰቀለ ፒዲኤፍ"}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate max-w-xs">
+                              {pdfUrl.split("/").pop()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <a 
+                            href={pdfUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+                          >
+                            {lang === "en" ? "View PDF" : "ፒዲኤፍ ይመልከቱ"}
+                          </a>
+                          <button
+                            onClick={handlePdfRemove}
+                            disabled={isPdfUploading}
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium disabled:opacity-50"
+                          >
+                            {lang === "en" ? "Remove" : "አስወግድ"}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <File className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-600 mb-4">
+                          {lang === "en" 
+                            ? "Upload a PDF file for additional course materials" 
+                            : "ለተጨማሪ የኮርስ ቁሳቁሶች ፒዲኤፍ ፋይል ይስቀሉ"}
+                        </p>
+                        <label className="inline-block px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer font-medium">
+                          {isPdfUploading ? (
+                            <span className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              {lang === "en" ? "Uploading..." : "በመስቀል ላይ..."}
+                            </span>
+                          ) : (
+                            lang === "en" ? "Select PDF File" : "ፒዲኤፍ ፋይል ይምረጡ"
+                          )}
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handlePdfSelect(file);
+                              }
+                            }}
+                            disabled={isPdfUploading}
+                          />
+                        </label>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {lang === "en" ? "PDF files only, max 100MB" : "ፒዲኤፍ ፋይሎች ብቻ፣ ከፍተኛ 100ሜባይት"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
                 <CourseBasicInfo
                   lang={lang}
                   register={register}

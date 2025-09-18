@@ -14,11 +14,11 @@ export default function UserLayout({
   const [isSide, setIsSide] = useState(false);
 
   return (
-    <div className="relative min-h-dvh bg-primary-50 grid grid-cols-1 md:grid-cols-[auto_1fr]">
+    <div className="relative h-dvh bg-primary-50 grid grid-cols-1 md:grid-cols-[auto_1fr]">
       <SideBar isSide={isSide} setIsSide={setIsSide} lists={list} />
-      <div className="grid gap-2 grid-rows-[auto_1fr]">
+      <div className="grid gap-2 grid-rows-[auto_1fr] h-full">
         <Header setIsSide={setIsSide} />
-        <div className="px-2 md:px-5 pb-2 overflow-y-auto">
+        <div className="px-2 md:px-5 pb-2 h-full overflow-y-auto">
           {children}
         </div>
       </div>

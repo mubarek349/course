@@ -24,8 +24,7 @@ const studentNav = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <UserLayout list={studentNav}>
-      <main>
-        {/* <h1 className="text-xl font-bold mb-0">Student Dashboard</h1> */}
+      <main className="overflow-y-auto">
         {children}
       </main>
     </UserLayout>

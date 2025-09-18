@@ -105,6 +105,7 @@ model Course {
   aboutAm        String        @db.Text
   thumbnail      String
   video          String
+  pdfData        String?       @db.Text
   price          Decimal
   currency       String        @default("ETB")
   level          CourseLevel
