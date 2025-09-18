@@ -31,6 +31,7 @@ import CourseTopOverview from "@/components/courseTopOverview";
 import TraditionalQA from "@/components/TraditionalQA";
 import AIAssistant from "@/components/AIAssistant";
 import { useSession } from "next-auth/react";
+import ChatComponent from "@/components/ui/chatComponent";
 
 // ---------------- COURSE CONTENT COMPONENT ----------------
 function CourseContent({
@@ -548,8 +549,8 @@ export default function Page() {
       id: "ai",
       label: lang === "en" ? "AI Assistant" : "AI ረዳት",
       content: (
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-900/20 rounded-lg sm:rounded-xl md:rounded-2xl border border-purple-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-purple-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
+        <div className="rounded-lg sm:rounded-xl md:rounded-2xl border border-purple-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+          {/* <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-purple-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-md sm:rounded-lg md:rounded-xl shadow-lg flex-shrink-0">
                 <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
@@ -565,9 +566,9 @@ export default function Page() {
                 </p>
               </div>
             </div>
-          </div>
-          <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
-            <AIAssistant courseId={courseId} lang={lang} />
+          </div> */}
+          <div className="p-2 flex-1 overflow-y-auto">
+            <ChatComponent />
           </div>
         </div>
       ),
@@ -633,7 +634,6 @@ export default function Page() {
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>

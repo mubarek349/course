@@ -8,7 +8,6 @@ import {
   getActivityQuizStatus,
   unlockTheFinalExamAndQuiz,
   readyToCertification,
-  
 } from "@/actions/student/mycourse";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -21,6 +20,7 @@ import {
   X,
   RotateCcw,
 } from "lucide-react";
+import ChatComponent from "@/components/ui/chatComponent";
 
 export default function Page() {
   const router = useRouter();
@@ -40,17 +40,34 @@ export default function Page() {
     args: [activityId],
   });
   const { action } = useAction(saveStudentQuizAnswers, undefined, {
-    error: lang == "en" 
-      ? { title: "Failed to Save Answer", description: "Your quiz answer could not be saved. Please check your connection and try again." }
-      : { title: "መልስ ማስቀመጥ አልተሳካም", description: "የፈተና መልስዎ ሊቀመጥ አልተቻለም። ግንኙነትዎን በማረጋገጥ እንደገና ይሞክሩ።" },
-    success: lang == "en" 
-      ? { title: "Answer Saved Successfully", description: "Your quiz answer has been recorded and saved automatically." }
-      : { title: "መልስ በተሳካ ሁኔታ ተቀምጧል", description: "የፈተና መልስዎ በራስ-ሰር ተመዝግቦ ተቀምጧል።" },
+    error:
+      lang == "en"
+        ? {
+            title: "Failed to Save Answer",
+            description:
+              "Your quiz answer could not be saved. Please check your connection and try again.",
+          }
+        : {
+            title: "መልስ ማስቀመጥ አልተሳካም",
+            description: "የፈተና መልስዎ ሊቀመጥ አልተቻለም። ግንኙነትዎን በማረጋገጥ እንደገና ይሞክሩ።",
+          },
+    success:
+      lang == "en"
+        ? {
+            title: "Answer Saved Successfully",
+            description:
+              "Your quiz answer has been recorded and saved automatically.",
+          }
+        : {
+            title: "መልስ በተሳካ ሁኔታ ተቀምጧል",
+            description: "የፈተና መልስዎ በራስ-ሰር ተመዝግቦ ተቀምጧል።",
+          },
   });
 
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: quizStatus, loading: quizStatusLoading } = useData({  // eslint-disable-line @typescript-eslint/no-unused-vars
+  const { data: quizStatus, loading: quizStatusLoading } = useData({
+    // eslint-disable-line @typescript-eslint/no-unused-vars
     func: getActivityQuizStatus,
     args: [activityId],
   });
@@ -278,25 +295,26 @@ export default function Page() {
   // Handle update quiz function
   const handleUpdateQuiz = async () => {
     // Show confirmation dialog
-    const confirmMessage = lang === "en" 
-      ? "Are you sure you want to update this quiz?\n\nThis action will allow you to modify your previous answers and update your progress. You can continue from where you left off or make changes to your responses.\n\nYour progress will be updated accordingly."
-      : "የዚህን ፈተና ማዘመን ይፈልጋሉ?\n\nይህ እርምጃ የተቀደሙ መልሶችዎን እንዲቀይሩ እና የእድገትዎን እንዲያዘምኑ ያስችልዎታል። ከተቀረቡበት ቦታ መቀጠል ወይም በመልሶችዎ ላይ ለውጦች ማድረግ ይችላሉ።\n\nየእድገትዎ በዚሁ መሰረት ይዘመናል።";
-    
+    const confirmMessage =
+      lang === "en"
+        ? "Are you sure you want to update this quiz?\n\nThis action will allow you to modify your previous answers and update your progress. You can continue from where you left off or make changes to your responses.\n\nYour progress will be updated accordingly."
+        : "የዚህን ፈተና ማዘመን ይፈልጋሉ?\n\nይህ እርምጃ የተቀደሙ መልሶችዎን እንዲቀይሩ እና የእድገትዎን እንዲያዘምኑ ያስችልዎታል። ከተቀረቡበት ቦታ መቀጠል ወይም በመልሶችዎ ላይ ለውጦች ማድረግ ይችላሉ።\n\nየእድገትዎ በዚሁ መሰረት ይዘመናል።";
+
     if (!window.confirm(confirmMessage)) {
       return;
     }
 
     try {
       setIsUpdating(true);
-      
+
       // Update local state to allow modifications
       setShowResult(false);
       setShowFeedback(false);
-      
+
       // Refresh the quiz data to get current state
       window.location.reload();
     } catch (error) {
-      console.error('Error during quiz update:', error);
+      console.error("Error during quiz update:", error);
       setIsUpdating(false);
     }
   };
@@ -354,7 +372,8 @@ export default function Page() {
 
                   <div className="mt-2 text-sm text-slate-700 dark:text-slate-300">
                     <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-3 py-1">
-                      <Sparkles className="w-4 h-4" /> Earned Coins: <b>{coins}</b>
+                      <Sparkles className="w-4 h-4" /> Earned Coins:{" "}
+                      <b>{coins}</b>
                     </span>
                   </div>
 
@@ -378,12 +397,16 @@ export default function Page() {
                       {isUpdating ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>{lang === "en" ? "Updating..." : "በማዘመን ላይ..."}</span>
+                          <span>
+                            {lang === "en" ? "Updating..." : "በማዘመን ላይ..."}
+                          </span>
                         </>
                       ) : (
                         <>
                           <RotateCcw className="w-4 h-4" />
-                          <span>{lang === "en" ? "Update Quiz" : "ፈተናን አዘምን"}</span>
+                          <span>
+                            {lang === "en" ? "Update Quiz" : "ፈተናን አዘምን"}
+                          </span>
                         </>
                       )}
                     </button>
@@ -394,35 +417,47 @@ export default function Page() {
                     <div className="w-full mt-4">
                       <button
                         onClick={() => {
-                          if (nextActivityId.id === 'finalexam') {
-                            router.push(`/${lang}/mycourse/${courseId}/finalexam`);
+                          if (nextActivityId.id === "finalexam") {
+                            router.push(
+                              `/${lang}/mycourse/${courseId}/finalexam`
+                            );
                           } else {
-                            router.push(`/${lang}/mycourse/${courseId}/${nextActivityId.id}`);
+                            router.push(
+                              `/${lang}/mycourse/${courseId}/${nextActivityId.id}`
+                            );
                           }
                         }}
                         className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
                       >
                         <div className="flex items-center gap-2">
-                          {nextActivityId.id === 'finalexam' ? (
+                          {nextActivityId.id === "finalexam" ? (
                             <Trophy className="w-5 h-5" />
                           ) : (
                             <Sparkles className="w-5 h-5" />
                           )}
                           <span>
-                            {lang === "en" 
-                              ? `Go to ${nextActivityId.id === 'finalexam' ? 'Final Exam' : 'Next Quiz'}`
-                              : `ወደ ${nextActivityId.id === 'finalexam' ? 'የመጨረሻ ፈተና' : 'ቀጣይ ፈተና'}`
-                            }
+                            {lang === "en"
+                              ? `Go to ${
+                                  nextActivityId.id === "finalexam"
+                                    ? "Final Exam"
+                                    : "Next Quiz"
+                                }`
+                              : `ወደ ${
+                                  nextActivityId.id === "finalexam"
+                                    ? "የመጨረሻ ፈተና"
+                                    : "ቀጣይ ፈተና"
+                                }`}
                           </span>
                         </div>
                         <ChevronRight className="w-5 h-5" />
                       </button>
-                      
+
                       {/* Next quiz title */}
                       <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
-                        {nextActivityId.id !== 'finalexam' && (
-                          lang === "en" ? nextActivityId.titleEn : nextActivityId.titleAm
-                        )}
+                        {nextActivityId.id !== "finalexam" &&
+                          (lang === "en"
+                            ? nextActivityId.titleEn
+                            : nextActivityId.titleAm)}
                       </p>
                     </div>
                   )}
@@ -463,9 +498,7 @@ export default function Page() {
                     </div>
                     <button
                       onClick={() =>
-                        router.push(
-                          `/${lang}/mycourse/${courseId}/certificate`
-                        )
+                        router.push(`/${lang}/mycourse/${courseId}/certificate`)
                       }
                       className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
                     >
@@ -477,8 +510,8 @@ export default function Page() {
                 {/* Lock notice */}
                 {isLocked && (
                   <div className="rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-800 dark:text-amber-300 text-sm">
-                    This quiz is locked. Please complete previous quizzes to unlock
-                    it.
+                    This quiz is locked. Please complete previous quizzes to
+                    unlock it.
                   </div>
                 )}
 
@@ -550,7 +583,8 @@ export default function Page() {
                             <X className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                           );
                         } else {
-                          style = "border-slate-300 dark:border-slate-700 opacity-60";
+                          style =
+                            "border-slate-300 dark:border-slate-700 opacity-60";
                         }
                       } else if (isSelected) {
                         style = "border-sky-500 bg-sky-100 dark:bg-sky-500/10";
@@ -563,9 +597,7 @@ export default function Page() {
                         <button
                           key={idx}
                           onClick={() => handleOption(idx)}
-                          disabled={
-                            isLocked
-                          }
+                          disabled={isLocked}
                           className={`${base} ${style} ${
                             isLocked ? "opacity-60 cursor-not-allowed" : ""
                           }`}
@@ -620,7 +652,8 @@ export default function Page() {
                     <button
                       onClick={handleNext}
                       disabled={
-                        isLocked || (selected === null && !canAdvanceWithoutSelect)
+                        isLocked ||
+                        (selected === null && !canAdvanceWithoutSelect)
                       }
                       className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold disabled:opacity-50 inline-flex items-center gap-2"
                     >
@@ -634,6 +667,8 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </div>
+      {/* Add the chat assistant floating widget */}
+      {/* <ChatComponent /> */}
+    </>
   );
 }

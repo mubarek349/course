@@ -74,10 +74,10 @@ export default function TraditionalQA({ courseId, lang }: TraditionalQAProps) {
     try {
       const result = await getVideoQuestions(courseId);
       if (result.success && result.data) {
-        const questionsWithStringDates = result.data.map(q => ({
+        const questionsWithStringDates = result.data.map((q: VideoQuestion) => ({
           ...q,
           createdAt: q.createdAt.toString(),
-          responses: q.responses.map(r => ({
+          responses: q.responses.map((r: VideoQuestion["responses"][number]) => ({
             ...r,
             createdAt: r.createdAt.toString()
           }))
