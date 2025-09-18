@@ -11,7 +11,8 @@ import { useSearchParams, useParams } from "next/navigation";
 import { getOverview } from "@/actions/instructor/overview";
 
 export default function Page() {
-  const { id } = useParams<{ lang: string; id: string }>(),
+  const params = useParams<{ id: string }>();
+  const id = params?.id || "",
     searchParams = useSearchParams(),
     [filterData, setFilterData] = useState<{
       start: Date | undefined;
@@ -24,8 +25,8 @@ export default function Page() {
     });
 
   useEffect(() => {
-    const startDate = new Date(searchParams.get("startDate") ?? ""),
-      endDate = new Date(searchParams.get("endDate") ?? "");
+    const startDate = new Date(searchParams?.get("startDate") ?? ""),
+      endDate = new Date(searchParams?.get("endDate") ?? "");
     setFilterData((prev) => ({
       ...prev,
       start: String(startDate) == "Invalid Date" ? undefined : startDate,

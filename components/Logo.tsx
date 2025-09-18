@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 export default function Logo() {
-  const { lang } = useParams<{ lang: string }>();
-
+  const params = useParams<{ lang: string }>();
+               const lang = params?.lang || "en";
   return (
     <Link href={`/${lang}/`} className="w-fit flex gap-2 px-1 md:px-4 py-1">
       <Image

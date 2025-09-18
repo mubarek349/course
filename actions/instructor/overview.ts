@@ -20,12 +20,23 @@ export async function getOverview({
   id?: string;
 }): Promise<TOverviewData> {
   try {
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      throw new Error('Authentication required');
+    }
+    
+    if (session.user.role !== 'instructor') {
+      throw new Error('Instructor role required');
+    }
+    
     const data: TOverviewData = {
       0: [],
       1: [],
       2: [],
       3: [],
     };
+    
     const thisMonthStartDate = new Date(),
       thisMonthEndDate = new Date(),
       lastMonthStartDate = new Date(),
@@ -37,9 +48,6 @@ export async function getOverview({
     lastMonthStartDate.setMonth(lastMonthStartDate.getMonth() - 1);
     lastMonthStartDate.setDate(1);
     lastMonthEndDate.setDate(0);
-
-    const session = await auth();
-    if (!session?.user?.id) throw new Error();
     const totalOrders = await prisma.order.findMany({
         where: {
           status: "paid",
@@ -231,7 +239,7 @@ export async function getOverview({
     }
     return data;
   } catch (error) {
-    return { 0: [], 1: [], 2: [], 3: [] };
-    console.log("ERROR >> ", error);
+    console.error('Error in getOverview:', error);
+    throw error; // Re-throw the error instead of returning empty data
   }
 }

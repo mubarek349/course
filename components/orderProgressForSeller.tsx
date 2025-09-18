@@ -36,10 +36,10 @@ export default function OrderProgressForSeller({
   thisDayIncome: number;
   refresh?: () => void;
 }) {
-  const searchParams = useSearchParams(),
-    { lang } = useParams<{ lang: string }>(),
+  const searchParams = useSearchParams();
+    const params = useParams<{ lang: string }>();
+    const lang = params?.lang || "en",
     { data } = useSession();
-
   return (
     <div className="bg-primary-600/20 rounded-xl border border-primary-600/20 overflow-hidden grid gap-2 grid-rows-[1fr_auto]">
       <div className="p-2 ">
@@ -72,7 +72,7 @@ export default function OrderProgressForSeller({
         </div>
         <div className="grid grid-cols-3">
           <p className="p-2 ">
-            {searchParams.get("date")
+            {searchParams?.get("date")
               ? new Date(searchParams.get("date")!).toString().slice(3, 7)
               : lang == "en"
               ? "This Month"
@@ -86,7 +86,7 @@ export default function OrderProgressForSeller({
         </div>
         <div className="grid grid-cols-3">
           <p className="p-2 ">
-            {searchParams.get("date")
+            {searchParams?.get("date")
               ? `${new Date(searchParams.get("date")!).getDate()}${
                   lang == "en" ? "th Day" : "ኛ ቀን"
                 }`
@@ -114,7 +114,8 @@ function Rate({
   courseId: string;
   refresh?: () => void;
 }) {
-  const { id } = useParams<{ id: string }>(),
+  const params = useParams<{ id: string }>(),
+  id = params?.id || "",
     [open, setOpen] = useState(false),
     formSchema = z.object({
       userId: z.string({ message: "" }).nonempty(""),

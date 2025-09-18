@@ -19,7 +19,8 @@ export function RemoveManager({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en",
     { action, isPending } = useAction(removeManager, undefined, {
       onSuccess({ status }) {
         if (status) {

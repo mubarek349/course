@@ -84,6 +84,8 @@ model User {
   permission      Permission[]
   studentProgress studentProgress[]
   studentQuiz     studentQuiz[]
+  videoQuestions  VideoQuestion[] @relation("StudentVideoQuestions")
+  videoResponses  VideoResponse[] @relation("InstructorVideoResponses")
 }
 
 model Permission {
@@ -124,7 +126,8 @@ model Course {
   activity       Activity[]
   order          Order[]
   incomeRate     IncomeRate[]
-  question    question[]
+  question       question[]
+  chatQuestions VideoQuestion[]
 }
 
 model Requirement {
@@ -212,7 +215,7 @@ model studentQuiz {
   takenAt            DateTime            @default(now())
   studentQuizAnswers studentQuizAnswer[]
 
-  @@unique([userId, questionId])
+  @@unique([userId, questionId, isFinalExam])
   @@index([questionId])
   @@index([userId])
 }
@@ -297,4 +300,38 @@ model otp {
   id          String @id @default(uuid())
   phoneNumber String
   code        Int
+}
+
+// Video Q&A Models
+model VideoQuestion {
+  id            String @id @default(cuid())
+  student       User   @relation("StudentVideoQuestions", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId     String
+  course        Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId      String
+  subActivityId String? // Optional reference to specific sub-activity for context
+  question      String @db.Text
+  timestamp     Int?   // Video timestamp in seconds where question was asked
+  type          String @default("course") // "course" for introduction video, "activity" for sub-activity video
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  responses     VideoResponse[]
+
+  @@index([courseId])
+  @@index([studentId])
+  @@index([subActivityId])
+}
+
+model VideoResponse {
+  id              String @id @default(cuid())
+  videoQuestion   VideoQuestion @relation(fields: [videoQuestionId], references: [id], onDelete: Cascade)
+  videoQuestionId String
+  instructor      User   @relation("InstructorVideoResponses", fields: [instructorId], references: [id], onDelete: Cascade)
+  instructorId    String
+  response        String @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([videoQuestionId])
+  @@index([instructorId])
 }

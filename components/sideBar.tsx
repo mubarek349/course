@@ -22,7 +22,8 @@ export default function SideBar({
   setIsSide: React.Dispatch<React.SetStateAction<boolean>>;
   lists: { label: string; url: string; icon: React.ReactNode }[];
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en",
     pathname = usePathname(),
     selectedSegment = useSelectedLayoutSegment() || "",
     router = useRouter(),
@@ -93,8 +94,7 @@ export default function SideBar({
             variant="flat"
             onPress={() =>
               router.push(
-                `/${lang == "en" ? "am" : "en"}/${pathname
-                  .split("/")
+                `/${lang == "en" ? "am" : "en"}/${pathname?.split("/")
                   .slice(2)
                   .join("/")}`
               )

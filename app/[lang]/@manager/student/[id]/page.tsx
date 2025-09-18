@@ -8,7 +8,9 @@ import { useParams } from "next/navigation";
 import React, { useState } from "react";
 
 function Page() {
-  const { lang, id } = useParams<{ lang: string; id: string }>(),
+  const params = useParams<{ lang: string; id: string }>();
+    const lang = params?.lang || "en",
+    id = params?.id || "",
     [tableData, setTableData] = useState<TTableData & { id: string }>({
       search: "",
       currentPage: 1,

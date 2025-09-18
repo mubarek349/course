@@ -4,7 +4,8 @@ import React from "react";
 import { useParams } from "next/navigation";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>();
+  const params= useParams<{ lang: string }>();
+          const lang = params?.lang || "en";
   return (
     <div className="grid place-content-center">
       <div className="p-10 bg-primary-100 rounded-xl grid gap-5">

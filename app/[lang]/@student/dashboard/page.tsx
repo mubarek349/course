@@ -42,7 +42,7 @@ const enrolledCourses = [
     category: "Web Development",
   },
 ];
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const StatCard = ({ icon, label, value, color }: any) => (
   <div className={`bg-white p-6 rounded-lg shadow flex items-center gap-4`}>
     <div className={`p-3 rounded-full ${color}`}>

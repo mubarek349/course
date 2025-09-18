@@ -21,7 +21,7 @@ export async function authenticate(
     });
   } catch (error) {
     console.log("ERROR :: ", error);
-    return { status: false, cause: "", message: "" };
+    return { status: false, cause: "Authentication failed", message: "Authentication failed" };
   }
   // return { status: true };
   revalidatePath("");
@@ -35,7 +35,7 @@ export async function signup(
   data:
     | { phoneNumber: string; password: string; confirmPassword: string }
     | undefined
-) {
+): Promise<StateType> {
   // then password is match or not check
   if (!data) return undefined;
   const { phoneNumber, password, confirmPassword } = data;
@@ -72,7 +72,7 @@ export async function signup(
       role: "student",
     },
   });
-  return { status: true, message: "User created successfully", cause: "" };
+  return { status: true, message: "User created successfully" };
 }
 
 export async function unauthentic(prevState: StateType): Promise<StateType> {
@@ -80,7 +80,7 @@ export async function unauthentic(prevState: StateType): Promise<StateType> {
     await signOut({ redirect: false });
   } catch (error) {
     console.log("ERROR :: ", error);
-    return { status: false, cause: "", message: "" };
+    return { status: false, cause: "Sign out failed", message: "Sign out failed" };
   }
   // return { status: true };
   revalidatePath("");
@@ -105,10 +105,10 @@ export async function changePassword(
         data: { password: hashedPassword },
       });
     }
-    return { status: true };
+    return { status: true, message: "Password changed successfully" };
   } catch (error) {
     console.log(error);
-    return { status: false, cause: "", message: "" };
+    return { status: false, cause: "Password change failed", message: "Password change failed" };
   }
 }
 
@@ -139,8 +139,8 @@ export async function toggleStatus(
       );
     }
 
-    return { status: true };
+    return { status: true, message: "Status updated successfully" };
   } catch {
-    return { status: false, cause: "", message: "" };
+    return { status: false, cause: "Status update failed", message: "Status update failed" };
   }
 }

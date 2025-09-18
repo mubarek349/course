@@ -13,12 +13,13 @@ export default function Overview03({
 }) {
   const searchparams = useSearchParams(),
     [date, setDate] = useState<{ start: Date; end: Date } | null>(() => {
-      const startDate = searchparams.get("startDate"),
-        endDate = searchparams.get("endDate");
+      // Safely handle null searchparams
+      const startDate = searchparams?.get("startDate"),
+        endDate = searchparams?.get("endDate");
       if (startDate && endDate) {
         return {
-          start: new Date(startDate ?? null),
-          end: new Date(endDate ?? null),
+          start: new Date(startDate),
+          end: new Date(endDate),
         };
       } else return null;
     }),

@@ -15,7 +15,8 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+ const params = useParams<{ lang: string }>();
+            const lang = params?.lang || "en",
     { handleSubmit, register, formState, control, setValue, watch, trigger } =
       useForm<TAffiliateSelf>({
         resolver: zodResolver(affiliateSchemaSelf),

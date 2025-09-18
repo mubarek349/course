@@ -5,8 +5,8 @@ export default function CourseFor({
 }: {
   data: { courseForEn: string; courseForAm: string }[];
 }) {
-  const { lang } = useParams<{ lang: string }>();
-
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en";
   return (
     <div className="">
       <p className="pb-2 md:text-2xl font-extrabold ">

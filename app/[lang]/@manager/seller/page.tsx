@@ -33,7 +33,8 @@ import { getSellers, removeSeller } from "@/actions/manager/seller";
 import { CDropdownMenu } from "@/components/heroui";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>(),
+    lang = params?.lang || "en",
     pathname = usePathname(),
     [tableData, setTableData] = useState<
       TTableData & {
@@ -137,7 +138,7 @@ export default function Page() {
                   variant="light"
                   className="justify-start"
                   as={Link}
-                  href={`/${pathname.split("/")[1]}/seller/${rowData.id}`}
+                  href={`/${pathname?.split("/")[1]}/seller/${rowData.id}`}
                 >
                   {`${rowData.firstName} ${rowData.fatherName} ${rowData.lastName}`}
                 </Button>
@@ -172,7 +173,7 @@ export default function Page() {
                     color="success"
                     isIconOnly
                     as={Link}
-                    href={`/${pathname.split("/")[1]}/seller/registration/${
+                    href={`/${pathname?.split("/")[1]}/seller/registration/${
                       rowData.id
                     }`}
                   >
@@ -244,7 +245,7 @@ export default function Page() {
               color="primary"
               endContent={<Plus className="size-4" />}
               as={Link}
-              href={`/${pathname.split("/")[1]}/seller/registration`}
+              href={`/${pathname?.split("/")[1]}/seller/registration`}
             >
               Add New
             </Button>
@@ -280,7 +281,8 @@ function RemoveSeller({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params= useParams<{ lang: string}>();
+          const lang = params?.lang || "en",
     { action, isPending } = useAction(removeSeller, undefined, {
       loading: lang == "en" ? "deleting seller" : "አስተዳዳሪን በመሰረዝ ላይ",
       success:

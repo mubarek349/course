@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 // Ensure needed hooks are imported
 import React, { useEffect, useMemo, useState, useCallback } from "react";
@@ -19,7 +20,6 @@ import {
   BarChart3,
   Eye,
   EyeOff,
-  RotateCcw,
   Save,
   Zap,
 } from "lucide-react";
@@ -68,8 +68,12 @@ export default function Page() {
     args: [courseId],
   });
   const { action } = useAction(submitFinalExamAnswers, undefined, {
-    error: lang === "en" ? "Saving answer failed" : "መልስ ማስቀመጥ አልተሳካም",
-    success: lang === "en" ? "Answer saved" : "መልስ ተቀምጧል",
+    error: lang === "en" 
+      ? { title: "Failed to Save Final Exam Answer", description: "Unable to save your answer for the final examination. Please verify your internet connection and try again." }
+      : { title: "የመጨረሻ ፈተና መልስ ማስቀመጥ አልተሳካም", description: "ለመጨረሻ ፈተና መልስዎ ማስቀመጥ አልተቻለም። የኢንተርኔት ግንቡገት በማረጋገጥ እንደገና ይሞክሩ።" },
+    success: lang === "en" 
+      ? { title: "Answer Saved Successfully", description: "Your final exam answer has been recorded and automatically saved to the system." }
+      : { title: "መልስ በተሳካ ሁኔታ ተቀምጧል", description: "የመጨረሻ ፈተና መልስዎ ተመዝግቦ በሳላቢት ተቀምጧል።" },
   });
   const { data: cert, loading: certLoading } = useData({
     func: readyToCertification,
@@ -128,6 +132,7 @@ export default function Page() {
   // Initialize confidence levels
   useEffect(() => {
     setConfidenceLevels(questions.map(() => 3)); // Default medium confidence
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions.length]);
 
   useEffect(() => {
@@ -137,6 +142,7 @@ export default function Page() {
     setSubmitted(false);
     setReviewMode("paged");
     setFlaggedQuestions(new Set());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions.length]);
 
   const quizDone = status === "done";
@@ -175,14 +181,14 @@ export default function Page() {
   }, []);
 
   // Compute score for modal
-  const score = useMemo(
-    () =>
-      answers.reduce(
-        (acc, ans, idx) => acc + (ans === questions[idx]?.correctIndex ? 1 : 0),
-        0
-      ),
-    [answers, questions]
-  );
+  // const score = useMemo(
+  //   () =>
+  //     answers.reduce(
+  //       (acc, ans, idx) => acc + (ans === questions[idx]?.correctIndex ? 1 : 0),
+  //       0
+  //     ),
+  //   [answers, questions]
+  // );
 
   const q = questions[current];
   const effectiveSelected = answers[current] >= 0 ? answers[current] : selected;
@@ -202,7 +208,7 @@ export default function Page() {
             </div>
             {isFlagged && (
               <div className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
-                {lang === "en" ? "Flagged" : "የተማይዝ"}
+                {lang === "en" ? "Flagged" : "የተማይвиз"}
               </div>
             )}
           </div>
@@ -339,9 +345,9 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 overflow-hidden">
       {/* Professional Header */}
-      <div className="sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 shadow-sm">
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -403,12 +409,12 @@ export default function Page() {
         </div>
       </div>
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 h-[calc(100vh-120px)] overflow-y-auto">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
           {/* Question Panel */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 overflow-hidden">
             {!submitted ? (
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {/* Question Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -429,7 +435,7 @@ export default function Page() {
                           ? "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       }`}
-                      title={lang === "en" ? "Flag for review" : "ልሚያዌት ማይዝ"}
+                      title={lang === "en" ? "Flag for review" : "ልሚያዌት ማይвиз"}
                     >
                       <Target className="w-4 h-4" />
                     </button>
@@ -450,7 +456,7 @@ export default function Page() {
                 </div>
                 
                 {/* Question Content */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 mb-6">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg lg:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
                   <p className="text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed mb-4">
                     {q.text}
                   </p>
@@ -472,7 +478,7 @@ export default function Page() {
                   )}
                 </div>
                 {/* Answer Options */}
-                <div className="space-y-3 mb-6">
+                <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                   {q.options.map(
                     (opt: { id: string; label: string }, idx: number) => {
                       const active = effectiveSelected === idx;
@@ -481,7 +487,7 @@ export default function Page() {
                           key={opt.id}
                           onClick={() => handleOption(idx)}
                           disabled={submitted || status === "done"}
-                          className={`group w-full text-left p-4 rounded-xl border-2 transition-all duration-200 transform hover:scale-[1.02] ${
+                          className={`group w-full text-left p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all duration-200 transform hover:scale-[1.02] ${
                             active
                               ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-lg"
                               : "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-500 hover:shadow-md"
@@ -512,11 +518,11 @@ export default function Page() {
                 </div>
                 
                 {/* Confidence Level */}
-                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {lang === "en" ? "How confident are you with this answer?" : "በዚህ ምላሽ ከክኬ ስንት የማምስል አንድ አልክ?"}
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     {[1, 2, 3, 4, 5].map((level) => (
                       <button
                         key={level}
@@ -525,7 +531,7 @@ export default function Page() {
                           newLevels[current] = level;
                           setConfidenceLevels(newLevels);
                         }}
-                        className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all text-sm sm:text-base ${
                           confidenceLevels[current] === level
                             ? "border-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
                             : "border-gray-300 dark:border-gray-600 hover:border-gray-400 text-gray-500 hover:text-gray-700"
@@ -657,7 +663,7 @@ export default function Page() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                  <div className="space-y-4 sm:space-y-6 max-h-[calc(100vh-200px)] sm:max-h-[calc(100vh-300px)] overflow-y-auto pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                       {lang === "en" ? "Reviewing all questions and answers" : "ሁሉን ጥያቄዎች እና ምላሾች መመልክት"}
                     </div>
@@ -671,9 +677,9 @@ export default function Page() {
           </div>
 
           {/* Enhanced Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             {/* Exam Statistics */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -704,7 +710,7 @@ export default function Page() {
                 {flaggedQuestions.size > 0 && (
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-amber-600 dark:text-amber-400">
-                      {lang === "en" ? "Flagged" : "የተማይዝ"}
+                      {lang === "en" ? "Flagged" : "የተማይвиз"}
                     </span>
                     <span className="font-medium">{flaggedQuestions.size}</span>
                   </div>
@@ -724,7 +730,7 @@ export default function Page() {
             </div>
             
             {/* Question Navigation Grid */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
                   {lang === "en" ? "Questions" : "ጥያቄዎች"}
@@ -737,7 +743,7 @@ export default function Page() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-5 gap-2 mb-4">
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 sm:gap-2 mb-4">
                 {questions.map((qi: any, i: number) => {
                   const answered = answers[i] >= 0;
                   const currentPage = i === current;
@@ -749,7 +755,7 @@ export default function Page() {
                     <button
                       key={i}
                       onClick={() => goto(i)}
-                      className={`relative h-10 rounded-lg border-2 text-xs font-medium transition-all hover:scale-105 ${
+                      className={`relative h-8 sm:h-10 rounded-md sm:rounded-lg border-2 text-xs font-medium transition-all hover:scale-105 ${
                         currentPage
                           ? "border-blue-500 bg-blue-500 text-white shadow-lg"
                           : submitted
@@ -793,7 +799,7 @@ export default function Page() {
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-amber-500 rounded-full" />
                   <span className="text-gray-600 dark:text-gray-300">
-                    {lang === "en" ? "Flagged" : "የተማይዝ"}
+                    {lang === "en" ? "Flagged" : "የተማይвиз"}
                   </span>
                 </div>
               </div>
@@ -801,7 +807,7 @@ export default function Page() {
             
             {/* Quick Actions */}
             {!submitted && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl lg:rounded-2xl shadow-lg border border-slate-200 dark:border-gray-700 p-4 sm:p-6">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
                   {lang === "en" ? "Quick Actions" : "ፍጣን መጠብባዎች"}
                 </h3>
@@ -841,10 +847,10 @@ export default function Page() {
 
       {/* Enhanced Congratulations Modal */}
       {submitted && showCongrats && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-slate-200 dark:border-gray-700 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-sm sm:max-w-lg bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-gray-700 overflow-hidden my-auto">
             {/* Header with gradient */}
-            <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 p-6 text-white relative">
+            <div className="bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 p-4 sm:p-6 text-white relative">
               <button
                 onClick={() => setShowCongrats(false)}
                 className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
@@ -868,7 +874,7 @@ export default function Page() {
             </div>
             
             {/* Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Score Display */}
               {!certLoading && cert && (
                 <div className="space-y-4">

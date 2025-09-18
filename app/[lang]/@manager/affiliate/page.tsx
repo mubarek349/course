@@ -33,7 +33,8 @@ import {
 } from "@internationalized/date";
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params= useParams<{ lang: string}>();
+      const lang = params?.lang || "en",
     pathname = usePathname(),
     [tableData, setTableData] = useState<
       TTableData & {
@@ -143,7 +144,7 @@ export default function Page() {
                   variant="light"
                   className="justify-start"
                   as={Link}
-                  href={`/${pathname.split("/")[1]}/affiliate/${rowData.id}`}
+                  href={`/${pathname?.split("/")[1]}/affiliate/${rowData.id}`}
                 >
                   {`${rowData.firstName} ${rowData.fatherName} ${rowData.lastName}`}
                 </Button>
@@ -167,7 +168,7 @@ export default function Page() {
                     color="success"
                     isIconOnly
                     as={Link}
-                    href={`/${pathname.split("/")[1]}/affiliate/registration/${
+                    href={`/${pathname?.split("/")[1]}/affiliate/registration/${
                       rowData.id
                     }`}
                   >
@@ -264,7 +265,7 @@ export default function Page() {
               color="primary"
               endContent={<Plus className="size-4" />}
               as={Link}
-              href={`/${pathname.split("/")[1]}/affiliate/registration`}
+              href={`/${pathname?.split("/")[1]}/affiliate/registration`}
             >
               Add New
             </Button>
@@ -310,7 +311,9 @@ function RemoveAffiliate({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const { lang } = useParams<{ lang: string }>(),
+  const params= useParams<{ lang: string}>();
+      const lang = params?.lang || "en",
+      
     { action, isPending } = useAction(removeAffiliate, undefined, {
       loading: lang == "en" ? "deleting affiliate" : "አስተዳዳሪን በመሰረዝ ላይ",
       success:

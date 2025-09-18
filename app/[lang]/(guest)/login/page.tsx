@@ -17,7 +17,8 @@ const formSchema = z.object({
 });
 
 export default function Page() {
-  const { lang } = useParams<{ lang: string }>(),
+  const params = useParams<{ lang: string }>(),
+      lang = params?.lang ?? "en",
     searchParams = useSearchParams(),
     { handleSubmit, register, formState } = useForm<z.infer<typeof formSchema>>(
       {
@@ -38,12 +39,14 @@ export default function Page() {
     });
 
   useEffect(() => {
-    const userName = searchParams.get("u"),
-      password = searchParams.get("p");
-    if (userName && password) {
-      action({ userName, password });
+    if (searchParams !== null) {
+      const userName = searchParams.get("u"),
+        password = searchParams.get("p");
+      if (userName && password) {
+        action({ userName, password });
+      }
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <div className="h-dvh p-4 grid content-center md:justify-center">

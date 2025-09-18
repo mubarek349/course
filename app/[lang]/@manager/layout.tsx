@@ -18,7 +18,8 @@ import useData from "@/hooks/useData";
 import { getPermission } from "@/actions/manager/manager";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { lang } = useParams<{ lang: string }>(),
+ const params= useParams<{ lang: string }>();
+         const lang = params?.lang || "en",
     pathname = usePathname(),
     router = useRouter(),
     { data: permission } = useData({
@@ -26,7 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       args: [],
       onSuccess(data) {
         const p = data.map((v) => v.permission);
-        if (!p.includes(pathname.split("/")[2] ?? "")) {
+        if (!p.includes(pathname?.split("/")[2] ?? "")) {
           router.replace(`/${lang}/${p[0] ?? ""}`);
         }
       },

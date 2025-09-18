@@ -6,13 +6,12 @@ import React from "react";
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button, Link } from "@heroui/react";
 
 export default function Page() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang ?? "en";
-  const searchParams = useSearchParams();
   const { data, loading } = useData({
     func: getCoursesForCustomer,
     args: [],

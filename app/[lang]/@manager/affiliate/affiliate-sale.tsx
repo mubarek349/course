@@ -26,10 +26,10 @@ export default function SalesChart() {
 
   useEffect(() => {
     setDate({
-      start: searchParams.get("start")
+      start: searchParams?.get("start")
         ? new Date(searchParams.get("start")!)
         : new Date(),
-      end: searchParams.get("end")
+      end: searchParams?.get("end")
         ? new Date(searchParams.get("end")!)
         : new Date(),
     });

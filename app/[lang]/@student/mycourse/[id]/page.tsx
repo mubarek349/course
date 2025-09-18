@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   PanelRightOpen,
-  PanelRightClose,
   PlayCircle,
   CheckCircle2,
   Sparkles,
@@ -13,6 +13,7 @@ import {
   Trophy,
   Lock,
   Circle,
+  MessageCircle,
 } from "lucide-react";
 import { Accordion, AccordionItem, Skeleton, Tabs, Tab } from "@heroui/react";
 
@@ -27,6 +28,8 @@ import {
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseTopOverview from "@/components/courseTopOverview";
+import TraditionalQA from "@/components/TraditionalQA";
+import AIAssistant from "@/components/AIAssistant";
 import { useSession } from "next-auth/react";
 
 // ---------------- COURSE CONTENT COMPONENT ----------------
@@ -42,7 +45,7 @@ function CourseContent({
 }: {
   contentData: any;
   contentLoading: boolean;
-  onSelectVideo: (url: string, title: string) => void;
+  onSelectVideo: (url: string, title: string, subActivityId?: string) => void;
   lang: string;
   currentVideoUrl: string;
   courseId: string;
@@ -50,14 +53,16 @@ function CourseContent({
   examStatus: string;
 }) {
   const router = useRouter();
-  const [activityQuizStatuses, setActivityQuizStatuses] = useState<Record<string, string>>({});
+  const [activityQuizStatuses, setActivityQuizStatuses] = useState<
+    Record<string, string>
+  >({});
   const [statusesLoading, setStatusesLoading] = useState(false);
 
   // Fetch quiz statuses for all activities
   useEffect(() => {
     const fetchQuizStatuses = async () => {
       if (!contentData?.activity || statusesLoading) return;
-      
+
       setStatusesLoading(true);
       try {
         const statusPromises = contentData.activity
@@ -66,34 +71,35 @@ function CourseContent({
             const status = await getActivityQuizStatus(activity.id);
             return { activityId: activity.id, status };
           });
-        
+
         const results = await Promise.all(statusPromises);
         const statusMap = results.reduce((acc, { activityId, status }) => {
           acc[activityId] = status;
           return acc;
         }, {} as Record<string, string>);
-        
+
         setActivityQuizStatuses(statusMap);
       } catch (error) {
-        console.error('Error fetching quiz statuses:', error);
+        console.error("Error fetching quiz statuses:", error);
       } finally {
         setStatusesLoading(false);
       }
     };
 
     fetchQuizStatuses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentData?.activity]);
 
   // Function to refresh quiz status for a specific activity
   const refreshActivityQuizStatus = async (activityId: string) => {
     try {
       const status = await getActivityQuizStatus(activityId);
-      setActivityQuizStatuses(prev => ({
+      setActivityQuizStatuses((prev) => ({
         ...prev,
-        [activityId]: status
+        [activityId]: status,
       }));
     } catch (error) {
-      console.error('Error refreshing quiz status:', error);
+      console.error("Error refreshing quiz status:", error);
     }
   };
 
@@ -126,7 +132,8 @@ function CourseContent({
         onClick={() =>
           onSelectVideo(
             contentData.video,
-            lang === "en" ? contentData.titleEn : contentData.titleAm
+            lang === "en" ? contentData.titleEn : contentData.titleAm,
+            "" // Introduction video
           )
         }
       >
@@ -170,12 +177,14 @@ function CourseContent({
               <div className="w-3 h-3 border border-slate-400 border-t-purple-500 rounded-full animate-spin" />
               <span>{lang === "en" ? "Updating..." : "በመዘመን ላይ..."}</span>
             </div>
+          ) : lang === "en" ? (
+            "Refresh Status"
           ) : (
-            lang === "en" ? "Refresh Status" : "ሁኔታ አድስ"
+            "ሁኔታ አድስ"
           )}
         </button>
       </div>
-      
+
       <Accordion selectionMode="multiple" defaultExpandedKeys={["0"]}>
         {contentData.activity.map((activity: any, index: number) => (
           <AccordionItem
@@ -194,7 +203,8 @@ function CourseContent({
                     onClick={() =>
                       onSelectVideo(
                         sub.video,
-                        lang === "en" ? sub.titleEn : sub.titleAm
+                        lang === "en" ? sub.titleEn : sub.titleAm,
+                        sub.id
                       )
                     }
                     className={`flex items-center gap-2 cursor-pointer p-3 rounded ${
@@ -227,7 +237,7 @@ function CourseContent({
                     <Sparkles className="text-purple-500" />
                     <span>{lang === "en" ? "Quiz" : "ፈተና"}</span>
                   </div>
-                  
+
                   {/* Quiz Status Indicator */}
                   <div className="flex items-center gap-2">
                     {statusesLoading ? (
@@ -237,7 +247,7 @@ function CourseContent({
                         {(() => {
                           const status = activityQuizStatuses[activity.id];
                           switch (status) {
-                            case 'done':
+                            case "done":
                               return (
                                 <div className="flex items-center gap-1">
                                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -246,7 +256,7 @@ function CourseContent({
                                   </span>
                                 </div>
                               );
-                            case 'partial':
+                            case "partial":
                               return (
                                 <div className="flex items-center gap-1">
                                   <div className="w-4 h-4 rounded-full border-2 border-amber-500">
@@ -257,7 +267,7 @@ function CourseContent({
                                   </span>
                                 </div>
                               );
-                            case 'not-done':
+                            case "not-done":
                               return (
                                 <div className="flex items-center gap-1">
                                   <Circle className="w-4 h-4 text-slate-400" />
@@ -266,7 +276,7 @@ function CourseContent({
                                   </span>
                                 </div>
                               );
-                            case 'no-quiz':
+                            case "no-quiz":
                               return (
                                 <span className="text-xs text-slate-400">
                                   {lang === "en" ? "No Quiz" : "ፈተና የለም"}
@@ -298,15 +308,17 @@ function CourseContent({
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 shadow-lg">
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-r from-sky-500/10 via-purple-500/10 to-emerald-500/10 dark:from-sky-400/10 dark:via-purple-400/10 dark:to-emerald-400/10" />
-          
+
           <div className="relative p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
-                  finalExamLocked
-                    ? "bg-gradient-to-br from-amber-400 to-orange-500"
-                    : "bg-gradient-to-br from-emerald-400 to-teal-500"
-                }`}>
+                <div
+                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                    finalExamLocked
+                      ? "bg-gradient-to-br from-amber-400 to-orange-500"
+                      : "bg-gradient-to-br from-emerald-400 to-teal-500"
+                  }`}
+                >
                   {finalExamLocked ? (
                     <Lock className="w-7 h-7 text-white" />
                   ) : (
@@ -315,54 +327,70 @@ function CourseContent({
                   {/* Shine effect */}
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-white/30 to-transparent" />
                 </div>
-                
+
                 <div>
                   <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">
                     {lang === "en" ? "Final Exam" : "የመጨረሻ ፈተና"}
                   </h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                     {finalExamLocked
-                      ? lang === "en" 
+                      ? lang === "en"
                         ? "Complete all activities to unlock"
                         : "ሁሉንም እንቅስቃሴዎች ይጨርሱ"
                       : examStatus === "done"
-                      ? lang === "en" ? "Exam completed successfully" : "ፈተናው በተሳካ ሁኔታ ተጠናቋል"
+                      ? lang === "en"
+                        ? "Exam completed successfully"
+                        : "ፈተናው በተሳካ ሁኔታ ተጠናቋል"
                       : examStatus === "partial"
-                      ? lang === "en" ? "Resume your exam" : "ፈተናዎን ይቀጥሉ"
-                      : lang === "en" ? "Test your knowledge" : "እውቀትዎን ይሞክሩ"}
+                      ? lang === "en"
+                        ? "Resume your exam"
+                        : "ፈተናዎን ይቀጥሉ"
+                      : lang === "en"
+                      ? "Test your knowledge"
+                      : "እውቀትዎን ይሞክሩ"}
                   </p>
-                  
+
                   {/* Progress indicator for exam status */}
                   {!finalExamLocked && (
                     <div className="flex items-center gap-2 mt-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        examStatus === "done" 
-                          ? "bg-emerald-500" 
-                          : examStatus === "partial"
-                          ? "bg-amber-500"
-                          : "bg-slate-300"
-                      }`} />
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          examStatus === "done"
+                            ? "bg-emerald-500"
+                            : examStatus === "partial"
+                            ? "bg-amber-500"
+                            : "bg-slate-300"
+                        }`}
+                      />
                       <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                        {examStatus === "done" 
-                          ? lang === "en" ? "Completed" : "ተጠናቋል"
+                        {examStatus === "done"
+                          ? lang === "en"
+                            ? "Completed"
+                            : "ተጠናቋል"
                           : examStatus === "partial"
-                          ? lang === "en" ? "In Progress" : "በሂደት ላይ"
-                          : lang === "en" ? "Not Started" : "አልተጀመረም"}
+                          ? lang === "en"
+                            ? "In Progress"
+                            : "በሂደት ላይ"
+                          : lang === "en"
+                          ? "Not Started"
+                          : "አልተጀመረም"}
                       </span>
                     </div>
                   )}
                 </div>
               </div>
-              
+
               <div className="flex flex-col items-end gap-2">
                 {!finalExamLocked ? (
                   <button
-                    onClick={() => router.push(`/${lang}/mycourse/${courseId}/finalexam`)}
+                    onClick={() =>
+                      router.push(`/${lang}/mycourse/${courseId}/finalexam`)
+                    }
                     className="group relative px-6 py-3 rounded-xl font-semibold text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 active:scale-95 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500"
                   >
                     {/* Button shine effect */}
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
+
                     <span className="relative flex items-center gap-2">
                       {examStatus === "done" ? (
                         <>
@@ -390,10 +418,12 @@ function CourseContent({
                     </span>
                   </div>
                 )}
-                
+
                 {/* Small info text */}
                 <p className="text-xs text-slate-500 dark:text-slate-400 text-right max-w-32">
-                  {lang === "en" ? "Certification available" : "የምስክር ወረቀት ይገኛል"}
+                  {lang === "en"
+                    ? "Certification available"
+                    : "የምስክር ወረቀት ይገኛል"}
                 </p>
               </div>
             </div>
@@ -406,7 +436,6 @@ function CourseContent({
 
 // ---------------- MAIN PAGE ----------------
 export default function Page() {
-  const router = useRouter();
   const params = useParams<{ lang: string; id: string }>();
   const lang = params?.lang || "en";
   const courseId = params?.id || "";
@@ -435,7 +464,11 @@ export default function Page() {
 
   const finalExamLocked = Boolean((locks as any)?.finalExamLocked);
 
-  const [currentVideo, setCurrentVideo] = useState({ url: "", title: "" });
+  const [currentVideo, setCurrentVideo] = useState({
+    url: "",
+    title: "",
+    subActivityId: "",
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -443,12 +476,21 @@ export default function Page() {
       setCurrentVideo({
         url: data.video,
         title: lang === "en" ? data.titleEn : data.titleAm,
+        subActivityId: "", // Introduction video doesn't have subActivityId
       });
     }
   }, [data, lang]);
 
-  const handleSelectVideo = (videoUrl: string, videoTitle: string) => {
-    setCurrentVideo({ url: videoUrl, title: videoTitle });
+  const handleSelectVideo = (
+    videoUrl: string,
+    videoTitle: string,
+    subActivityId?: string
+  ) => {
+    setCurrentVideo({
+      url: videoUrl,
+      title: videoTitle,
+      subActivityId: subActivityId || "",
+    });
     setIsSidebarOpen(false);
   };
 
@@ -472,34 +514,74 @@ export default function Page() {
       ),
       className: "md:hidden", // hide on desktop
     },
-    // AI Assistant (mobile only)
+    // Traditional Q&A
     {
-      id: "ai",
-      label: "AI Assistant",
+      id: "qa",
+      label: lang === "en" ? "Q&A" : "ጥያቄ እና መልስ",
       content: (
-        <div className="p-4 flex items-center gap-2">
-          <Sparkles className="text-purple-500" />
-          <span>AI Assistant coming soon.</span>
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md sm:rounded-lg md:rounded-xl shadow-lg flex-shrink-0">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
+                  {lang === "en" ? "Questions & Answers" : "ጥያቄዎች እና መልሶች"}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
+                  {lang === "en"
+                    ? "Ask questions and get answers from instructors"
+                    : "ጥያቄዎችን ጠይቁ እና ከአስተማሪዎች መልሶችን ያግኙ"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
+            <TraditionalQA courseId={courseId} lang={lang} />
+          </div>
         </div>
       ),
-      // className: "md:hidden", // hide on desktop
     },
-    // Q&A (always visible)
+    // AI Assistant
     {
-      id: "q&a",
-      label: lang === "en" ? "Q&A" : "ጥያቄ እና መልስ",
-      content: <div className="p-4">Q&A section coming soon.</div>,
+      id: "ai",
+      label: lang === "en" ? "AI Assistant" : "AI ረዳት",
+      content: (
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-purple-900/20 rounded-lg sm:rounded-xl md:rounded-2xl border border-purple-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-purple-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-md sm:rounded-lg md:rounded-xl shadow-lg flex-shrink-0">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+                  {lang === "en" ? "AI Assistant" : "AI ረዳት"}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
+                  {lang === "en"
+                    ? "Get instant AI-powered answers about the course"
+                    : "ስለ ኮርሱ ፈጣን AI-ተኮር መልሶችን ያግኙ"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
+            <AIAssistant courseId={courseId} lang={lang} />
+          </div>
+        </div>
+      ),
     },
   ];
 
   return (
-    <div className="h-dvh">
+    <div className="h-dvh overflow-hidden">
       {loading ? (
         <Loading />
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="h-full flex flex-col relative">
+        <div className="h-full flex flex-col">
           {/* MAIN CONTENT */}
           <div className="flex-1 overflow-y-auto">
             {/* SIDEBAR TOGGLE (desktop only) */}
@@ -512,28 +594,47 @@ export default function Page() {
             </button>
 
             {/* COURSE OVERVIEW WITH VIDEO */}
-            <CourseTopOverview
-              {...{
-                title: currentVideo.title,
-                by: `${data.instructor.firstName} ${data.instructor.fatherName}`,
-                thumbnail: data.thumbnail,
-                video: currentVideo.url,
-              }}
-            />
+            <div className="flex-shrink-0">
+              <CourseTopOverview
+                {...{
+                  title: currentVideo.title,
+                  by: `${data.instructor.firstName} ${data.instructor.fatherName}`,
+                  thumbnail: data.thumbnail,
+                  video: currentVideo.url,
+                }}
+              />
+            </div>
 
             {/* COURSE TABS */}
-            <div className="p-4 md:p-8">
-              <Tabs aria-label="Course Information" items={courseTabs}>
-                {(item) => (
-                  <Tab
-                    key={item.id}
-                    title={item.label}
-                    className={item.className}
-                  >
-                    <div className="py-4">{item.content}</div>
-                  </Tab>
-                )}
-              </Tabs>
+            <div className="flex-1 min-h-0">
+              <div className="p-0 sm:p-4 md:p-8 h-full">
+                <div className="h-full flex flex-col">
+                  <div className="flex">
+                    <div className="w-auto">
+                      <Tabs
+                        aria-label="Course Information"
+                        items={courseTabs}
+                        className="w-auto"
+                      >
+                        {(item) => (
+                          <Tab
+                            key={item.id}
+                            title={item.label}
+                            className={item.className}
+                          >
+                            <div className="p-2 sm:py-4 flex-1 min-h-0 overflow-y-auto h-full">
+                              <div className="h-full flex flex-col max-w-4xl mx-auto">
+                                {item.content}
+                              </div>
+                            </div>
+                          </Tab>
+                        )}
+                      </Tabs>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
           </div>
 
@@ -567,7 +668,6 @@ export default function Page() {
           )}
         </div>
       )}
-
     </div>
   );
 }

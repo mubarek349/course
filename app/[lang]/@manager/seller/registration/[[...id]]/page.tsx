@@ -16,7 +16,9 @@ import { ChevronLeft } from "lucide-react";
 import { CInput, CSelect, CSelectItem } from "@/components/heroui";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id?: string[] }>(),
+  const params= useParams<{ lang: string ,id?:string[]}>();
+        const lang = params?.lang || "en",
+        id = params?.id,
     router = useRouter(),
     { handleSubmit, register, setValue, formState } = useForm<TSeller>({
       resolver: zodResolver(sellerSchema),

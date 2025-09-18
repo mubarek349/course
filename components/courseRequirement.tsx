@@ -5,7 +5,8 @@ export default function CourseRequirement({
 }: {
   data: { requirementEn: string; requirementAm: string }[];
 }) {
-  const { lang } = useParams<{ lang: string }>();
+  const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en";
 
   return (
     <div className="">

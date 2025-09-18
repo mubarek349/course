@@ -18,8 +18,9 @@ export default function UserStatusToggle({
       onSuccess() {
         refresh();
       },
-    }),
-    { lang } = useParams<{ lang: string }>();
+    });
+    const params = useParams<{ lang: string }>();
+             const lang = params?.lang || "en";
 
   return (
     <div className="grid place-content-center">

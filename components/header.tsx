@@ -38,10 +38,10 @@ export default function Header({
           </BreadcrumbItem>
           <BreadcrumbItem
             as={Link}
-            href={`/${pathname.split("/")[2]}`}
+            href={`/${pathname?.split("/")[2]}`}
             className="capitalize"
           >
-            {pathname.split("/")[2]}
+            {pathname?.split("/")[2]}
           </BreadcrumbItem>
         </Breadcrumbs>
       </div>

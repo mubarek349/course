@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import useAction from "@/hooks/useAction";
 import useData from "@/hooks/useData";
@@ -7,7 +8,7 @@ import {
   getActivityQuizStatus,
   unlockTheFinalExamAndQuiz,
   readyToCertification,
-  clearStudentQuizAnswers,
+  
 } from "@/actions/student/mycourse";
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -38,25 +39,18 @@ export default function Page() {
     func: getActivityQuiz,
     args: [activityId],
   });
-  const { action, isPending } = useAction(saveStudentQuizAnswers, undefined, {
-    error: lang == "en" ? "Sending message failed" : "መልእክት መላክ አልተሳካም",
-    success: lang == "en" ? "Message sent successfully" : "መልእክት በተሳካ ሁኔታ ተልኳል",
+  const { action } = useAction(saveStudentQuizAnswers, undefined, {
+    error: lang == "en" 
+      ? { title: "Failed to Save Answer", description: "Your quiz answer could not be saved. Please check your connection and try again." }
+      : { title: "መልስ ማስቀመጥ አልተሳካም", description: "የፈተና መልስዎ ሊቀመጥ አልተቻለም። ግንኙነትዎን በማረጋገጥ እንደገና ይሞክሩ።" },
+    success: lang == "en" 
+      ? { title: "Answer Saved Successfully", description: "Your quiz answer has been recorded and saved automatically." }
+      : { title: "መልስ በተሳካ ሁኔታ ተቀምጧል", description: "የፈተና መልስዎ በራስ-ሰር ተመዝግቦ ተቀምጧል።" },
   });
 
-  const { action: clearAction, isPending: isClearPending } = useAction(
-    clearStudentQuizAnswers,
-    undefined,
-    {
-      error:
-        lang == "en"
-          ? "Failed to clear quiz answers"
-          : "የፈተና መልሶች መደምሰስ አልተሳካም",
-      success:
-        lang == "en" ? "Quiz cleared successfully" : "ፈተና በተሳካ ሁኔታ ተደምስሷል",
-    }
-  );
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: quizStatus, loading: quizStatusLoading } = useData({
+  const { data: quizStatus, loading: quizStatusLoading } = useData({  // eslint-disable-line @typescript-eslint/no-unused-vars
     func: getActivityQuizStatus,
     args: [activityId],
   });
@@ -281,33 +275,29 @@ export default function Page() {
 
   const handleQuit = () => router.back();
 
-  // Handle retake quiz function
-  const handleRetakeQuiz = async () => {
+  // Handle update quiz function
+  const handleUpdateQuiz = async () => {
     // Show confirmation dialog
-    const confirmMessage =
-      lang === "en"
-        ? "Are you sure you want to retake this quiz? This will clear all your previous answers and you'll start fresh."
-        : "የዚህን ፈተና እንደገና መውሰድ ይፈልጋሉ? የዚህ ሁሉ የተቀደሙ መልሶች ይጠቓል እና ከመጀመሪ ይጀምራሉ።";
-
+    const confirmMessage = lang === "en" 
+      ? "Are you sure you want to update this quiz?\n\nThis action will allow you to modify your previous answers and update your progress. You can continue from where you left off or make changes to your responses.\n\nYour progress will be updated accordingly."
+      : "የዚህን ፈተና ማዘመን ይፈልጋሉ?\n\nይህ እርምጃ የተቀደሙ መልሶችዎን እንዲቀይሩ እና የእድገትዎን እንዲያዘምኑ ያስችልዎታል። ከተቀረቡበት ቦታ መቀጠል ወይም በመልሶችዎ ላይ ለውጦች ማድረግ ይችላሉ።\n\nየእድገትዎ በዚሁ መሰረት ይዘመናል።";
+    
     if (!window.confirm(confirmMessage)) {
       return;
     }
 
     try {
-      // Clear answers from database
-      await clearAction({ activityId });
-
-      // Reset local state
-      setCurrent(0);
-      setSelected(null);
-      setAnswers(Array(questions.length).fill(-1));
+      setIsUpdating(true);
+      
+      // Update local state to allow modifications
       setShowResult(false);
       setShowFeedback(false);
-
-      // Force refresh of the quiz data to get clean questions
+      
+      // Refresh the quiz data to get current state
       window.location.reload();
     } catch (error) {
-      console.error("Error during quiz retake:", error);
+      console.error('Error during quiz update:', error);
+      setIsUpdating(false);
     }
   };
 
@@ -332,133 +322,118 @@ export default function Page() {
     const coins = score * 250;
     const perfect = score === total;
     return (
-      <div className="min-h-screen bg-background text-foreground py-4 px-4">
-        <div className="max-w-md mx-auto h-full flex flex-col">
-          <div className="relative bg-background border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex-1 flex flex-col">
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
+      <div className="h-full flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-md mx-auto p-4">
+            <div className="relative bg-background border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden">
+              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
 
-            <div className="relative z-10 flex-1 overflow-y-auto p-6">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="w-24 h-24 rounded-full bg-yellow-400/15 flex items-center justify-center">
-                  <Trophy className="w-14 h-14 text-yellow-500 dark:text-yellow-400" />
-                </div>
-                <h2 className="text-2xl font-bold">
-                  {perfect ? "Winner!" : "Quiz Result"}
-                </h2>
-                <p className="text-slate-600 dark:text-slate-300 max-w-sm">
-                  {perfect
-                    ? "Outstanding performance."
-                    : "Great job completing the quiz. Keep practicing!"}
-                </p>
-
-                <div className="flex items-baseline gap-2 mt-2">
-                  <span className="uppercase tracking-wide text-slate-500 dark:text-slate-400 text-xs">
-                    Your Score
-                  </span>
-                  <span className="text-3xl font-extrabold">{score}</span>
-                  <span className="text-xl text-slate-500 dark:text-slate-400">
-                    / {total}
-                  </span>
-                </div>
-
-                <div className="mt-2 text-sm text-slate-700 dark:text-slate-300">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-3 py-1">
-                    <Sparkles className="w-4 h-4" /> Earned Coins:{" "}
-                    <b>{coins}</b>
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 w-full mt-6">
-                  <button
-                    onClick={() =>
-                      window.navigator.share?.({
-                        title: "Quiz Result",
-                        text: `I scored ${score}/${total}!`,
-                      })
-                    }
-                    className="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-                  >
-                    Share Results
-                  </button>
-                  <button
-                    onClick={handleRetakeQuiz}
-                    disabled={isClearPending}
-                    className="px-4 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isClearPending ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>
-                          {lang === "en" ? "Clearing..." : "በመድረስ ላይ..."}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <RotateCcw className="w-4 h-4" />
-                        <span>
-                          {lang === "en" ? "Retake Quiz" : "ፈተናን እንደገና ያውስዱ"}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Next Quiz Button */}
-                {nextActivityId && (
-                  <div className="w-full mt-4">
-                    <button
-                      onClick={() => {
-                        if (nextActivityId.id === "finalexam") {
-                          router.push(
-                            `/${lang}/mycourse/${courseId}/finalexam`
-                          );
-                        } else {
-                          router.push(
-                            `/${lang}/mycourse/${courseId}/${nextActivityId.id}`
-                          );
-                        }
-                      }}
-                      className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
-                    >
-                      <div className="flex items-center gap-2">
-                        {nextActivityId.id === "finalexam" ? (
-                          <Trophy className="w-5 h-5" />
-                        ) : (
-                          <Sparkles className="w-5 h-5" />
-                        )}
-                        <span>
-                          {lang === "en"
-                            ? `Go to ${
-                                nextActivityId.id === "finalexam"
-                                  ? "Final Exam"
-                                  : "Next Quiz"
-                              }`
-                            : `ወደ ${
-                                nextActivityId.id === "finalexam"
-                                  ? "የመጨረሻ ፈተና"
-                                  : "ቀጣይ ፈተና"
-                              }`}
-                        </span>
-                      </div>
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-
-                    {/* Next quiz title */}
-                    <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
-                      {nextActivityId.id !== "finalexam" &&
-                        (lang === "en"
-                          ? nextActivityId.titleEn
-                          : nextActivityId.titleAm)}
-                    </p>
+              <div className="relative z-10 p-6">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="w-24 h-24 rounded-full bg-yellow-400/15 flex items-center justify-center">
+                    <Trophy className="w-14 h-14 text-yellow-500 dark:text-yellow-400" />
                   </div>
-                )}
+                  <h2 className="text-2xl font-bold">
+                    {perfect ? "Winner!" : "Quiz Result"}
+                  </h2>
+                  <p className="text-slate-600 dark:text-slate-300 max-w-sm">
+                    {perfect
+                      ? "Outstanding performance."
+                      : "Great job completing the quiz. Keep practicing!"}
+                  </p>
 
-                <button
-                  onClick={handleQuit}
-                  className="mt-3 inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                >
-                  <X className="w-4 h-4" /> Close
-                </button>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <span className="uppercase tracking-wide text-slate-500 dark:text-slate-400 text-xs">
+                      Your Score
+                    </span>
+                    <span className="text-3xl font-extrabold">{score}</span>
+                    <span className="text-xl text-slate-500 dark:text-slate-400">
+                      / {total}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-3 py-1">
+                      <Sparkles className="w-4 h-4" /> Earned Coins: <b>{coins}</b>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 w-full mt-6">
+                    <button
+                      onClick={() =>
+                        window.navigator.share?.({
+                          title: "Quiz Result",
+                          text: `I scored ${score}/${total}!`,
+                        })
+                      }
+                      className="px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    >
+                      Share Results
+                    </button>
+                    <button
+                      onClick={handleUpdateQuiz}
+                      disabled={isUpdating}
+                      className="px-4 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>{lang === "en" ? "Updating..." : "በማዘመን ላይ..."}</span>
+                        </>
+                      ) : (
+                        <>
+                          <RotateCcw className="w-4 h-4" />
+                          <span>{lang === "en" ? "Update Quiz" : "ፈተናን አዘምን"}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Next Quiz Button */}
+                  {nextActivityId && (
+                    <div className="w-full mt-4">
+                      <button
+                        onClick={() => {
+                          if (nextActivityId.id === 'finalexam') {
+                            router.push(`/${lang}/mycourse/${courseId}/finalexam`);
+                          } else {
+                            router.push(`/${lang}/mycourse/${courseId}/${nextActivityId.id}`);
+                          }
+                        }}
+                        className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
+                      >
+                        <div className="flex items-center gap-2">
+                          {nextActivityId.id === 'finalexam' ? (
+                            <Trophy className="w-5 h-5" />
+                          ) : (
+                            <Sparkles className="w-5 h-5" />
+                          )}
+                          <span>
+                            {lang === "en" 
+                              ? `Go to ${nextActivityId.id === 'finalexam' ? 'Final Exam' : 'Next Quiz'}`
+                              : `ወደ ${nextActivityId.id === 'finalexam' ? 'የመጨረሻ ፈተና' : 'ቀጣይ ፈተና'}`
+                            }
+                          </span>
+                        </div>
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                      
+                      {/* Next quiz title */}
+                      <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        {nextActivityId.id !== 'finalexam' && (
+                          lang === "en" ? nextActivityId.titleEn : nextActivityId.titleAm
+                        )}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleQuit}
+                    className="mt-3 inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  >
+                    <X className="w-4 h-4" /> Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -474,9 +449,9 @@ export default function Page() {
           <div className="relative bg-background border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex-1 flex flex-col">
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
 
-            <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+            <div className="relative z-10">
               {/* Scrollable Content Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {/* Certificate CTA */}
                 {cert?.status && (
                   <div className="rounded-2xl border border-emerald-300/50 bg-emerald-50 dark:bg-emerald-900/20 p-3 flex items-center justify-between">
@@ -488,7 +463,9 @@ export default function Page() {
                     </div>
                     <button
                       onClick={() =>
-                        router.push(`/${lang}/mycourse/${courseId}/certificate`)
+                        router.push(
+                          `/${lang}/mycourse/${courseId}/certificate`
+                        )
                       }
                       className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
                     >
@@ -500,8 +477,8 @@ export default function Page() {
                 {/* Lock notice */}
                 {isLocked && (
                   <div className="rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-800 dark:text-amber-300 text-sm">
-                    This quiz is locked. Please complete previous quizzes to
-                    unlock it.
+                    This quiz is locked. Please complete previous quizzes to unlock
+                    it.
                   </div>
                 )}
 
@@ -573,8 +550,7 @@ export default function Page() {
                             <X className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                           );
                         } else {
-                          style =
-                            "border-slate-300 dark:border-slate-700 opacity-60";
+                          style = "border-slate-300 dark:border-slate-700 opacity-60";
                         }
                       } else if (isSelected) {
                         style = "border-sky-500 bg-sky-100 dark:bg-sky-500/10";
@@ -587,7 +563,9 @@ export default function Page() {
                         <button
                           key={idx}
                           onClick={() => handleOption(idx)}
-                          disabled={isLocked}
+                          disabled={
+                            isLocked
+                          }
                           className={`${base} ${style} ${
                             isLocked ? "opacity-60 cursor-not-allowed" : ""
                           }`}
@@ -623,7 +601,7 @@ export default function Page() {
               </div>
 
               {/* Fixed Footer Actions */}
-              <div className="relative z-10 border-t border-slate-200 dark:border-slate-700 bg-background/95 backdrop-blur-sm p-6">
+              <div className="border-t border-slate-200 dark:border-slate-700 bg-background/95 backdrop-blur-sm p-6sticky bottom-0 z-10">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={handleQuit}
@@ -642,8 +620,7 @@ export default function Page() {
                     <button
                       onClick={handleNext}
                       disabled={
-                        isLocked ||
-                        (selected === null && !canAdvanceWithoutSelect)
+                        isLocked || (selected === null && !canAdvanceWithoutSelect)
                       }
                       className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold disabled:opacity-50 inline-flex items-center gap-2"
                     >
@@ -657,116 +634,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-
-      {/* Add the chat assistant floating widget */}
-      <ChatAssistant />
-    </>
-  );
-}
-
-// Add ChatAssistant component
-function ChatAssistant() {
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>(
-    []
-  );
-  const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const newMessages = [...messages, { role: "user", content: input }];
-    setMessages(newMessages);
-    setInput("");
-    // Optionally focus input after send
-    inputRef.current?.focus();
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages }),
-      });
-      const data = await res.json();
-      if (data.reply) {
-        setMessages((prev) => [...prev, data.reply]);
-      }
-    } catch (e) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Sorry, I couldn't reply right now." },
-      ]);
-    }
-  };
-
-  return (
-    <>
-      {/* Floating chat button */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl"
-          aria-label="Open AI Assistant"
-        >
-          💬
-        </button>
-      )}
-      {/* Chat window */}
-      {open && (
-        <div className="fixed bottom-6 right-6 z-50 w-80 max-w-[95vw] bg-white border border-slate-300 rounded-xl shadow-2xl flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-blue-600 rounded-t-xl">
-            <span className="text-white font-semibold">AI Assistant</span>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-white hover:text-slate-200 text-xl"
-              aria-label="Close chat"
-            >
-              ×
-            </button>
-          </div>
-          <div
-            className="flex-1 p-3 overflow-y-auto"
-            style={{ maxHeight: 320 }}
-          >
-            {messages.length === 0 && (
-              <div className="text-slate-400 text-sm text-center mt-8">
-                How can I help you?
-              </div>
-            )}
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`mb-2 text-sm ${
-                  m.role === "user"
-                    ? "text-blue-700 text-right"
-                    : "text-green-700 text-left"
-                }`}
-              >
-                <b>{m.role === "user" ? "You" : "AI"}:</b> {m.content}
-              </div>
-            ))}
-          </div>
-          <div className="flex border-t border-slate-200">
-            <input
-              ref={inputRef}
-              className="flex-1 p-2 rounded-bl-xl outline-none"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage();
-              }}
-              placeholder="Type your question…"
-            />
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-br-xl"
-              onClick={sendMessage}
-              disabled={!input.trim()}
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

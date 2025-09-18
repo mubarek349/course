@@ -66,7 +66,7 @@ export default function Page() {
         price: 0,
         currency: "ETB",
         level: "beginner",
-        duration: "",
+        duration: "01:09:09",
         language: "Amharic",
         certificate: false,
         requirement: [],

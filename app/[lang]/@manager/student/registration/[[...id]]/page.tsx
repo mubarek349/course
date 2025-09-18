@@ -17,7 +17,9 @@ import { CInput, CSelect, CSelectItem } from "@/components/heroui";
 import { ChevronLeft } from "lucide-react";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id?: string[] }>(),
+  const params= useParams<{ lang: string ,id?:string[]}>();
+          const lang = params?.lang || "en",
+          id = params?.id,
     router = useRouter(),
     { handleSubmit, register, setValue, formState } = useForm<TStudent>({
       resolver: zodResolver(studentSchema),
@@ -111,7 +113,7 @@ export default function Page() {
                 [lang == "en" ? "Female" : "ሴት", "Female"],
                 [lang == "en" ? "Male" : "ወንድ", "Male"],
               ].map(([n, v]) => (
-                <CSelectItem key={v} value={v}>
+                <CSelectItem key={v}>
                   {n}
                 </CSelectItem>
               ))}

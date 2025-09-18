@@ -14,8 +14,10 @@ import React from "react";
 import { useForm } from "react-hook-form";
 
 export default function Page() {
-  const { lang, id } = useParams<{ lang: string; id?: string[] }>(),
-    router = useRouter(),
+  const params= useParams<{ lang: string ,id?:string[]}>();
+      const lang = params?.lang || "en",
+      id = params?.id,
+       router = useRouter(),
     { handleSubmit, register, formState, setValue } = useForm<TManager>({
       resolver: zodResolver(managerSchema),
       defaultValues: {

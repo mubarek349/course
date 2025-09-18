@@ -12,8 +12,8 @@ import { useSearchParams } from "next/navigation";
 export default function Page() {
   const searchParams = useSearchParams(),
     getDate = useCallback(() => {
-      const startDate = searchParams.get("startDate"),
-        endDate = searchParams.get("endDate"),
+      const startDate = searchParams?.get("startDate"),
+        endDate = searchParams?.get("endDate"),
         now = new Date();
 
       return {
