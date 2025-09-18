@@ -9,7 +9,7 @@ import {
   readyToCertification,
   clearStudentQuizAnswers,
 } from "@/actions/student/mycourse";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Trophy,
@@ -47,8 +47,12 @@ export default function Page() {
     clearStudentQuizAnswers,
     undefined,
     {
-      error: lang == "en" ? "Failed to clear quiz answers" : "የፈተና መልሶች መደምሰስ አልተሳካም",
-      success: lang == "en" ? "Quiz cleared successfully" : "ፈተና በተሳካ ሁኔታ ተደምስሷል",
+      error:
+        lang == "en"
+          ? "Failed to clear quiz answers"
+          : "የፈተና መልሶች መደምሰስ አልተሳካም",
+      success:
+        lang == "en" ? "Quiz cleared successfully" : "ፈተና በተሳካ ሁኔታ ተደምስሷል",
     }
   );
 
@@ -73,36 +77,40 @@ export default function Page() {
   const nextActivityId = useMemo(() => {
     const lockData = locks as any;
     if (!lockData?.activities) return null;
-    
+
     // Find current activity index
     const currentIndex = lockData.activities.findIndex(
       (a: any) => a.id === activityId
     );
-    
+
     // Get next activity that has questions (quiz)
     for (let i = currentIndex + 1; i < lockData.activities.length; i++) {
       const nextActivity = lockData.activities[i];
       // Check if activity has questions and is unlocked
-      if (nextActivity.question && nextActivity.question.length > 0 && !nextActivity.locked) {
+      if (
+        nextActivity.question &&
+        nextActivity.question.length > 0 &&
+        !nextActivity.locked
+      ) {
         return {
           id: nextActivity.id,
           titleEn: nextActivity.titleEn,
           titleAm: nextActivity.titleAm,
-          locked: nextActivity.locked
+          locked: nextActivity.locked,
         };
       }
     }
-    
+
     // If no next quiz activity, check if final exam is available
     if (!lockData.finalExamLocked) {
       return {
-        id: 'finalexam',
-        titleEn: 'Final Exam',
-        titleAm: 'የመጨረሻ ፈተና',
-        locked: false
+        id: "finalexam",
+        titleEn: "Final Exam",
+        titleAm: "የመጨረሻ ፈተና",
+        locked: false,
       };
     }
-    
+
     return null;
   }, [locks, activityId]);
 
@@ -193,18 +201,18 @@ export default function Page() {
   const handleOption = async (idx: number) => {
     if (isLocked) return; // blocked by sequence lock only
     // Removed quizDone check to allow answer changes even after completion
-    
+
     // Allow changing answers even if previously answered
     setSelected(idx);
-    
+
     // Hide feedback temporarily when changing answer
     setShowFeedback(false);
-    
+
     // Update local state immediately
     const newAnswers = [...answers];
     newAnswers[current] = idx;
     setAnswers(newAnswers);
-    
+
     // Save the answer to database immediately
     const selectedOptionId = questions[current].options[idx].id;
     try {
@@ -212,14 +220,13 @@ export default function Page() {
         questionId: questions[current].id,
         selectedOptionId,
       } as any);
-      
+
       // Show feedback after successful save
       setTimeout(() => {
         setShowFeedback(true);
       }, 300); // Small delay for better UX
-      
     } catch (error) {
-      console.error('Failed to save answer:', error);
+      console.error("Failed to save answer:", error);
       // Revert local state if save failed
       newAnswers[current] = answers[current];
       setAnswers(newAnswers);
@@ -277,29 +284,30 @@ export default function Page() {
   // Handle retake quiz function
   const handleRetakeQuiz = async () => {
     // Show confirmation dialog
-    const confirmMessage = lang === "en" 
-      ? "Are you sure you want to retake this quiz? This will clear all your previous answers and you'll start fresh."
-      : "የዚህን ፈተና እንደገና መውሰድ ይፈልጋሉ? የዚህ ሁሉ የተቀደሙ መልሶች ይጠቓል እና ከመጀመሪ ይጀምራሉ።";
-    
+    const confirmMessage =
+      lang === "en"
+        ? "Are you sure you want to retake this quiz? This will clear all your previous answers and you'll start fresh."
+        : "የዚህን ፈተና እንደገና መውሰድ ይፈልጋሉ? የዚህ ሁሉ የተቀደሙ መልሶች ይጠቓል እና ከመጀመሪ ይጀምራሉ።";
+
     if (!window.confirm(confirmMessage)) {
       return;
     }
-    
+
     try {
       // Clear answers from database
       await clearAction({ activityId });
-      
+
       // Reset local state
       setCurrent(0);
       setSelected(null);
       setAnswers(Array(questions.length).fill(-1));
       setShowResult(false);
       setShowFeedback(false);
-      
+
       // Force refresh of the quiz data to get clean questions
       window.location.reload();
     } catch (error) {
-      console.error('Error during quiz retake:', error);
+      console.error("Error during quiz retake:", error);
     }
   };
 
@@ -307,7 +315,8 @@ export default function Page() {
   const shouldShowFeedback = showFeedback || answers[current] >= 0;
 
   // Advance availability without current selection - allow advancing if question is answered
-  const canAdvanceWithoutSelect = quizDone || answers[current] >= 0 || shouldShowFeedback;
+  const canAdvanceWithoutSelect =
+    quizDone || answers[current] >= 0 || shouldShowFeedback;
 
   // Update labels
   const nextLabel = shouldShowFeedback
@@ -354,7 +363,8 @@ export default function Page() {
 
                 <div className="mt-2 text-sm text-slate-700 dark:text-slate-300">
                   <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 px-3 py-1">
-                    <Sparkles className="w-4 h-4" /> Earned Coins: <b>{coins}</b>
+                    <Sparkles className="w-4 h-4" /> Earned Coins:{" "}
+                    <b>{coins}</b>
                   </span>
                 </div>
 
@@ -378,12 +388,16 @@ export default function Page() {
                     {isClearPending ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>{lang === "en" ? "Clearing..." : "በመድረስ ላይ..."}</span>
+                        <span>
+                          {lang === "en" ? "Clearing..." : "በመድረስ ላይ..."}
+                        </span>
                       </>
                     ) : (
                       <>
                         <RotateCcw className="w-4 h-4" />
-                        <span>{lang === "en" ? "Retake Quiz" : "ፈተናን እንደገና ያውስዱ"}</span>
+                        <span>
+                          {lang === "en" ? "Retake Quiz" : "ፈተናን እንደገና ያውስዱ"}
+                        </span>
                       </>
                     )}
                   </button>
@@ -394,35 +408,47 @@ export default function Page() {
                   <div className="w-full mt-4">
                     <button
                       onClick={() => {
-                        if (nextActivityId.id === 'finalexam') {
-                          router.push(`/${lang}/mycourse/${courseId}/finalexam`);
+                        if (nextActivityId.id === "finalexam") {
+                          router.push(
+                            `/${lang}/mycourse/${courseId}/finalexam`
+                          );
                         } else {
-                          router.push(`/${lang}/mycourse/${courseId}/${nextActivityId.id}`);
+                          router.push(
+                            `/${lang}/mycourse/${courseId}/${nextActivityId.id}`
+                          );
                         }
                       }}
                       className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
                     >
                       <div className="flex items-center gap-2">
-                        {nextActivityId.id === 'finalexam' ? (
+                        {nextActivityId.id === "finalexam" ? (
                           <Trophy className="w-5 h-5" />
                         ) : (
                           <Sparkles className="w-5 h-5" />
                         )}
                         <span>
-                          {lang === "en" 
-                            ? `Go to ${nextActivityId.id === 'finalexam' ? 'Final Exam' : 'Next Quiz'}`
-                            : `ወደ ${nextActivityId.id === 'finalexam' ? 'የመጨረሻ ፈተና' : 'ቀጣይ ፈተና'}`
-                          }
+                          {lang === "en"
+                            ? `Go to ${
+                                nextActivityId.id === "finalexam"
+                                  ? "Final Exam"
+                                  : "Next Quiz"
+                              }`
+                            : `ወደ ${
+                                nextActivityId.id === "finalexam"
+                                  ? "የመጨረሻ ፈተና"
+                                  : "ቀጣይ ፈተና"
+                              }`}
                         </span>
                       </div>
                       <ChevronRight className="w-5 h-5" />
                     </button>
-                    
+
                     {/* Next quiz title */}
                     <p className="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">
-                      {nextActivityId.id !== 'finalexam' && (
-                        lang === "en" ? nextActivityId.titleEn : nextActivityId.titleAm
-                      )}
+                      {nextActivityId.id !== "finalexam" &&
+                        (lang === "en"
+                          ? nextActivityId.titleEn
+                          : nextActivityId.titleAm)}
                     </p>
                   </div>
                 )}
@@ -442,195 +468,305 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-4 px-4">
-      <div className="max-w-md mx-auto h-full flex flex-col">
-        <div className="relative bg-background border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex-1 flex flex-col">
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
+    <>
+      <div className="min-h-screen bg-background text-foreground py-4 px-4">
+        <div className="max-w-md mx-auto h-full flex flex-col">
+          <div className="relative bg-background border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex-1 flex flex-col">
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
 
-          <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
-            {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Certificate CTA */}
-              {cert?.status && (
-                <div className="rounded-2xl border border-emerald-300/50 bg-emerald-50 dark:bg-emerald-900/20 p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
-                    <Trophy className="w-5 h-5" />
-                    <span className="text-sm font-medium">
-                      Certificate is ready
-                    </span>
+            <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Certificate CTA */}
+                {cert?.status && (
+                  <div className="rounded-2xl border border-emerald-300/50 bg-emerald-50 dark:bg-emerald-900/20 p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                      <Trophy className="w-5 h-5" />
+                      <span className="text-sm font-medium">
+                        Certificate is ready
+                      </span>
+                    </div>
+                    <button
+                      onClick={() =>
+                        router.push(`/${lang}/mycourse/${courseId}/certificate`)
+                      }
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
+                    >
+                      View certificate
+                    </button>
+                  </div>
+                )}
+
+                {/* Lock notice */}
+                {isLocked && (
+                  <div className="rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-800 dark:text-amber-300 text-sm">
+                    This quiz is locked. Please complete previous quizzes to
+                    unlock it.
+                  </div>
+                )}
+
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="uppercase text-xs tracking-widest text-slate-500 dark:text-slate-400">
+                      Mathematics Quiz
+                    </p>
+                    <h2 className="text-lg font-semibold">
+                      Question {String(current + 1).padStart(2, "0")}
+                      <span className="text-slate-500 dark:text-slate-400">
+                        /{questions.length}
+                      </span>
+                    </h2>
                   </div>
                   <button
-                    onClick={() =>
-                      router.push(
-                        `/${lang}/mycourse/${courseId}/certificate`
-                      )
-                    }
-                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
+                    onClick={handleQuit}
+                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   >
-                    View certificate
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-              )}
 
-              {/* Lock notice */}
-              {isLocked && (
-                <div className="rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-800 dark:text-amber-300 text-sm">
-                  This quiz is locked. Please complete previous quizzes to unlock
-                  it.
-                </div>
-              )}
-
-              {/* Header */}
-              <div className="flex items-center justify-between">
+                {/* Progress */}
                 <div>
-                  <p className="uppercase text-xs tracking-widest text-slate-500 dark:text-slate-400">
-                    Mathematics Quiz
+                  <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-sky-500"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {progressPct}% completed
                   </p>
-                  <h2 className="text-lg font-semibold">
-                    Question {String(current + 1).padStart(2, "0")}
-                    <span className="text-slate-500 dark:text-slate-400">
-                      /{questions.length}
-                    </span>
-                  </h2>
                 </div>
-                <button
-                  onClick={handleQuit}
-                  className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
 
-              {/* Progress */}
-              <div>
-                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-sky-500"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  {progressPct}% completed
+                {/* Question Text */}
+                <p className="text-slate-800 dark:text-slate-100 leading-relaxed">
+                  {q.text}
                 </p>
-              </div>
 
-              {/* Question Text */}
-              <p className="text-slate-800 dark:text-slate-100 leading-relaxed">
-                {q.text}
-              </p>
+                {/* Options */}
+                <div className="space-y-3">
+                  {q.options.map(
+                    (opt: { id: string; label: string }, idx: number) => {
+                      const isCorrectOption = idx === correctIdx;
+                      const isSelected = effectiveSelected === idx;
+                      const base =
+                        "w-full text-left px-4 py-3 rounded-2xl border transition flex items-center gap-3";
 
-              {/* Options */}
-              <div className="space-y-3">
-                {q.options.map(
-                  (opt: { id: string; label: string }, idx: number) => {
-                    const isCorrectOption = idx === correctIdx;
-                    const isSelected = effectiveSelected === idx;
-                    const base =
-                      "w-full text-left px-4 py-3 rounded-2xl border transition flex items-center gap-3";
+                      let style =
+                        "border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800";
+                      let icon: React.ReactNode = (
+                        <Circle className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                      );
 
-                    let style =
-                      "border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800";
-                    let icon: React.ReactNode = (
-                      <Circle className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                    );
-
-                    if (shouldShowFeedback) {
-                      if (isCorrectOption) {
-                        style =
-                          "border-emerald-500 bg-emerald-100 dark:bg-emerald-500/10";
-                        icon = (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                        );
+                      if (shouldShowFeedback) {
+                        if (isCorrectOption) {
+                          style =
+                            "border-emerald-500 bg-emerald-100 dark:bg-emerald-500/10";
+                          icon = (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                          );
+                        } else if (isSelected) {
+                          style =
+                            "border-amber-500 bg-amber-100 dark:bg-amber-500/10";
+                          icon = (
+                            <X className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                          );
+                        } else {
+                          style =
+                            "border-slate-300 dark:border-slate-700 opacity-60";
+                        }
                       } else if (isSelected) {
-                        style =
-                          "border-amber-500 bg-amber-100 dark:bg-amber-500/10";
+                        style = "border-sky-500 bg-sky-100 dark:bg-sky-500/10";
                         icon = (
-                          <X className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                          <CheckCircle2 className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                         );
-                      } else {
-                        style = "border-slate-300 dark:border-slate-700 opacity-60";
                       }
-                    } else if (isSelected) {
-                      style = "border-sky-500 bg-sky-100 dark:bg-sky-500/10";
-                      icon = (
-                        <CheckCircle2 className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleOption(idx)}
+                          disabled={isLocked}
+                          className={`${base} ${style} ${
+                            isLocked ? "opacity-60 cursor-not-allowed" : ""
+                          }`}
+                        >
+                          {icon}
+                          <span className="text-sm text-slate-800 dark:text-slate-200">
+                            {opt.label}
+                          </span>
+                        </button>
                       );
                     }
+                  )}
+                </div>
 
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handleOption(idx)}
-                        disabled={
-                          isLocked
-                        }
-                        className={`${base} ${style} ${
-                          isLocked ? "opacity-60 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        {icon}
-                        <span className="text-sm text-slate-800 dark:text-slate-200">
-                          {opt.label}
-                        </span>
-                      </button>
-                    );
-                  }
+                {/* Feedback & Explanation */}
+                {shouldShowFeedback && (
+                  <div className="mt-3" aria-live="polite">
+                    <div
+                      className={`mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${
+                        isCorrectSelection
+                          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                          : "bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                      }`}
+                    >
+                      {isCorrectSelection ? "Correct!" : "Incorrect"}
+                    </div>
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-sm text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-transparent">
+                      <p className="font-medium mb-1">Explanation</p>
+                      <p className="leading-relaxed">{q.explanation}</p>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {/* Feedback & Explanation */}
-              {shouldShowFeedback && (
-                <div className="mt-3" aria-live="polite">
-                  <div
-                    className={`mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${
-                      isCorrectSelection
-                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                        : "bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                    }`}
-                  >
-                    {isCorrectSelection ? "Correct!" : "Incorrect"}
-                  </div>
-                  <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-sm text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-transparent">
-                    <p className="font-medium mb-1">Explanation</p>
-                    <p className="leading-relaxed">{q.explanation}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Fixed Footer Actions */}
-            <div className="relative z-10 border-t border-slate-200 dark:border-slate-700 bg-background/95 backdrop-blur-sm p-6">
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={handleQuit}
-                  className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm"
-                >
-                  Quit Quiz
-                </button>
-                <div className="flex items-center gap-2">
+              {/* Fixed Footer Actions */}
+              <div className="relative z-10 border-t border-slate-200 dark:border-slate-700 bg-background/95 backdrop-blur-sm p-6">
+                <div className="flex items-center justify-between">
                   <button
-                    onClick={handlePrev}
-                    disabled={current === 0}
-                    className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    onClick={handleQuit}
+                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm"
                   >
-                    Back
+                    Quit Quiz
                   </button>
-                  <button
-                    onClick={handleNext}
-                    disabled={
-                      isLocked || (selected === null && !canAdvanceWithoutSelect)
-                    }
-                    className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold disabled:opacity-50 inline-flex items-center gap-2"
-                  >
-                    {nextLabel}
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handlePrev}
+                      disabled={current === 0}
+                      className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      disabled={
+                        isLocked ||
+                        (selected === null && !canAdvanceWithoutSelect)
+                      }
+                      className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white dark:text-slate-900 font-semibold disabled:opacity-50 inline-flex items-center gap-2"
+                    >
+                      {nextLabel}
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Add the chat assistant floating widget */}
+      <ChatAssistant />
+    </>
+  );
+}
+
+// Add ChatAssistant component
+function ChatAssistant() {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState<{ role: string; content: string }[]>(
+    []
+  );
+  const [input, setInput] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    const newMessages = [...messages, { role: "user", content: input }];
+    setMessages(newMessages);
+    setInput("");
+    // Optionally focus input after send
+    inputRef.current?.focus();
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
+      });
+      const data = await res.json();
+      if (data.reply) {
+        setMessages((prev) => [...prev, data.reply]);
+      }
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Sorry, I couldn't reply right now." },
+      ]);
+    }
+  };
+
+  return (
+    <>
+      {/* Floating chat button */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-2xl"
+          aria-label="Open AI Assistant"
+        >
+          💬
+        </button>
+      )}
+      {/* Chat window */}
+      {open && (
+        <div className="fixed bottom-6 right-6 z-50 w-80 max-w-[95vw] bg-white border border-slate-300 rounded-xl shadow-2xl flex flex-col">
+          <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-blue-600 rounded-t-xl">
+            <span className="text-white font-semibold">AI Assistant</span>
+            <button
+              onClick={() => setOpen(false)}
+              className="text-white hover:text-slate-200 text-xl"
+              aria-label="Close chat"
+            >
+              ×
+            </button>
+          </div>
+          <div
+            className="flex-1 p-3 overflow-y-auto"
+            style={{ maxHeight: 320 }}
+          >
+            {messages.length === 0 && (
+              <div className="text-slate-400 text-sm text-center mt-8">
+                How can I help you?
+              </div>
+            )}
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`mb-2 text-sm ${
+                  m.role === "user"
+                    ? "text-blue-700 text-right"
+                    : "text-green-700 text-left"
+                }`}
+              >
+                <b>{m.role === "user" ? "You" : "AI"}:</b> {m.content}
+              </div>
+            ))}
+          </div>
+          <div className="flex border-t border-slate-200">
+            <input
+              ref={inputRef}
+              className="flex-1 p-2 rounded-bl-xl outline-none"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") sendMessage();
+              }}
+              placeholder="Type your question…"
+            />
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-br-xl"
+              onClick={sendMessage}
+              disabled={!input.trim()}
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
