@@ -57,7 +57,7 @@ export default function ChatComponent() {
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="flex p-1 sm:p-2 border-t bg-white">
+        <div className="flex p-1 sm:p-2 border-t bg-white w-full">
           <input
             className="flex-1 border p-2 rounded-l-lg outline-none text-sm"
             value={input}
