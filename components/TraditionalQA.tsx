@@ -30,6 +30,30 @@ import {
 } from "@/actions/student/videoqa";
 import { useSession } from "next-auth/react";
 
+// Define the database model types (what Prisma returns)
+interface VideoQuestionDB {
+  id: string;
+  question: string;
+  timestamp?: number | null;
+  createdAt: Date;
+  student: {
+    firstName: string;
+    fatherName: string;
+    lastName: string;
+  };
+  responses: {
+    id: string;
+    response: string;
+    createdAt: Date;
+    instructor: {
+      firstName: string;
+      fatherName: string;
+      lastName: string;
+    };
+  }[];
+}
+
+// Define the display types (what we use in our component)
 interface VideoQuestion {
   id: string;
   question: string;
@@ -74,10 +98,10 @@ export default function TraditionalQA({ courseId, lang }: TraditionalQAProps) {
     try {
       const result = await getVideoQuestions(courseId);
       if (result.success && result.data) {
-        const questionsWithStringDates = result.data.map((q: VideoQuestion) => ({
+        const questionsWithStringDates = result.data.map((q: VideoQuestionDB) => ({
           ...q,
           createdAt: q.createdAt.toString(),
-          responses: q.responses.map((r: VideoQuestion["responses"][number]) => ({
+          responses: q.responses.map((r) => ({
             ...r,
             createdAt: r.createdAt.toString()
           }))

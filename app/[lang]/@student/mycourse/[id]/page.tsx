@@ -31,6 +31,9 @@ import CourseTopOverview from "@/components/courseTopOverview";
 import TraditionalQA from "@/components/TraditionalQA";
 import { useSession } from "next-auth/react";
 import ChatComponent from "@/components/ui/chatComponent";
+import CourseAnnouncements from "@/components/CourseAnnouncements";
+import CourseFeedback from "@/components/CourseFeedback";
+import CourseMaterials from "@/components/CourseMaterials";
 
 // ---------------- COURSE CONTENT COMPONENT ----------------
 function CourseContent({
@@ -596,17 +599,7 @@ export default function Page() {
             </div>
           </div>
           <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-              <h3 className="text-lg font-medium mb-2">
-                {lang === "en" ? "No Announcements Yet" : "አንድም ማሳወቂያ የለም"}
-              </h3>
-              <p className="text-sm">
-                {lang === "en"
-                  ? "Check back later for updates from your instructor"
-                  : "ከአስተማሪዎ ዝመናዎችን ለማግኘት በኋላ በድጋሚ ይመለሱ"}
-              </p>
-            </div>
+            <CourseAnnouncements courseId={courseId} lang={lang} />
           </div>
         </div>
       ),
@@ -635,17 +628,7 @@ export default function Page() {
             </div>
           </div>
           <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-              <h3 className="text-lg font-medium mb-2">
-                {lang === "en" ? "No Feedback Submitted" : "ምንም ግብረመልስ አልተላከም"}
-              </h3>
-              <p className="text-sm">
-                {lang === "en"
-                  ? "Provide feedback to help improve the course"
-                  : "ኮርሱን ለማሻሻል ግብረመልስ ያቅርቡ"}
-              </p>
-            </div>
+            <CourseFeedback courseId={courseId} lang={lang} />
           </div>
         </div>
       ),
@@ -674,17 +657,7 @@ export default function Page() {
             </div>
           </div>
           <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-              <h3 className="text-lg font-medium mb-2">
-                {lang === "en" ? "No Additional Materials" : "ተጨማሪ ቅረጾች የሉም"}
-              </h3>
-              <p className="text-sm">
-                {lang === "en"
-                  ? "Check back for additional course materials"
-                  : "ለተጨማሪ የኮርስ ቅረጾች በኋላ በድጋሚ ይመለሱ"}
-              </p>
-            </div>
+            <CourseMaterials courseId={courseId} lang={lang} />
           </div>
         </div>
       ),
@@ -692,15 +665,15 @@ export default function Page() {
   ];
 
   return (
-    <div className=" overflow-auto ">
+    <div className="h-full overflow-auto">
       {loading ? (
         <Loading />
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="h-dvh flex flex-col overflow-auto bg-red-500  ">
+        <div className="h-full flex flex-col">
           {/* MAIN CONTENT */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             {/* SIDEBAR TOGGLE (desktop only) */}
             <button
               onClick={() => setIsSidebarOpen(true)}

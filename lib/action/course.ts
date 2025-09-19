@@ -16,14 +16,14 @@ export async function courseRegistration(
       requirement,
       activity,
       finalExamQuestions,
-      pdf, // Add PDF field
+      pdf, // Extract PDF field
       ...rest
     } = data;
 
-    // Add pdf field to the rest data
+    // Add pdfData field to the rest data (mapping pdf to pdfData)
     const courseData = {
       ...rest,
-      pdf: pdf || null, // Ensure pdf is null if not provided
+      pdfData: pdf || null, // Map pdf to pdfData for the database
     };
 
     await prisma.course.updateMany({
@@ -67,10 +67,15 @@ export async function courseRegistration(
 
       await prisma.activity.deleteMany({ where: { courseId: id } });
 
+      // Extract relation fields from courseData
+      const { instructorId, channelId, pdfData, ...courseDataWithoutRelations } = courseData;
+
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
-          ...courseData, // Use courseData which includes pdf
+          ...courseDataWithoutRelations, // Use courseData without relation fields
+          instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
+          channel: { connect: { id: channelId } }, // Fix: Use relation syntax
           courseFor: { create: courseFor },
           requirement: { create: requirement },
           activity: {
