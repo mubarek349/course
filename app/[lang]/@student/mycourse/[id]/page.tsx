@@ -336,7 +336,7 @@ function CourseContent({
                     {finalExamLocked
                       ? lang === "en"
                         ? "Complete all activities to unlock"
-                        : "ሁሉንም እንቅስቃሴዎች ይጨርሱ"
+                        : "ሁሉንም እንቅስቃሴዎች ይ桀ርሱ"
                       : examStatus === "done"
                       ? lang === "en"
                         ? "Exam completed successfully"
@@ -572,6 +572,123 @@ export default function Page() {
         </div>
       ),
     },
+    // Announcements
+    {
+      id: "announcements",
+      label: lang === "en" ? "Announcements" : "ማሳወቂያዎች",
+      content: (
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-md sm:rounded-lg md:rounded-xl shadow-lg flex-shrink-0">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
+                  {lang === "en" ? "Course Announcements" : "የኮርስ ማሳወቂያዎች"}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
+                  {lang === "en"
+                    ? "Latest updates and announcements from the instructor"
+                    : "ከአስተማሪው የቅርብ ጊዜ ዝመናዎች እና ማሳወቂያዎች"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
+              <h3 className="text-lg font-medium mb-2">
+                {lang === "en" ? "No Announcements Yet" : "አንድም ማሳወቂያ የለም"}
+              </h3>
+              <p className="text-sm">
+                {lang === "en"
+                  ? "Check back later for updates from your instructor"
+                  : "ከአስተማሪዎ ዝመናዎችን ለማግኘት በኋላ በድጋሚ ይመለሱ"}
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    // Feedback
+    {
+      id: "feedback",
+      label: lang === "en" ? "Feedback" : "ግብረመልስ",
+      content: (
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-md sm:rounded-lg md:rounded-xl shadow-lg flex-shrink-0">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent leading-tight">
+                  {lang === "en" ? "Course Feedback" : "የኮርስ ግብረመልስ"}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
+                  {lang === "en"
+                    ? "Share your thoughts and feedback about the course"
+                    : "ስለ ኮርሱ አስተያየቶችዎን እና ግብረመልስዎን ያጋሩ"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
+              <h3 className="text-lg font-medium mb-2">
+                {lang === "en" ? "No Feedback Submitted" : "ምንም ግብረመልስ አልተላከም"}
+              </h3>
+              <p className="text-sm">
+                {lang === "en"
+                  ? "Provide feedback to help improve the course"
+                  : "ኮርሱን ለማሻሻል ግብረመልስ ያቅርቡ"}
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    // Course Materials
+    {
+      id: "materials",
+      label: lang === "en" ? "Course Materials" : "የኮርስ ቅረጾች",
+      content: (
+        <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-blue-900/20 rounded-lg sm:rounded-xl md:rounded-2xl border border-slate-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-gray-700 p-2 sm:p-4 md:p-6 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1 sm:p-1.5 md:p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-md sm:rounded-lg md:rounded-xl shadow-lg flex-shrink-0">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+                  {lang === "en" ? "Course Materials" : "የኮርስ ቅረጾች"}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:truncate mt-0.5">
+                  {lang === "en"
+                    ? "Download additional course materials and resources"
+                    : "ተጨማሪ የኮርስ ቅረጾችን እና ሌሎች ምንጮችን ያውርዱ"}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-2 sm:p-4 md:p-6 flex-1 min-h-0 overflow-y-auto">
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
+              <h3 className="text-lg font-medium mb-2">
+                {lang === "en" ? "No Additional Materials" : "ተጨማሪ ቅረጾች የሉም"}
+              </h3>
+              <p className="text-sm">
+                {lang === "en"
+                  ? "Check back for additional course materials"
+                  : "ለተጨማሪ የኮርስ ቅረጾች በኋላ በድጋሚ ይመለሱ"}
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+    }
   ];
 
   return (
