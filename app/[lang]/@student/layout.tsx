@@ -22,12 +22,5 @@ const studentNav = [
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <UserLayout list={studentNav}>
-      <main>
-        {/* <h1 className="text-xl font-bold mb-0">Student Dashboard</h1> */}
-        {children}
-      </main>
-    </UserLayout>
-  );
+  return <UserLayout list={studentNav}>{children}</UserLayout>;
 }
