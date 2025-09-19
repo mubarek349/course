@@ -479,12 +479,12 @@ export default function Page() {
 
   return (
     <>
-      <div className="min-h-screen bg-background text-foreground py-4 px-4">
-        <div className="max-w-md mx-auto h-full flex flex-col">
+      <div className="min-h-screen overflow-hidden bg-background text-foreground py-4 px-4">
+        <div className="max-w-md overflow-hidden mx-auto h-full flex flex-col">
           <div className="relative bg-background border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex-1 flex flex-col">
-            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
+            <div className="absolute inset-0 overflow-hidden pointer-events-none bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.15),transparent_50%)]" />
 
-            <div className="relative z-10">
+            <div className="relative z-10 overflow-hidden">
               {/* Scrollable Content Area */}
               <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
                 {/* Certificate CTA */}

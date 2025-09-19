@@ -12,7 +12,7 @@ import { Lock, Trophy, ChevronRight } from "lucide-react";
 function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams<{ lang: string; id: string }>();
-  const lang = params?.lang || "en";
+  const lang = params?.lang || "en"; 
   const courseId = params?.id || "";
   const pathname = usePathname();
 
@@ -47,7 +47,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   // Block final exam if locked
   if (isFinalExam && finalExamLocked) {
     return (
-      <div className="h-full bg-background text-foreground flex items-center justify-center p-6">
+      <div className="bg-background overflow-hidden text-foreground flex items-center justify-center p-6">
         <div className="max-w-md w-full border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center mb-3">
             <Lock className="w-8 h-8 text-amber-600" />
@@ -59,9 +59,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           {nextUnlock ? (
             <button
               onClick={() =>
-                router.push(
-                  `/${lang}/mycourse/${courseId}/${nextUnlock}`
-                )
+                router.push(`/${lang}/mycourse/${courseId}/${nextUnlock}`)
               }
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white inline-flex items-center gap-2"
             >
@@ -95,9 +93,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           {nextUnlock ? (
             <button
               onClick={() =>
-                router.push(
-                  `/${lang}/mycourse/${courseId}/${nextUnlock}`
-                )
+                router.push(`/${lang}/mycourse/${courseId}/${nextUnlock}`)
               }
               className="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-white inline-flex items-center gap-2"
             >
@@ -118,8 +114,9 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   // For allowable routes, show a certificate banner (except on the certificate page itself)
   return (
-    <div className="min-h-dvh">
-      {!isCertificate && cert?.status && (
+    <div className="grid grid-rows-[auto_1fr] overflow-hidden relative ">
+      
+      {/* {!isCertificate && cert?.status && (
         <div className="sticky top-0 z-10 bg-emerald-600 text-white">
           <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -128,9 +125,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <button
               onClick={() =>
-                router.push(
-                  `/${lang}/mycourse/${courseId}/certificate`
-                )
+                router.push(`/${lang}/mycourse/${courseId}/certificate`)
               }
               className="text-sm px-3 py-1 rounded-md bg-white/15 hover:bg-white/25 inline-flex items-center gap-1"
             >
@@ -138,7 +133,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         </div>
-      )}
+      )} */}
       {children}
     </div>
   );

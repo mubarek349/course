@@ -125,7 +125,7 @@ function CourseContent({
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="flex flex-col overflow-auto  ">
       {/* INTRODUCTION */}
       <div
         className="px-4 py-2 cursor-pointer hover:bg-primary-100 rounded-lg m-2"
@@ -692,15 +692,15 @@ export default function Page() {
   ];
 
   return (
-    <div className="h-dvh overflow-hidden">
+    <div className=" overflow-auto ">
       {loading ? (
         <Loading />
       ) : !data ? (
         <NoData />
       ) : (
-        <div className="h-full flex flex-col">
+        <div className="h-dvh flex flex-col overflow-auto bg-red-500  ">
           {/* MAIN CONTENT */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1">
             {/* SIDEBAR TOGGLE (desktop only) */}
             <button
               onClick={() => setIsSidebarOpen(true)}
