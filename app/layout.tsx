@@ -34,11 +34,11 @@ export default async function RootLayout({
     <SessionProvider session={session}  >
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`fixed inset-0 ${geistSans.variable} ${geistMono.variable} antialiased bg-background  `}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}
         >
           <UIProviders>
             <ThemeProvider defaultTheme="dark" attribute="class">
-              <div className="h-dvh overflow-hidden bg-gradient-to-br from-secondary-100 via-primary-100 to-secondary-100 grid text-primary-900 ">
+              <div className="min-h-screen bg-gradient-to-br from-secondary-100 via-primary-100 to-secondary-100 text-primary-900">
                 {children}
                 <Toaster
                   toastOptions={{

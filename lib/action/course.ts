@@ -16,8 +16,15 @@ export async function courseRegistration(
       requirement,
       activity,
       finalExamQuestions,
+      pdf, // Add PDF field
       ...rest
     } = data;
+
+    // Add pdf field to the rest data
+    const courseData = {
+      ...rest,
+      pdf: pdf || null, // Ensure pdf is null if not provided
+    };
 
     await prisma.course.updateMany({
       where: { channelId: rest.channelId },
@@ -63,7 +70,7 @@ export async function courseRegistration(
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
-          ...rest,
+          ...courseData, // Use courseData which includes pdf
           courseFor: { create: courseFor },
           requirement: { create: requirement },
           activity: {
@@ -195,7 +202,7 @@ export async function courseRegistration(
       }
     } else {
       const courseId = await prisma.course
-        .create({ data: rest })
+        .create({ data: courseData }) // Use courseData which includes pdf
         .then((v) => v.id);
       if (courseId) {
         for (const v of courseFor) {
@@ -394,65 +401,26 @@ export async function sellerRegistration(
           fatherName,
           lastName,
           phoneNumber,
-          ...(password ? { password: await bcryptjs.hash(password, 12) } : {}),
+          ...(password && password !== "" ? { password: await bcryptjs.hash(password, 12) } : {}),
         },
       });
-      return { status: true };
     } else {
+      if (!password) throw new Error("Password is required for new sellers");
+      const { firstName, fatherName, lastName, phoneNumber } = data;
       await prisma.user.create({
         data: {
-          role: "seller",
           firstName,
           fatherName,
           lastName,
           phoneNumber,
-          password: await bcryptjs.hash(password || firstName, 12),
+          password: await bcryptjs.hash(password, 12),
+          role: "seller",
         },
       });
-      return { status: true };
     }
-  } catch (error) {
-    console.log(error);
-    return { status: false, cause: "", message: "" };
-  }
-}
-
-export async function removeSeller(
-  prevState: StateType,
-  id: string | undefined
-): Promise<StateType> {
-  try {
-    if (!id) throw new Error();
-    await prisma.user.delete({ where: { id } });
     return { status: true };
   } catch (error) {
     console.log(error);
-    return { status: false, cause: "", message: "" };
-  }
-}
-
-export async function affiliateRegistration(
-  prevState: StateType,
-  data: TAffiliateSelf | undefined
-): Promise<StateType> {
-  try {
-    if (!data) throw new Error();
-    const { code, password, phoneNumber, ...rest } = data;
-    const oldOtp = await prisma.otp.findFirst({ where: { phoneNumber } });
-    if (`${oldOtp?.code}` !== code) throw new Error();
-    await prisma.user.create({
-      data: {
-        ...rest,
-        role: "affiliate",
-        phoneNumber,
-        age: Number(rest.age),
-        password: await bcryptjs.hash(password, 12),
-        status: "pending",
-      },
-    });
-    return { status: true };
-  } catch (error) {
-    console.log("ERROR >> ", error);
     return { status: false, cause: "", message: "" };
   }
 }

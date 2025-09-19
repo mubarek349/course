@@ -103,6 +103,7 @@ export async function getCourseForManager(id: string) {
         language: true,
         level: true,
         duration: true,
+        pdfData: true, // Use the correct field name
         requirement: {
           select: { requirementEn: true, requirementAm: true },
           orderBy: { id: "asc" },
@@ -185,7 +186,9 @@ export async function getCourseForManager(id: string) {
         questionAnswer: {
           select: {
             answer: {
-              select: { option: true },
+              select: {
+                option: true,
+              },
             },
           },
         },
@@ -199,16 +202,16 @@ export async function getCourseForManager(id: string) {
       instructorRate: Number(course.instructorRate),
       sellerRate: Number(course.sellerRate),
       affiliateRate: Number(course.affiliateRate),
-      activity: course.activity.map((activity) => ({
+      activity: course.activity.map((activity: any) => ({
         ...activity,
-        questions: activity.question.map((q) => ({
+        questions: activity.question.map((q: any) => ({
           question: q.question,
-          options: q.questionOptions.map((opt) => opt.option),
-          answers: q.questionAnswer.map((ans) => ans.answer.option),
+          options: q.questionOptions.map((opt: any) => opt.option),
+          answers: q.questionAnswer.map((ans: any) => ans.answer.option),
           explanation: q.answerExplanation,
         })),
       })),
-      finalExamQuestions: finalExamQuestions.map((q) => {
+      finalExamQuestions: finalExamQuestions.map((q: any) => {
         // Check if this is a shared question (has activityId) or standalone (no activityId)
         if (q.activityId) {
           // This is a shared question - find its source activity and question index
@@ -223,7 +226,7 @@ export async function getCourseForManager(id: string) {
           ) {
             const activity = course.activity[activityIndex];
             const questionInActivity = activity.question.findIndex(
-              (activityQuestion) => {
+              (activityQuestion: any) => {
                 // Match by content since we don't have direct ID mapping
                 return (
                   activityQuestion.question === q.question &&
@@ -242,8 +245,8 @@ export async function getCourseForManager(id: string) {
 
           return {
             question: q.question,
-            options: q.questionOptions.map((opt) => opt.option),
-            answers: q.questionAnswer.map((ans) => ans.answer.option),
+            options: q.questionOptions.map((opt: any) => opt.option),
+            answers: q.questionAnswer.map((ans: any) => ans.answer.option),
             explanation: q.answerExplanation,
             sourceActivityIndex,
             sourceQuestionIndex,
@@ -253,8 +256,8 @@ export async function getCourseForManager(id: string) {
           // This is a standalone final exam question
           return {
             question: q.question,
-            options: q.questionOptions.map((opt) => opt.option),
-            answers: q.questionAnswer.map((ans) => ans.answer.option),
+            options: q.questionOptions.map((opt: any) => opt.option),
+            answers: q.questionAnswer.map((ans: any) => ans.answer.option),
             explanation: q.answerExplanation,
             sourceActivityIndex: undefined,
             sourceQuestionIndex: undefined,
