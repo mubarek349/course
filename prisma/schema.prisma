@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -70,7 +70,7 @@ model User {
   country         String            @default("")
   region          String            @default("")
   city            String            @default("")
-  idCard          String?           @db.LongText
+  idCard          String?           @db.Text
   gender          Gender?
   age             Int?
   chatId          BigInt?           @unique
@@ -84,6 +84,7 @@ model User {
   permission      Permission[]
   studentProgress studentProgress[]
   studentQuiz     studentQuiz[]
+  feedback Feedback[]
   videoQuestions  VideoQuestion[] @relation("StudentVideoQuestions")
   videoResponses  VideoResponse[] @relation("InstructorVideoResponses")
 }
@@ -106,6 +107,7 @@ model Course {
   thumbnail      String
   video          String
   pdfData        String?       @db.Text
+  courseMaterials String[]     @default([])
   price          Decimal
   currency       String        @default("ETB")
   level          CourseLevel
@@ -129,6 +131,8 @@ model Course {
   incomeRate     IncomeRate[]
   question       question[]
   chatQuestions VideoQuestion[]
+  announcement Announcement[]
+  feedback Feedback[]
 }
 
 model Requirement {
@@ -271,7 +275,7 @@ model Order {
   currency         String      @default("ETB")
   instructorIncome Decimal
   tx_ref           String?     @unique
-  img              String      @db.LongText()
+  img              String      @db.Text()
   reference        String?
   code             String?
   income           Decimal?
@@ -335,4 +339,24 @@ model VideoResponse {
 
   @@index([videoQuestionId])
   @@index([instructorId])
+}
+
+model Announcement {
+  id             String  @id @default(uuid())
+  anouncementDescription String @db.Text
+  courseId               String
+  createdAt              DateTime @default(now())
+  course                 Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+}
+
+model Feedback {
+  id             String  @id @default(uuid())
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  course         Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId       String
+  feedback       String  @db.Text
+  rating         Int
+  createdAt      DateTime @default(now())
 }
