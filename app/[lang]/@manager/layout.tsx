@@ -9,6 +9,7 @@ import {
   Gauge,
   Megaphone,
   MessageCircle,
+  MessageSquare,
   ShieldEllipsis,
   User,
   UserPen,
@@ -18,8 +19,8 @@ import useData from "@/hooks/useData";
 import { getPermission } from "@/actions/manager/manager";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
- const params= useParams<{ lang: string }>();
-         const lang = params?.lang || "en",
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en",
     pathname = usePathname(),
     router = useRouter(),
     { data: permission } = useData({
@@ -67,6 +68,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           label: "Message",
           url: "message",
           icon: <MessageCircle className="size-5" />,
+        },
+        {
+          label: "Feedback",
+          url: "feedback",
+          icon: <MessageSquare className="size-5" />,
         },
         // { label: "Student", url: "student" },
         // { label: "Ustaz", url: "ustaz" },

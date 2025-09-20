@@ -344,6 +344,7 @@ model VideoResponse {
 model Announcement {
   id             String  @id @default(uuid())
   anouncementDescription String @db.Text
+  attachLink  String? @db.Text
   courseId               String
   createdAt              DateTime @default(now())
   course                 Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
