@@ -1,10 +1,8 @@
 "use server";
 
 import prisma from "../db";
-import { bot } from "@/bot";
 import { StateType } from "../definations";
 import { sendSMS } from ".";
-import { InlineKeyboard } from "grammy";
 
 export async function sendMessage(
   prevState: StateType,
@@ -53,14 +51,7 @@ export async function sendMessageToAll(
       },
     });
 
-    user.forEach(async ({ chatId, phoneNumber }) => {
-      if (chatId) {
-        await bot.api.sendMessage(Number(chatId), message, {
-          reply_markup: withUrl
-            ? new InlineKeyboard().url(name ?? "", url ?? "")
-            : undefined,
-        });
-      }
+    user.forEach(async ({ phoneNumber }) => {
       if (withSMS) {
         sendSMS(phoneNumber, `${message} ${withUrl ? url : ""}`);
       }

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import useData from "@/hooks/useData";
 
 import {
@@ -18,8 +19,9 @@ import { sendMessageToAll } from "@/lib/action/message";
 import { getCourses } from "@/lib/data/course";
 import Loading from "@/components/loading";
 import useAction from "@/hooks/useAction";
-import { AlertTriangle, Link2, Send, Smartphone, Users } from "lucide-react";
+import { AlertTriangle, Link2, Send, Smartphone, Users, Calendar, MessageCircle } from "lucide-react";
 import { useParams } from "next/navigation";
+import { addAnnouncement, getAnnouncements } from "@/lib/data/courseMaterials";
 
 const formSchema = z.object({
   courseId: z.array(z.string({ message: "" })),
@@ -31,17 +33,20 @@ const formSchema = z.object({
   targetAll: z.coerce.boolean({ message: "" }).optional(),
 });
 
+interface AnnouncementItem {
+  id: string;
+  anouncementDescription: string;
+  createdAt: Date;
+}
+
 export default function Page() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
 
-  const {
-    handleSubmit,
-    register,
-    watch,
-    formState,
-    setValue,
-  } = useForm<z.infer<typeof formSchema>>({
+  // Broadcast form
+  const { handleSubmit, register, watch, formState, setValue } = useForm<
+    z.infer<typeof formSchema>
+  >({
     resolver: zodResolver(formSchema),
     defaultValues: {
       message: "",
@@ -57,9 +62,9 @@ export default function Page() {
   const { data: courses, loading } = useData({ func: getCourses, args: [] });
 
   const { action, isPending } = useAction(sendMessageToAll, undefined, {
-    loading: "Sending...",
-    success: "Message sent successfully",
-    error: "Failed to send message",
+    loading: lang === "en" ? "Sending..." : "በመላክ ላይ...",
+    success: lang === "en" ? "Message sent successfully" : "መልዕክት ተልኳል",
+    error: lang === "en" ? "Failed to send message" : "መልዕክት ማስተላለፍ አልተሳካም",
   });
 
   const withUrlValue = watch("withUrl");
@@ -91,38 +96,79 @@ export default function Page() {
       courseId: payload.targetAll ? allCourseIds : payload.courseId,
     };
 
-    // Safety guard
     if (!finalPayload.courseId || finalPayload.courseId.length === 0) return;
 
     const confirmText = `${lang === "en" ? "Send this message to" : "ይህን መልዕክት ለ"} ${selectedCount} ${
       lang === "en" ? "course(s) enrolled students?" : "ኮርሶች የተመዘገቡ ተማሪዎች?"
     }${payload.withSMS ? `\n${lang === "en" ? "SMS will also be sent." : "ኤስኤምኤስ ደግሞ ይላካል።"}` : ""}`;
-
-    // eslint-disable-next-line no-alert
     const proceed = window.confirm(confirmText);
     if (!proceed) return;
 
     await action(finalPayload);
   };
 
+  // Announcements state
+  const [announcementCourseId, setAnnouncementCourseId] = useState<string>("");
+  useEffect(() => {
+    if (!announcementCourseId && courses && courses.length > 0) {
+      setAnnouncementCourseId(courses[0].id);
+    }
+  }, [courses, announcementCourseId]);
+
+  const { data: announcements, loading: loadingAnnouncements, refresh: refreshAnnouncements } = useData({
+    func: getAnnouncements,
+    args: [announcementCourseId || ""],
+  });
+
+  const [announcementText, setAnnouncementText] = useState("");
+
+  const { action: createAnnouncement, isPending: creatingAnnouncement } = useAction(
+    async (
+      prev: any,
+      payload: { courseId: string; description: string } | undefined
+    ) => {
+      if (!payload?.courseId || !payload.description?.trim()) {
+        return { status: false, cause: "invalid", message: "Invalid payload" } as any;
+      }
+      const res = await addAnnouncement(payload.courseId, payload.description);
+      return { status: res.success, cause: "", message: "" } as any;
+    },
+    undefined,
+    {
+      loading: lang === "en" ? "Publishing..." : "በመለጠፍ ላይ...",
+      success: lang === "en" ? "Announcement published" : "ማሳወቂያ ተለጥፏል",
+      error: lang === "en" ? "Failed to publish" : "ማሳወቂያ ማስረት አልተሳካም",
+      onSuccess: () => {
+        setAnnouncementText("");
+        refreshAnnouncements();
+      },
+    }
+  );
+
+  const handlePublishAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcementCourseId || !announcementText.trim()) return;
+    await createAnnouncement({ courseId: announcementCourseId, description: announcementText.trim() });
+  };
+
   return loading ? (
     <Loading />
   ) : (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Page Header */}
       <div className="space-y-1">
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-          {lang === "en" ? "Broadcast Message" : "መልዕክት ላክ"}
+          {lang === "en" ? "Communications" : "መግቢያዎች"}
         </h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           {lang === "en"
-            ? "Send an announcement to students of selected courses."
-            : "ለተመረጡ ኮርሶች ተማሪዎች መልዕክት ላክ።"}
+            ? "Broadcast messages to students and manage course announcements in one place."
+            : "መልዕክቶችን ይላኩ እና የኮርስ ማሳወቂያዎችን በአንድ ገጽ ያስተዳድሩ።"}
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Form Card */}
+        {/* Broadcast Form Card */}
         <div className="lg:col-span-2">
           <Form
             className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-6 space-y-6"
@@ -142,10 +188,7 @@ export default function Page() {
                 <h2 className="text-sm font-medium">{lang === "en" ? "Audience" : "ተቀባዮች"}</h2>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={targetAll}
-                  {...register("targetAll")}
-                >
+                <Checkbox checked={targetAll} {...register("targetAll")}>
                   {lang === "en" ? "Send to all courses" : "ለሁሉም ኮርሶች ላክ"}
                 </Checkbox>
               </div>
@@ -163,9 +206,7 @@ export default function Page() {
                   }}
                 >
                   {(courses ?? []).map((course: any) => (
-                    <SelectItem key={course.id}>
-                      {course.titleEn}
-                    </SelectItem>
+                    <SelectItem key={course.id}>{course.titleEn}</SelectItem>
                   ))}
                 </Select>
                 <p className="text-xs text-gray-500 mt-2">
@@ -191,16 +232,17 @@ export default function Page() {
                     ? "Type your announcement or update here..."
                     : "መልዕክትዎን እዚህ ያስገቡ..."
                 }
-                className=""
                 minRows={5}
               />
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <span>
                   {lang === "en"
-                    ? "This message will be sent via Telegram to students enrolled in the selected courses."
-                    : "ይህ መልዕክት ለተመረጡ ኮርሶች የተመዘገቡ ተማሪዎች በቴሌግራም ይላካል።"}
+                    ? "If SMS is enabled, it will be delivered to enrolled students."
+                    : "ኤስኤምኤስ ካነቃቸ ለተመዘገቡ ተማሪዎች ይላካል።"}
                 </span>
-                <span>{messageText.length} {lang === "en" ? "characters" : "ፊደላት"}</span>
+                <span>
+                  {messageText.length} {lang === "en" ? "characters" : "ፊደላት"}
+                </span>
               </div>
             </div>
 
@@ -211,7 +253,7 @@ export default function Page() {
               <div className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-gray-500" />
                 <Checkbox {...register("withSMS")}>
-                  {lang === "en" ? "Also send as SMS" : "እንዲሁም በኤስኤምኤስ ላክ"}
+                  {lang === "en" ? "Also send as SMS" : "���ንዲሁም በኤስኤምኤስ ላክ"}
                 </Checkbox>
               </div>
 
@@ -233,7 +275,9 @@ export default function Page() {
                   <Input
                     {...register("name")}
                     type="text"
-                    placeholder={lang === "en" ? "Link label (e.g. Open Course)" : "የአገናኝ ስም"}
+                    placeholder={
+                      lang === "en" ? "Link label (e.g. Open Course)" : "የአገናኝ ስም"
+                    }
                   />
                 </div>
               )}
@@ -264,31 +308,96 @@ export default function Page() {
           </Form>
         </div>
 
-        {/* Side Panel */}
+        {/* Right Side Panel */}
         <div className="space-y-4">
+          {/* Announcements Manager */}
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-5">
-            <h3 className="text-sm font-semibold mb-3">{lang === "en" ? "Delivery details" : "የመላኪያ ዝርዝሮች"}</h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-2">
-              <li>• {lang === "en" ? "Telegram delivery to enrolled students." : "ለተመዘገቡ ተማሪዎች በቴሌግራም ይላካል።"}</li>
-              <li>• {lang === "en" ? "Optional SMS delivery if enabled." : "ካንቀሳቀሰ ኤስኤምኤስ እንዲላክ ይችላል።"}</li>
-              <li>• {lang === "en" ? "Link button is shown in Telegram when a URL is attached." : "URL ከተጨመረ በቴሌግራም የአገናኝ አዝራር ይታያል።"}</li>
-            </ul>
-          </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold">{lang === "en" ? "Announcements" : "ማሳወቂያዎች"}</h3>
+            </div>
 
-          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm p-5">
-            <h3 className="text-sm font-semibold mb-3">{lang === "en" ? "Preview" : "ቅድመ እይታ"}</h3>
-            <div className="space-y-3 text-sm">
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900/30 whitespace-pre-wrap text-gray-800 dark:text-gray-200">
-                {messageText || (lang === "en" ? "Your message will appear here..." : "መልዕክትዎ እዚህ ይታያል...")}
+            {/* Course selector for announcements */}
+            <div className="mb-3">
+              <Select
+                className="max-w-full"
+                label={lang === "en" ? "Course" : "ኮርስ"}
+                placeholder={lang === "en" ? "Select a course" : "ኮርስ ይምረጡ"}
+                selectionMode="single"
+                selectedKeys={announcementCourseId ? new Set([announcementCourseId]) : new Set()}
+                onSelectionChange={(keys) => {
+                  const id = Array.from(keys)[0] as string;
+                  setAnnouncementCourseId(id);
+                }}
+              >
+                {(courses ?? []).map((course: any) => (
+                  <SelectItem key={course.id}>{course.titleEn}</SelectItem>
+                ))}
+              </Select>
+            </div>
+
+            {/* New announcement */}
+            <form onSubmit={handlePublishAnnouncement} className="space-y-2">
+              <Textarea
+                value={announcementText}
+                onChange={(e) => setAnnouncementText(e.target.value)}
+                placeholder={
+                  lang === "en"
+                    ? "Write a new announcement..."
+                    : "አዲስ ማሳወቂያ ይጻፉ..."
+                }
+                minRows={3}
+              />
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>
+                  {lang === "en"
+                    ? "Announcements are shown to students inside the course."
+                    : "ማሳወቂያዎች በኮርሱ ውስጥ ለተማሪዎች ይታያሉ።"}
+                </span>
+                <span>{announcementText.length} {lang === "en" ? "characters" : "ፊደላት"}</span>
               </div>
-              {withUrlValue && (watch("url")?.trim() || watch("name")?.trim()) && (
-                <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-                  <div className="text-xs text-gray-500 mb-1">{lang === "en" ? "Link Button" : "የአገናኝ አዝራር"}</div>
-                  <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
-                    {watch("name")?.trim() || (lang === "en" ? "Open" : "ክፈት")}
-                  </Button>
-                  <div className="mt-2 text-xs text-gray-500 break-all">{watch("url")}</div>
-                </div>
+              <Button
+                type="submit"
+                size="sm"
+                isLoading={creatingAnnouncement}
+                isDisabled={!announcementCourseId || !announcementText.trim()}
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
+              >
+                {lang === "en" ? "Publish" : "አስቀምጥ"}
+              </Button>
+            </form>
+
+            <div className="h-px bg-gray-200 dark:bg-gray-700 my-4" />
+
+            {/* Announcements list */}
+            <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+              {loadingAnnouncements ? (
+                <div className="text-xs text-gray-500">{lang === "en" ? "Loading announcements..." : "ማሳወቂያዎች በመጫን ላይ..."}</div>
+              ) : !announcements || (announcements as AnnouncementItem[]).length === 0 ? (
+                <div className="text-xs text-gray-500">{lang === "en" ? "No announcements yet." : "ማሳወቂያ የለም።"}</div>
+              ) : (
+                (announcements as AnnouncementItem[]).map((a) => (
+                  <div key={a.id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 grid place-content-center">
+                        <MessageCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>
+                            {new Date(a.createdAt).toLocaleDateString(
+                              lang === "en" ? "en-US" : "am-ET",
+                              { year: "numeric", month: "short", day: "numeric" }
+                            )}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                          {a.anouncementDescription}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>

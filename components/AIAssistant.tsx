@@ -31,27 +31,30 @@ export default function AIAssistant({ lang }: AIAssistantProps) {
     setAiResponse("");
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const responses = {
-        en: [
-          "Based on the course content, here's what I understand: This topic relates to the key concepts we've been discussing. Let me break it down for you...",
-          "That's a great question! From the course material, we can see that this concept is important because it helps us understand...",
-          "I can help clarify this topic. The course explains that this is a fundamental principle that...",
-          "This is an excellent point to explore. The course content suggests that we should consider..."
-        ],
-        am: [
-          "በኮርሱ ይዘት መሰረት፣ እኔ የምረዳው ይህ ነው፡ ይህ ርዕስ ከምንወያይባቸው ቁልፍ ጽንሰ-ሀሳቦች ጋር ይዛመዳል። ለእርስዎ እከፋፍለዋለሁ...",
-          "በጣም ጥሩ ጥያቄ ነው! ከኮርሱ ይዘት፣ ይህ ጽንሰ-ሀሳብ አስፈላጊ መሆኑን ማየት እንችላለን ምክንያቱም እኛን ለመረዳት ይረዳናል...",
-          "ይህንን ርዕስ ለማብራራት እችላለሁ። ኮርሱ ይህ መሰረታዊ መርህ እንደሆነ ያብራራል...",
-          "ይህ ለመዳሰስ እጅግ በጣም ጥሩ ነጥብ ነው። የኮርሱ ይዘት እንድናስብ ይጠቁማል..."
-        ]
-      };
-      
-      const randomResponse = responses[lang as keyof typeof responses][Math.floor(Math.random() * 4)];
-      setAiResponse(randomResponse);
-      setNewQuestion("");
-      onClose();
+      const response = await fetch("/api/ai-assistant", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courseId,
+          question: newQuestion.trim(),
+          lang,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setAiResponse(result.response);
+          setNewQuestion("");
+          onClose();
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        throw new Error("Failed to get AI response");
+      }
     } catch (error) {
       console.error("Error getting AI response:", error);
       setAiResponse(lang === "en" ? "Sorry, I couldn't process your question right now. Please try again." : "ይቅርታ፣ ጥያቄዎን አሁን ማስኬድ አልቻልኩም። እባክዎ እንደገና ይሞክሩ።");

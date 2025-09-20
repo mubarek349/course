@@ -14,6 +14,8 @@ import {
   Lock,
   Circle,
   MessageCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Accordion, AccordionItem, Skeleton, Tabs, Tab } from "@heroui/react";
 
@@ -34,6 +36,107 @@ import ChatComponent from "@/components/ui/chatComponent";
 import CourseAnnouncements from "@/components/CourseAnnouncements";
 import CourseFeedback from "@/components/CourseFeedback";
 import CourseMaterials from "@/components/CourseMaterials";
+
+// ---------------- MOBILE TAB NAVIGATION COMPONENT ----------------
+function MobileTabNavigation({ tabs }: { tabs: any[]; lang: string }) {
+  const [activeTab, setActiveTab] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  const checkScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -200, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 200, behavior: "smooth" });
+    }
+  };
+
+  React.useEffect(() => {
+    checkScrollButtons();
+    const handleResize = () => checkScrollButtons();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Tab Navigation */}
+      <div className="relative flex items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        {/* Left Arrow */}
+        <button
+          onClick={scrollLeft}
+          disabled={!canScrollLeft}
+          className={`flex-shrink-0 p-2 z-10 ${
+            canScrollLeft
+              ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+              : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+          }`}
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* Scrollable Tab Container */}
+        <div
+          ref={scrollRef}
+          className="flex-1 flex overflow-x-auto scrollbar-hide scroll-smooth"
+          onScroll={checkScrollButtons}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <div className="flex space-x-1 px-2 py-2 min-w-max">
+            {tabs.map((tab, index) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(index)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  activeTab === index
+                    ? "bg-primary-500 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                } ${tab.className || ""}`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Arrow */}
+        <button
+          onClick={scrollRight}
+          disabled={!canScrollRight}
+          className={`flex-shrink-0 p-2 z-10 ${
+            canScrollRight
+              ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+              : "text-gray-300 dark:text-gray-600 cursor-not-allowed"
+          }`}
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="p-2 h-full">
+          <div className="h-full flex flex-col max-w-4xl mx-auto">
+            {tabs[activeTab]?.content}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ---------------- COURSE CONTENT COMPONENT ----------------
 function CourseContent({
@@ -661,7 +764,7 @@ export default function Page() {
           </div>
         </div>
       ),
-    }
+    },
   ];
 
   return (
@@ -699,7 +802,13 @@ export default function Page() {
             <div className="flex-1 min-h-0">
               <div className="p-0 sm:p-4 md:p-8 h-full">
                 <div className="h-full flex flex-col">
-                  <div className="flex">
+                  {/* Mobile Tab Navigation */}
+                  <div className="block sm:hidden">
+                    <MobileTabNavigation tabs={courseTabs} lang={lang} />
+                  </div>
+
+                  {/* Desktop Tab Navigation */}
+                  <div className="hidden sm:flex">
                     <div className="w-auto">
                       <Tabs
                         aria-label="Course Information"

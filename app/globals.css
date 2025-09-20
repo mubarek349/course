@@ -9,6 +9,16 @@
     -webkit-overflow-scrolling: touch;
   }
   
+  /* Hide scrollbars utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
   /* Hide scrollbars for most elements except certificate page and scrollable areas */
   *:not(#certificate-print):not(#certificate-print *):not(.scrollable):not(.scrollable *) {
     -ms-overflow-style: none;
