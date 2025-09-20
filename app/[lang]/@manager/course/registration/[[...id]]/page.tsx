@@ -4,7 +4,7 @@ import CourseFor from "./courseFor";
 import useAction from "@/hooks/useAction";
 import useData from "@/hooks/useData";
 import { courseRegistration } from "@/lib/action/course";
-import { addCourseMaterials } from "@/lib/action/courseMaterials"; // Import addCourseMaterials
+import { getCourseMaterials } from "@/lib/action/courseMaterials";
 import { getChannels, getCourseForManager } from "@/lib/data/course";
 import { TCourse } from "@/lib/definations";
 import { getEntries } from "@/lib/utils";
@@ -54,8 +54,12 @@ export default function Page() {
 
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
   const [pdfUrl, setPdfUrl] = useState<string>("");
-  const [courseMaterials, setCourseMaterials] = useState<{name: string, url: string, type: string}[]>([]);
-  const [selectedMaterials, setSelectedMaterials] = useState<FileList | null>(null);
+  const [courseMaterials, setCourseMaterials] = useState<
+    { name: string; url: string; type: string }[]
+  >([]);
+  const [selectedMaterials, setSelectedMaterials] = useState<FileList | null>(
+    null
+  );
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
 
@@ -195,6 +199,8 @@ export default function Page() {
           setPdfUrl(data.pdfData);
         }
 
+        // Materials will be fetched in useEffect below
+
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
           setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
           setValue(
@@ -209,6 +215,37 @@ export default function Page() {
       }
     },
   });
+
+  // Fetch course materials when editing
+  React.useEffect(() => {
+    const fetchMaterials = async () => {
+      if (isEditing && id && id !== "unknown" && isDataLoaded) {
+        try {
+          console.log("Fetching materials for course:", id);
+          const materials = await getCourseMaterials(id);
+          console.log("Fetched materials:", materials);
+          if (materials && materials.length > 0) {
+            const formattedMaterials = materials.map(
+              (m: { name: string; url: string; type: string }) => ({
+                name: m.name,
+                url: m.url,
+                type: m.type,
+              })
+            );
+            console.log("Setting formatted materials:", formattedMaterials);
+            setCourseMaterials(formattedMaterials);
+          } else {
+            console.log("No materials found for course:", id);
+            setCourseMaterials([]);
+          }
+        } catch (error) {
+          console.error("Error fetching course materials:", error);
+          setCourseMaterials([]);
+        }
+      }
+    };
+    fetchMaterials();
+  }, [isEditing, id, isDataLoaded]);
 
   const handleVideoSelect = (file: File) => {
     setSelectedVideoFile(file);
@@ -256,32 +293,51 @@ export default function Page() {
 
   const handleMaterialsUpload = async () => {
     if (!selectedMaterials) return;
-    
+
     setIsMaterialsUploading(true);
     try {
-      const uploadedMaterials: { name: string; url: string; type: string }[] = [];
-      
+      const uploadedMaterials: { name: string; url: string; type: string }[] =
+        [];
+
+      // Process each selected file
       for (let i = 0; i < selectedMaterials.length; i++) {
         const file = selectedMaterials[i];
         const formData = new FormData();
         formData.append("file", file);
-        
-        // For now, we'll simulate upload by creating a data URL
-        // In a real implementation, you would upload to your server
-        const fileUrl = URL.createObjectURL(file);
-        const fileType = file.type.split("/")[1] || file.name.split(".").pop() || "unknown";
-        
+
+        // Upload file to server and get the URL
+        const response = await fetch("/api/upload-materials", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to upload ${file.name}`);
+        }
+
+        const result = await response.json();
+        const fileUrl = result.materialUrl;
+        const fileType =
+          file.type.split("/")[1] || file.name.split(".").pop() || "unknown";
+
         uploadedMaterials.push({
           name: file.name,
           url: fileUrl,
-          type: fileType
+          type: fileType,
         });
+        console.log("Uploaded material:", file.name, fileUrl);
       }
-      
-      setCourseMaterials(prev => [...prev, ...uploadedMaterials]);
+
+      // Update local state with all uploaded files
+      setCourseMaterials((prev) => [...prev, ...uploadedMaterials]);
       setSelectedMaterials(null);
-      
-      alert(lang === "en" ? "Files uploaded successfully!" : "ፋይሎች በተሳካ ሁኔታ ተሰቅለዋል!");
+
+      // Show success message
+      alert(
+        lang === "en"
+          ? `Successfully uploaded ${uploadedMaterials.length} file(s)!`
+          : `${uploadedMaterials.length} ፋይሎች በተሳካ ሁኔታ ተሰቅለዋል!`
+      );
     } catch (error) {
       console.error("Error uploading materials:", error);
       alert(lang === "en" ? "File upload failed" : "የፋይል መስቀል አልተሳካም");
@@ -322,18 +378,47 @@ export default function Page() {
       }
 
       data.finalExamQuestions = finalExamQuestions;
-      
+
       // First, register/update the course
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await action(data);
-      
+
       // If course registration was successful and we have course materials, save them
       if (result && result.status && courseMaterials.length > 0) {
-        const courseId = data.id || result.data?.id;
+        const courseId = data.id || result.data?.id || result.id;
         if (courseId) {
-          await addCourseMaterials(courseId, courseMaterials);
+          console.log(
+            "Saving materials to database for course:",
+            courseId,
+            courseMaterials
+          );
+          // Use the API endpoint to save materials to database
+          const response = await fetch("/api/course-materials", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              courseId,
+              materials: courseMaterials,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error(
+              "Failed to save materials to database:",
+              await response.text()
+            );
+          } else {
+            console.log("Materials saved successfully to database");
+          }
+        } else {
+          console.error("No course ID found to save materials");
         }
+      } else if (courseMaterials.length > 0) {
+        console.log("Course materials not saved - result:", result);
       }
-      
+
       return result;
     } finally {
       setIsUploading(false);
@@ -523,7 +608,7 @@ export default function Page() {
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
                 />
-                
+
                 {/* PDF Upload Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
@@ -532,7 +617,7 @@ export default function Page() {
                       {lang === "en" ? "Course PDF Material" : "የኮርስ ፒዲኤፍ ቁሳቁስ"}
                     </h3>
                   </div>
-                  
+
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all hover:border-primary-400 hover:bg-primary-50/50">
                     {pdfUrl ? (
                       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -548,9 +633,9 @@ export default function Page() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <a 
-                            href={pdfUrl} 
-                            target="_blank" 
+                          <a
+                            href={pdfUrl}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
                           >
@@ -569,8 +654,8 @@ export default function Page() {
                       <div className="text-center">
                         <File className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-600 mb-4">
-                          {lang === "en" 
-                            ? "Upload a PDF file for additional course materials" 
+                          {lang === "en"
+                            ? "Upload a PDF file for additional course materials"
                             : "ለተጨማሪ የኮርስ ቁሳቁሶ�ች ፒዲኤፍ ፋይል ይስቀሉ"}
                         </p>
                         <label className="inline-block px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer font-medium">
@@ -579,8 +664,10 @@ export default function Page() {
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               {lang === "en" ? "Uploading..." : "በመስቀል ላይ..."}
                             </span>
+                          ) : lang === "en" ? (
+                            "Select PDF File"
                           ) : (
-                            lang === "en" ? "Select PDF File" : "ፒዲኤፍ ፋይል ይምረጡ"
+                            "ፒዲኤፍ ፋይል ይምረጡ"
                           )}
                           <input
                             type="file"
@@ -596,22 +683,26 @@ export default function Page() {
                           />
                         </label>
                         <p className="text-xs text-gray-500 mt-2">
-                          {lang === "en" ? "PDF files only, max 100MB" : "ፒዲኤፍ ፋይሎች ብቻ፣ ከፍተኛ 100ሜባይት"}
+                          {lang === "en"
+                            ? "PDF files only, max 100MB"
+                            : "ፒዲኤፍ ፋይሎች ብቻ፣ ከፍተኛ 100ሜባይት"}
                         </p>
                       </div>
                     )}
                   </div>
                 </div>
-                
+
                 {/* Course Materials Upload Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-purple-500" />
                     <h3 className="text-lg font-semibold text-gray-800">
-                      {lang === "en" ? "Additional Course Materials" : "ተጨማሪ የኮርስ ቅረጾች"}
+                      {lang === "en"
+                        ? "Additional Course Materials"
+                        : "ተጨማሪ የኮርስ ቅረጾች"}
                     </h3>
                   </div>
-                  
+
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all hover:border-primary-400 hover:bg-primary-50/50">
                     {courseMaterials.length > 0 ? (
                       <div className="space-y-4">
@@ -620,10 +711,13 @@ export default function Page() {
                             <FileText className="w-8 h-8 text-purple-500" />
                             <div>
                               <p className="font-medium text-gray-800">
-                                {lang === "en" ? "Uploaded Materials" : "የተሰቀሉ ቅረጾች"}
+                                {lang === "en"
+                                  ? "Uploaded Materials"
+                                  : "የተሰቀሉ ቅረጾች"}
                               </p>
                               <p className="text-sm text-gray-500">
-                                {courseMaterials.length} {lang === "en" ? "files" : "ፋይሎች"}
+                                {courseMaterials.length}{" "}
+                                {lang === "en" ? "files" : "ፋይሎች"}
                               </p>
                             </div>
                           </div>
@@ -635,14 +729,19 @@ export default function Page() {
                             {lang === "en" ? "Clear All" : "ሁሉንም አጥፋ"}
                           </button>
                         </div>
-                        
+
                         <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
                           <ul className="space-y-2">
                             {courseMaterials.map((material, index) => (
-                              <li key={index} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                              <li
+                                key={index}
+                                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
+                              >
                                 <div className="flex items-center gap-2">
                                   <File className="w-4 h-4 text-gray-500" />
-                                  <span className="text-sm truncate max-w-xs">{material.name}</span>
+                                  <span className="text-sm truncate max-w-xs">
+                                    {material.name}
+                                  </span>
                                 </div>
                                 <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                                   {material.type}
@@ -656,8 +755,8 @@ export default function Page() {
                       <div className="text-center">
                         <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p className="text-gray-600 mb-4">
-                          {lang === "en" 
-                            ? "Upload additional course materials (PDF, PPT, DOC, etc.)" 
+                          {lang === "en"
+                            ? "Upload additional course materials (PDF, PPT, DOC, etc.)"
                             : "ተጨማሪ የኮርስ ቅረጾችን ይስቀሉ (ፒዲኤፍ፣ ፒፒቲ፣ ዶክ፣ ወዘተ)"}
                         </p>
                         <label className="inline-block px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer font-medium">
@@ -666,8 +765,10 @@ export default function Page() {
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               {lang === "en" ? "Uploading..." : "በመስቀል ላይ..."}
                             </span>
+                          ) : lang === "en" ? (
+                            "Select Files"
                           ) : (
-                            lang === "en" ? "Select Files" : "ፋይሎችን ይምረጡ"
+                            "ፋይሎችን ይምረጡ"
                           )}
                           <input
                             type="file"
@@ -683,21 +784,30 @@ export default function Page() {
                           />
                         </label>
                         <p className="text-xs text-gray-500 mt-2">
-                          {lang === "en" ? "PDF, PPT, DOC, XLS, TXT, ZIP files supported" : "ፒዲኤፍ፣ ፒፒቲ፣ ዶክ፣ የኤክስኤልኤስ፣ የኤክስኤልኤስ፣ ቲክስት፣ ዚፕ ፋይሎች ይደገፋሉ"}
+                          {lang === "en"
+                            ? "PDF, PPT, DOC, XLS, TXT, ZIP files supported"
+                            : "ፒዲኤፍ፣ ፒፒቲ፣ ዶክ፣ የኤክስኤልኤስ፣ የኤክስኤልኤስ፣ ቲክስት፣ ዚፕ ፋይሎች ይደገፋሉ"}
                         </p>
-                        
+
                         {selectedMaterials && (
                           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
                             <p className="text-sm font-medium text-blue-800 mb-2">
-                              {lang === "en" ? "Selected Files:" : "የተመረጡ ፋይሎች:"}
+                              {lang === "en"
+                                ? "Selected Files:"
+                                : "የተመረጡ ፋይሎች:"}
                             </p>
                             <ul className="text-xs text-blue-700 space-y-1">
-                              {Array.from(selectedMaterials).map((file, index) => (
-                                <li key={index} className="flex items-center gap-2">
-                                  <File className="w-3 h-3" />
-                                  {file.name}
-                                </li>
-                              ))}
+                              {Array.from(selectedMaterials).map(
+                                (file, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <File className="w-3 h-3" />
+                                    {file.name}
+                                  </li>
+                                )
+                              )}
                             </ul>
                             <button
                               onClick={handleMaterialsUpload}
@@ -707,10 +817,14 @@ export default function Page() {
                               {isMaterialsUploading ? (
                                 <span className="flex items-center gap-2">
                                   <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  {lang === "en" ? "Uploading..." : "በመስቀል ላይ..."}
+                                  {lang === "en"
+                                    ? "Uploading..."
+                                    : "በመስቀል ላይ..."}
                                 </span>
+                              ) : lang === "en" ? (
+                                "Upload Files"
                               ) : (
-                                lang === "en" ? "Upload Files" : "ፋይሎችን ይስቀሉ"
+                                "ፋይሎችን ይስቀሉ"
                               )}
                             </button>
                           </div>
@@ -719,7 +833,7 @@ export default function Page() {
                     )}
                   </div>
                 </div>
-                
+
                 <CourseBasicInfo
                   lang={lang}
                   register={register}
