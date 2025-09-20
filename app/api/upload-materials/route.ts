@@ -1,45 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "materials");
+import { join } from "path";
 
 export async function POST(request: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const data = await request.formData();
+    const file: File | null = data.get("file") as unknown as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "No file received" }, { status: 400 });
     }
 
-    // Create uploads directory if it doesn't exist
-    if (!existsSync(UPLOAD_DIR)) {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-    }
-
-    // Generate unique filename with timestamp
-    const timestamp = Date.now();
-    const extension = path.extname(file.name);
-    const filename = `${timestamp}${extension}`;
-    const filepath = path.join(UPLOAD_DIR, filename);
-
-    // Convert file to buffer and write to disk
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
 
-    // Return success response with file URL
-    return NextResponse.json({ 
-      success: true, 
-      filename,
-      materialUrl: `/materials/${filename}`,
-      message: "Material uploaded successfully" 
+    const timestamp = Date.now();
+    const randomNum = Math.floor(Math.random() * 100000);
+    const fileExtension = file.name.split(".").pop() || "unknown";
+    const filename = `${timestamp}-${randomNum}.${fileExtension}`;
+
+    const uploadDir = join(process.cwd(), "public", "uploads", "materials");
+    await mkdir(uploadDir, { recursive: true });
+    const filePath = join(uploadDir, filename);
+    await writeFile(filePath, buffer);
+
+    return NextResponse.json({
+      success: true,
+      url: `/uploads/materials/${filename}`,
+      name: file.name,
+      type: fileExtension,
     });
-
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    console.error("Error uploading material:", error);
+    return NextResponse.json({ success: false, error: "Upload failed" }, { status: 500 });
   }
 }

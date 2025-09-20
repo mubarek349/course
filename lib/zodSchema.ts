@@ -48,6 +48,15 @@ export const courseSchema = z.object({
   thumbnail: z.string({ message: "" }).nonempty("thumbnail is required"),
   video: z.string({ message: "" }).nonempty("video is required"),
   pdf: z.string({ message: "" }).optional(), // Optional PDF field
+  courseMaterials: z
+    .array(
+      z.object({
+        name: z.string({ message: "" }),
+        url: z.string({ message: "" }),
+        type: z.string({ message: "" }),
+      })
+    )
+    .optional(),
   price: z.coerce.number({ message: "" }).gt(0, "price must be greater than 0"),
   currency: z.string({ message: "" }).nonempty(""),
   level: z.enum(["beginner", "intermediate", "advanced"], { message: "" }),

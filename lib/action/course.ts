@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "../db";
-import { StateType, TAffiliateSelf, TCourse } from "../definations";
+import { StateType, TCourse } from "../definations";
 import bcryptjs from "bcryptjs";
 
 export async function courseRegistration(
@@ -17,14 +17,31 @@ export async function courseRegistration(
       activity,
       finalExamQuestions,
       pdf, // Extract PDF field
+      courseMaterials, // Optional client-provided materials
       ...rest
     } = data;
 
-    // Add pdfData field to the rest data (mapping pdf to pdfData)
+    // Prepare courseMaterials for DB (String[] of JSON strings)
+    const serializedMaterials: string[] | undefined = courseMaterials
+      ? Array.from(
+          new Map(
+            courseMaterials
+              .filter((m) => m && m.url)
+              .map((m) => [m.url, {
+                name: m.name?.trim() || m.url.split("/").pop() || "material",
+                url: m.url,
+                type: (m.type || m.url.split(".").pop() || "file").toLowerCase(),
+              }])
+          ).values()
+        ).map((m) => JSON.stringify(m))
+      : undefined;
+
+    // Add pdfData and optionally courseMaterials to the rest data (mapping pdf to pdfData)
     const courseData = {
       ...rest,
       pdfData: pdf || null, // Map pdf to pdfData for the database
-    };
+      ...(serializedMaterials ? { courseMaterials: { set: serializedMaterials } } : {}),
+    } as const;
 
     await prisma.course.updateMany({
       where: { channelId: rest.channelId },
@@ -68,12 +85,13 @@ export async function courseRegistration(
       await prisma.activity.deleteMany({ where: { courseId: id } });
 
       // Extract relation fields from courseData
-      const { instructorId, channelId, pdfData, ...courseDataWithoutRelations } = courseData;
+      const { instructorId, channelId, ...courseDataWithoutRelations } =
+        courseData;
 
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
-          ...courseDataWithoutRelations, // Use courseData without relation fields
+          ...courseDataWithoutRelations, // Use courseData without relation fields (includes pdfData and possibly courseMaterials: set [...])
           instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
           channel: { connect: { id: channelId } }, // Fix: Use relation syntax
           courseFor: { create: courseFor },
@@ -206,8 +224,18 @@ export async function courseRegistration(
         }
       }
     } else {
+      const { instructorId: createInstructorId, channelId: createChannelId, ...restWithoutRelations } = rest as unknown as { [k: string]: any };
       const courseId = await prisma.course
-        .create({ data: courseData }) // Use courseData which includes pdf
+        .create({
+          data: {
+            ...restWithoutRelations,
+            pdfData: pdf || null,
+            // For create, courseMaterials is a scalar field and accepts string[] directly
+            ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
+            instructor: { connect: { id: createInstructorId } },
+            channel: { connect: { id: createChannelId } },
+          },
+        })
         .then((v) => v.id);
       if (courseId) {
         for (const v of courseFor) {
@@ -406,7 +434,9 @@ export async function sellerRegistration(
           fatherName,
           lastName,
           phoneNumber,
-          ...(password && password !== "" ? { password: await bcryptjs.hash(password, 12) } : {}),
+          ...(password && password !== ""
+            ? { password: await bcryptjs.hash(password, 12) }
+            : {}),
         },
       });
     } else {

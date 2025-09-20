@@ -316,7 +316,7 @@ export default function Page() {
         }
 
         const result = await response.json();
-        const fileUrl = result.materialUrl;
+        const fileUrl = result.url;
         const fileType =
           file.type.split("/")[1] || file.name.split(".").pop() || "unknown";
 
@@ -378,46 +378,17 @@ export default function Page() {
       }
 
       data.finalExamQuestions = finalExamQuestions;
+      // Include course materials in the course registration payload
+      // so they are persisted during both create and update flows
+      // (server action serializes and stores them into Course.courseMaterials)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (data as any).courseMaterials = courseMaterials;
 
       // First, register/update the course
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await action(data);
 
-      // If course registration was successful and we have course materials, save them
-      if (result && result.status && courseMaterials.length > 0) {
-        const courseId = data.id || result.data?.id || result.id;
-        if (courseId) {
-          console.log(
-            "Saving materials to database for course:",
-            courseId,
-            courseMaterials
-          );
-          // Use the API endpoint to save materials to database
-          const response = await fetch("/api/course-materials", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              courseId,
-              materials: courseMaterials,
-            }),
-          });
-
-          if (!response.ok) {
-            console.error(
-              "Failed to save materials to database:",
-              await response.text()
-            );
-          } else {
-            console.log("Materials saved successfully to database");
-          }
-        } else {
-          console.error("No course ID found to save materials");
-        }
-      } else if (courseMaterials.length > 0) {
-        console.log("Course materials not saved - result:", result);
-      }
+      // Materials are included in the server action payload and persisted there.
 
       return result;
     } finally {
