@@ -25,7 +25,7 @@ export function Permission({
   onOpenChange: () => void;
 }) {
   const params = useParams<{ lang: string }>();
-             const lang = params?.lang || "en",
+  const lang = params?.lang || "en",
     router = useRouter(),
     [input, setInput] = useState<string[]>(permission),
     { action, isPending } = useAction(registerPermission, undefined, {
@@ -59,6 +59,8 @@ export function Permission({
                 "seller",
                 "affiliate",
                 "course",
+                "message",
+                "feedback",
                 "student",
               ].map((v, i) => {
                 console.log(input.includes(v));
