@@ -268,11 +268,9 @@ function CourseContent({
         <button
           onClick={() => {
             setStatusesLoading(true);
-            contentData?.activity
-              ?.filter((activity: any) => activity.hasQuiz)
-              .forEach((activity: any) => {
-                refreshActivityQuizStatus(activity.id);
-              });
+            contentData?.activity?.forEach((activity: any) => {
+              refreshActivityQuizStatus(activity.id);
+            });
             setTimeout(() => setStatusesLoading(false), 1000);
           }}
           disabled={statusesLoading}
@@ -329,7 +327,8 @@ function CourseContent({
                 );
               })}
 
-              {activity.hasQuiz && (
+              {/* Always show quiz for now */}
+              {true && (
                 <li
                   onClick={() => {
                     refreshActivityQuizStatus(activity.id);
