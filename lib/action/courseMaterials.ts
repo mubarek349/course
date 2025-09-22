@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import prisma from "@/lib/db";
@@ -25,7 +26,9 @@ export async function addCourseMaterials(
       }));
 
     // Deduplicate by URL
-    const uniqueByUrl = Array.from(new Map(sanitized.map((m) => [m.url, m])).values());
+    const uniqueByUrl = Array.from(
+      new Map(sanitized.map((m) => [m.url, m])).values()
+    );
 
     // Serialize to store in String[] (schema: Course.courseMaterials String[])
     const serialized = uniqueByUrl.map((m) => JSON.stringify(m));
@@ -45,7 +48,9 @@ export async function addCourseMaterials(
   }
 }
 
-export async function getCourseMaterials(courseId: string): Promise<CourseMaterial[]> {
+export async function getCourseMaterials(
+  courseId: string
+): Promise<CourseMaterial[]> {
   try {
     const course = await prisma.course.findUnique({
       where: { id: courseId },
@@ -60,7 +65,9 @@ export async function getCourseMaterials(courseId: string): Promise<CourseMateri
         if (obj && typeof obj === "object" && (obj as any).url) {
           const url = (obj as any).url as string;
           const name = (obj as any).name ?? url.split("/").pop() ?? "material";
-          const type = ((obj as any).type ?? url.split(".").pop() ?? "file").toString().toLowerCase();
+          const type = ((obj as any).type ?? url.split(".").pop() ?? "file")
+            .toString()
+            .toLowerCase();
           return { name, url, type };
         }
         // If parsed but not as expected, fall back to treating it as a URL string
@@ -124,7 +131,11 @@ export async function getAnnouncements(courseId: string) {
 }
 
 // ---------------- Feedback ----------------
-export async function addFeedback(courseId: string, feedback: string, rating: number) {
+export async function addFeedback(
+  courseId: string,
+  feedback: string,
+  rating: number
+) {
   try {
     const session = await auth();
     const userId = session?.user?.id;
@@ -139,7 +150,7 @@ export async function addFeedback(courseId: string, feedback: string, rating: nu
         courseId,
         userId,
         feedback: feedback.trim(),
-        rating: Math.max(1, Math.min(5, Math.round(rating)))
+        rating: Math.max(1, Math.min(5, Math.round(rating))),
       },
     });
     return { success: true };

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Shield, AlertTriangle, RefreshCw } from "lucide-react";
-import { Button } from "@heroui/react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/layout/PageHeader";

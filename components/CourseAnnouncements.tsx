@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { MessageCircle, Calendar, User } from "lucide-react";
 import { getAnnouncements } from "@/lib/data/courseMaterials";
 import useData from "@/hooks/useData";

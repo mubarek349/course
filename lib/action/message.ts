@@ -36,7 +36,7 @@ export async function sendMessageToAll(
 ): Promise<StateType> {
   try {
     if (!data) throw new Error("No data provided");
-    const { message, withSMS, withUrl, url, name, courseId } = data;
+    const { message, withSMS, withUrl, url, courseId } = data;
 
     const user = await prisma.user.findMany({
       where: {

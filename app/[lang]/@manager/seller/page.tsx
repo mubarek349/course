@@ -7,6 +7,7 @@ import { useParams, usePathname } from "next/navigation";
 import React, { useState } from "react";
 import Link from "next/link";
 import { getCoursesList } from "@/actions/manager/course";
+import { getSellers, removeSeller } from "@/actions/manager/seller";
 import CustomTable from "@/components/ui/custom-table";
 import { TTableData } from "@/lib/definations";
 import {
@@ -23,8 +24,9 @@ import {
 } from "@heroui/react";
 import UserStatusToggle from "@/components/userStatusToggle";
 import CustomDatePicker from "@/components/ui/custom-date-picker";
-import {
 import { CDropdownMenu } from "@/components/heroui";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import { startOfMonth, endOfMonth, today, getLocalTimeZone } from "@internationalized/date";
 
 export default function Page() {
   const params = useParams<{ lang: string }>(),
@@ -43,8 +45,6 @@ export default function Page() {
       currentPage: 1,
       rowsPerPage: 50,
       status: new Set([]),
-      // allCourse: [],
-      // courseId: new Set([]),
       date: {
         start: new Date(startOfMonth(today(getLocalTimeZone())).toString()),
         end: new Date(endOfMonth(today(getLocalTimeZone())).toString()),
@@ -66,10 +66,12 @@ export default function Page() {
 
   return (
     <ScrollablePageWrapper>
-      <PageHeader
-        title={lang === "en" ? "Seller Management" : "የሻጭ አስተዳደር"}
-        subtitle={lang === "en" ? "Manage seller accounts and their sales performance." : "የሻጭ መለያዎችን እና የሽያጭ አፈጻጸማቸውን ያስተዳድሩ።"}
-        actions={
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">{lang === "en" ? "Seller Management" : "የሻጭ አስተዳደር"}</h1>
+            <p className="text-gray-600">{lang === "en" ? "Manage seller accounts and their sales performance." : "የሻጭ መለያዎችን እና የሽያጭ አፈጻጸማቸውን ያስተዳድሩ።"}</p>
+          </div>
           <Button
             size="sm"
             color="primary"
@@ -79,9 +81,8 @@ export default function Page() {
           >
             {lang === "en" ? "Add New Seller" : "አዲስ ሻጭ ጨምር"}
           </Button>
-        }
-      />
-      <CustomTable
+        </div>
+        <CustomTable
         columns={[
           { label: lang == "en" ? "Name" : "ስም", key: "name", sortable: true },
           {
@@ -162,15 +163,6 @@ export default function Page() {
                     refresh={refresh}
                   />
                 </div>
-              );
-            }
-            case "status": {
-              return (
-                <UserStatusToggle
-                  id={rowData.id}
-                  status={rowData.status}
-                  refresh={refresh}
-                />
               );
             }
             case "actions": {
@@ -258,26 +250,18 @@ export default function Page() {
             >
               Add New
             </Button>
-            {/* <Button size="sm"
-              variant="flat"
-              color="success"
-              startContent={<DollarSign className="size-5" />}
-              onPress={() => setTransfer(true)}
-              isDisabled={Array.from(tableData.selectedKeys).length == 0}
-            >
-              Transfer
-            </Button> */}
           </>
         }
-      />
-      {remove && (
-        <RemoveSeller
-          id={remove}
-          refresh={refresh}
-          onOpenChange={() => setRemove(undefined)}
         />
-      )}
-    </div>
+        {remove && (
+          <RemoveSeller
+            id={remove}
+            refresh={refresh}
+            onOpenChange={() => setRemove(undefined)}
+          />
+        )}
+      </div>
+    </ScrollablePageWrapper>
   );
 }
 
@@ -290,8 +274,8 @@ function RemoveSeller({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const params= useParams<{ lang: string}>();
-          const lang = params?.lang || "en",
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en",
     { action, isPending } = useAction(removeSeller, undefined, {
       loading: lang == "en" ? "deleting seller" : "አስተዳዳሪን በመሰረዝ ላይ",
       success:

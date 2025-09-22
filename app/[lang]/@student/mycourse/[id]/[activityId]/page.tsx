@@ -9,7 +9,7 @@ import {
   unlockTheFinalExamAndQuiz,
   readyToCertification,
 } from "@/actions/student/mycourse";
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Trophy,
@@ -20,7 +20,6 @@ import {
   X,
   RotateCcw,
 } from "lucide-react";
-import ChatComponent from "@/components/ui/chatComponent";
 
 export default function Page() {
   const router = useRouter();
@@ -66,7 +65,7 @@ export default function Page() {
 
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: quizStatus, loading: quizStatusLoading } = useData({
+  const { data: quizStatus } = useData({
     // eslint-disable-line @typescript-eslint/no-unused-vars
     func: getActivityQuizStatus,
     args: [activityId],
