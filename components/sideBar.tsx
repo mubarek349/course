@@ -54,8 +54,8 @@ export default function SideBar({
       <div
         className={cn(
           "z-50 transition-all duration-300",
-          // Desktop styles
-          "md:relative md:flex md:flex-col md:h-screen",
+          // Desktop styles - Fixed positioning
+          "md:fixed md:left-0 md:top-0 md:flex md:flex-col md:h-screen",
           isCollapsed ? "md:w-20" : "md:w-72",
           // Mobile styles
           "max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:w-80 max-md:transform",
