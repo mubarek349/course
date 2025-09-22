@@ -17,7 +17,7 @@ import prisma from "@/lib/db";
         },
       },
     });
-    const student = await prisma.user.create({
+    await prisma.user.create({
       data: {
         role: "student",
         firstName: "mubarek",
@@ -26,7 +26,7 @@ import prisma from "@/lib/db";
         phoneNumber: "0942303571",
         password:
           "$2a$12$Wt8Q9Q23DmCEiVPucCrTcOTxtYRkNUhK5MoyaJotYBc1RbJdUbk0W",
-       status:"active",
+        status: "active",
       },
     });
 

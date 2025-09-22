@@ -21,7 +21,11 @@ export async function authenticate(
     });
   } catch (error) {
     console.log("ERROR :: ", error);
-    return { status: false, cause: "Authentication failed", message: "Authentication failed" };
+    return {
+      status: false,
+      cause: "Authentication failed",
+      message: "Authentication failed",
+    };
   }
   // return { status: true };
   revalidatePath("");
@@ -80,11 +84,15 @@ export async function unauthentic(prevState: StateType): Promise<StateType> {
     await signOut({ redirect: false });
   } catch (error) {
     console.log("ERROR :: ", error);
-    return { status: false, cause: "Sign out failed", message: "Sign out failed" };
+    return {
+      status: false,
+      cause: "Sign out failed",
+      message: "Sign out failed",
+    };
   }
   // return { status: true };
   revalidatePath("");
-  redirect("/");
+  redirect("/en");
   console.log(prevState);
 }
 
@@ -108,7 +116,11 @@ export async function changePassword(
     return { status: true, message: "Password changed successfully" };
   } catch (error) {
     console.log(error);
-    return { status: false, cause: "Password change failed", message: "Password change failed" };
+    return {
+      status: false,
+      cause: "Password change failed",
+      message: "Password change failed",
+    };
   }
 }
 
@@ -141,6 +153,10 @@ export async function toggleStatus(
 
     return { status: true, message: "Status updated successfully" };
   } catch {
-    return { status: false, cause: "Status update failed", message: "Status update failed" };
+    return {
+      status: false,
+      cause: "Status update failed",
+      message: "Status update failed",
+    };
   }
 }
