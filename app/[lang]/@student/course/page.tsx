@@ -3,11 +3,13 @@
 import useData from "@/hooks/useData";
 import { getCoursesForCustomer } from "@/lib/data/course";
 import React from "react";
-import Loading from "@/components/loading";
-import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
 import { useParams } from "next/navigation";
 import { Button, Link } from "@heroui/react";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import { BookOpen } from "lucide-react";
 
 export default function Page() {
   const params = useParams<{ lang: string }>();
@@ -17,32 +19,66 @@ export default function Page() {
     args: [],
   });
 
-  return (
-    <div className="h-dvh overflow-y-auto">
-      {loading ? (
-        <Loading />
-      ) : !data || data.length <= 0 ? (
-        <NoData />
-      ) : (
-        <div className="z-30 px-4 py-20 md:px-10 md:py-24 min-h-full grid gap-5 grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 ">
-          {data.map(({ id, ...value }, i) => (
-            <CourseCard
-              key={i + ""}
-              {...{ ...value, id }}
-              btn={
-                <Button
-                  color="primary"
-                  as={Link}
-                  href={`/${lang}/course/${id}`}
-                  className=""
-                >
-                  {lang == "en" ? "Enroll" : "ይመዝገቡ"}
-                </Button>
-              }
-            />
+  if (loading) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title={lang === "en" ? "Available Courses" : "ያሉ ኮርሶች"}
+          subtitle={lang === "en" ? "Loading available courses..." : "ያሉ ኮርሶች በመጫን ላይ..."}
+        />
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="card p-4">
+              <div className="h-48 skeleton mb-4" />
+              <div className="h-6 w-3/4 skeleton mb-2" />
+              <div className="h-4 w-1/2 skeleton" />
+            </div>
           ))}
         </div>
-      )}
-    </div>
+      </ScrollablePageWrapper>
+    );
+  }
+
+  if (!data || data.length <= 0) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title={lang === "en" ? "Available Courses" : "ያሉ ኮርሶች"}
+          subtitle={lang === "en" ? "Browse and enroll in available courses." : "ያሉ ኮርሶችን ይመልከቱ እና ይመዝገቡ።"}
+        />
+        <EmptyState
+          icon={<BookOpen className="size-16" />}
+          title={lang === "en" ? "No Courses Available" : "ኮርስ የለም"}
+          description={lang === "en" ? "There are currently no courses available for enrollment." : "በአሁኑ ጊዜ ለምዝገባ የሚገኝ ኮርስ የለም።"}
+        />
+      </ScrollablePageWrapper>
+    );
+  }
+
+  return (
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Available Courses" : "ያሉ ኮርሶች"}
+        subtitle={lang === "en" ? "Browse and enroll in available courses." : "ያሉ ኮርሶችን ይመልከቱ እና ይመዝገቡ።"}
+      />
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {data.map(({ id, ...value }, i) => (
+          <CourseCard
+            key={i + ""}
+            {...{ ...value, id }}
+            btn={
+              <Button
+                color="primary"
+                as={Link}
+                href={`/${lang}/course/${id}`}
+                className=""
+              >
+                {lang == "en" ? "Enroll" : "ይመዝገቡ"}
+              </Button>
+            }
+          />
+        ))}
+      </div>
+    </ScrollablePageWrapper>
   );
 }

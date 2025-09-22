@@ -23,6 +23,8 @@ import CustomTable from "@/components/ui/custom-table";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { TTableData } from "@/lib/definations";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function Page() {
   const params = useParams<{ lang: string }>(),
@@ -48,7 +50,22 @@ export default function Page() {
     [remove, setRemove] = useState<string>();
 
   return (
-    <div className="overflow-hidden">
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Course Management" : "የኮርስ አስተዳደር"}
+        subtitle={lang === "en" ? "Manage all courses, their status, and performance metrics." : "ሁሉንም ኮርሶች፣ ሁኔታቸውን እና አፈጻጸም መለኪያዎችን ያስተዳድሩ።"}
+        actions={
+          <Button
+            size="sm"
+            color="primary"
+            endContent={<Plus className="size-4" />}
+            as={Link}
+            href={`${pathname}/registration`}
+          >
+            <span>{lang === "en" ? "Add New Course" : "አዲስ ኮርስ ጨምር"}</span>
+          </Button>
+        }
+      />
       <CustomTable
         columns={[
           { label: "Thumbnail", key: "thumbnail" },
@@ -150,48 +167,37 @@ export default function Page() {
         tableData={tableData}
         setTableData={setTableData}
         btns={
-          <>
-            <Dropdown>
-              <DropdownTrigger className="hidden sm:flex">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="primary"
-                  className="capitalize"
-                >
-                  {Array.from(tableData.status).length == 1
-                    ? Array.from(tableData.status)
-                    : "status"}
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
+          <Dropdown>
+            <DropdownTrigger className="hidden sm:flex">
+              <Button
+                size="sm"
                 variant="flat"
                 color="primary"
-                selectionMode="multiple"
-                closeOnSelect={false}
-                aria-label="Table Status"
-                selectedKeys={tableData.status}
-                onSelectionChange={(status) =>
-                  setTableData((prev) => ({ ...prev, status }))
-                }
+                className="capitalize"
               >
-                {["active", "inactive"].map((v) => (
-                  <DropdownItem key={v} className="capitalize">
-                    {v}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-            <Button
-              size="sm"
+                {Array.from(tableData.status).length == 1
+                  ? Array.from(tableData.status)
+                  : "status"}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              variant="flat"
               color="primary"
-              endContent={<Plus className="size-4" />}
-              as={Link}
-              href={`${pathname}/registration`}
+              selectionMode="multiple"
+              closeOnSelect={false}
+              aria-label="Table Status"
+              selectedKeys={tableData.status}
+              onSelectionChange={(status) =>
+                setTableData((prev) => ({ ...prev, status }))
+              }
             >
-              <span className="">Add New</span>
-            </Button>
-          </>
+              {["active", "inactive"].map((v) => (
+                <DropdownItem key={v} className="capitalize">
+                  {v}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
         }
       />
       {toggle && (
@@ -208,7 +214,7 @@ export default function Page() {
           refresh={refresh}
         />
       )}
-    </div>
+    </ScrollablePageWrapper>
   );
 }
 

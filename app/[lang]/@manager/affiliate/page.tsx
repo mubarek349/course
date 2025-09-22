@@ -25,6 +25,8 @@ import {
 import { getAffiliates, removeAffiliate } from "@/actions/manager/affiliate";
 import UserStatusToggle from "@/components/userStatusToggle";
 import CustomDatePicker from "@/components/ui/custom-date-picker";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
 import {
   endOfMonth,
   getLocalTimeZone,
@@ -77,7 +79,22 @@ export default function Page() {
   });
 
   return (
-    <div className="overflow-hidden">
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Affiliate Management" : "የአፊሊየት አስተዳደር"}
+        subtitle={lang === "en" ? "Manage affiliate partners and their performance metrics." : "የአፊሊየት አጋሮችን እና አፈጻጸማቸውን ያስተዳድሩ።"}
+        actions={
+          <Button
+            size="sm"
+            color="primary"
+            endContent={<Plus className="size-4" />}
+            as={Link}
+            href={`${pathname}/registration`}
+          >
+            {lang === "en" ? "Add New Affiliate" : "አዲስ አፊሊየት ጨምር"}
+          </Button>
+        }
+      />
       <CustomTable
         columns={[
           { label: lang == "en" ? "Name" : "ስም", key: "name", sortable: true },
@@ -298,7 +315,7 @@ export default function Page() {
           onOpenChange={() => setRemove(undefined)}
         />
       )}
-    </div>
+    </ScrollablePageWrapper>
   );
 }
 

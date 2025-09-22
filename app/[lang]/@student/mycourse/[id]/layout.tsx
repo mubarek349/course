@@ -2,26 +2,19 @@
 "use client";
 import React, { useMemo } from "react";
 import useData from "@/hooks/useData";
-import {
-  unlockTheFinalExamAndQuiz,
-  readyToCertification,
-} from "@/actions/student/mycourse";
+import { unlockTheFinalExamAndQuiz } from "@/actions/student/mycourse";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { Lock, Trophy, ChevronRight } from "lucide-react";
+import { Lock, ChevronRight } from "lucide-react";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams<{ lang: string; id: string }>();
-  const lang = params?.lang || "en"; 
+  const lang = params?.lang || "en";
   const courseId = params?.id || "";
   const pathname = usePathname();
 
   const { data: locks, loading: locksLoading } = useData({
     func: unlockTheFinalExamAndQuiz,
-    args: [courseId],
-  });
-  const { data: cert } = useData({
-    func: readyToCertification,
     args: [courseId],
   });
 
@@ -31,7 +24,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const isFinalExam = lastSeg === "finalexam";
-  const isCertificate = lastSeg === "certificate";
   const activityInfo = useMemo(() => {
     const acts = (locks as any)?.activities || [];
     return acts.find((a: any) => a.activityId === lastSeg) || null;
@@ -115,7 +107,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   // For allowable routes, show a certificate banner (except on the certificate page itself)
   return (
     <div className="grid grid-rows-[auto_1fr] overflow-hidden relative ">
-      
       {/* {!isCertificate && cert?.status && (
         <div className="sticky top-0 z-10 bg-emerald-600 text-white">
           <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">

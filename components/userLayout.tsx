@@ -14,11 +14,11 @@ export default function UserLayout({
   const [isSide, setIsSide] = useState(false);
 
   return (
-    <div className=" bg-primary-50 grid grid-cols-1 md:grid-cols-[auto_1fr] overflow-hidden ">
+    <div className="h-screen overflow-hidden grid grid-cols-[auto_1fr] bg-gradient-to-br from-neutral-50 via-brand-50/20 to-neutral-100 dark:from-neutral-950 dark:via-brand-950/30 dark:to-neutral-900">
       <SideBar isSide={isSide} setIsSide={setIsSide} lists={list} />
-      <div className="grid gap-2 grid-rows-[auto_1fr] overflow-hidden">
+      <div className="grid grid-rows-[auto_1fr] h-full">
         <Header setIsSide={setIsSide} />
-        <div className="px-2 md:px-5 py-2 grid overflow-hidden  ">
+        <div className="overflow-hidden">
           {children}
         </div>
       </div>

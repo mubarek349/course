@@ -24,12 +24,6 @@ import {
 import UserStatusToggle from "@/components/userStatusToggle";
 import CustomDatePicker from "@/components/ui/custom-date-picker";
 import {
-  endOfMonth,
-  getLocalTimeZone,
-  startOfMonth,
-  today,
-} from "@internationalized/date";
-import { getSellers, removeSeller } from "@/actions/manager/seller";
 import { CDropdownMenu } from "@/components/heroui";
 
 export default function Page() {
@@ -71,7 +65,22 @@ export default function Page() {
   });
 
   return (
-    <div className="overflow-hidden">
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Seller Management" : "የሻጭ አስተዳደር"}
+        subtitle={lang === "en" ? "Manage seller accounts and their sales performance." : "የሻጭ መለያዎችን እና የሽያጭ አፈጻጸማቸውን ያስተዳድሩ።"}
+        actions={
+          <Button
+            size="sm"
+            color="primary"
+            endContent={<Plus className="size-4" />}
+            as={Link}
+            href={`${pathname}/registration`}
+          >
+            {lang === "en" ? "Add New Seller" : "አዲስ ሻጭ ጨምር"}
+          </Button>
+        }
+      />
       <CustomTable
         columns={[
           { label: lang == "en" ? "Name" : "ስም", key: "name", sortable: true },

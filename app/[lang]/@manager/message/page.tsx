@@ -22,6 +22,8 @@ import useAction from "@/hooks/useAction";
 import { AlertTriangle, Link2, Send, Smartphone, Users, Calendar, MessageCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { addAnnouncement, getAnnouncements } from "@/lib/data/courseMaterials";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
 
 const formSchema = z.object({
   courseId: z.array(z.string({ message: "" })),
@@ -151,21 +153,33 @@ export default function Page() {
     await createAnnouncement({ courseId: announcementCourseId, description: announcementText.trim() });
   };
 
-  return loading ? (
-    <Loading />
-  ) : (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div className="space-y-1">
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">
-          {lang === "en" ? "Communications" : "መግቢያዎች"}
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {lang === "en"
-            ? "Broadcast messages to students and manage course announcements in one place."
-            : "መልዕክቶችን ይላኩ እና የኮርስ ማሳወቂያዎችን በአንድ ገጽ ያስተዳድሩ።"}
-        </p>
-      </div>
+  if (loading) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title={lang === "en" ? "Communications" : "መግቢያዎች"}
+          subtitle={lang === "en" ? "Loading communication tools..." : "የመገናኛ መሳሪያዎች በመጫን ላይ..."}
+        />
+        <div className="space-y-6">
+          <div className="card p-6">
+            <div className="h-64 skeleton" />
+          </div>
+          <div className="card p-6">
+            <div className="h-48 skeleton" />
+          </div>
+        </div>
+      </ScrollablePageWrapper>
+    );
+  }
+
+  return (
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Communications" : "መግቢያዎች"}
+        subtitle={lang === "en"
+          ? "Broadcast messages to students and manage course announcements in one place."
+          : "መልዕክቶችን ይላኩ እና የኮርስ ማሳወቂያዎችን በአንድ ገጽ ያስተዳድሩ።"}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Broadcast Form Card */}
@@ -403,6 +417,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </div>
+    </ScrollablePageWrapper>
   );
 }

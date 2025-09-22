@@ -17,6 +17,8 @@ import { Pen, Plus, Trash } from "lucide-react";
 import RemoveInstructor from "./removeInstructor";
 import { TTableData } from "@/lib/definations";
 import { getInstructors } from "@/actions/manager/instuctor";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
 
 export default function Page() {
   const [tableData, setTableData] = useState<
@@ -41,7 +43,21 @@ export default function Page() {
     [remove, setRemove] = useState<string>();
 
   return (
-    <div className="overflow-hidden ">
+    <ScrollablePageWrapper>
+      <PageHeader
+        title="Instructor Management"
+        subtitle="Manage instructor accounts, status, and assignments."
+        actions={
+          <Button
+            size="sm"
+            color="primary"
+            endContent={<Plus className="size-4" />}
+            onPress={() => setRegistration(true)}
+          >
+            Add New Instructor
+          </Button>
+        }
+      />
       <CustomTable
         columns={[
           { label: "Name", key: "name", sortable: true },
@@ -175,6 +191,6 @@ export default function Page() {
           refresh={refresh}
         />
       )}
-    </div>
+    </ScrollablePageWrapper>
   );
 }

@@ -10,6 +10,8 @@ import { TTableData } from "@/lib/definations";
 import { getStudents } from "@/actions/manager/student";
 import UserStatusToggle from "@/components/userStatusToggle";
 import RemoveStudent from "./removeStudent";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
 import {
   Button,
   Dropdown,
@@ -41,7 +43,22 @@ export default function Page() {
     [remove, setRemove] = useState<string>();
 
   return (
-    <div className="overflow-hidden  ">
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Student Management" : "የተማሪ አስተዳደር"}
+        subtitle={lang === "en" ? "Manage student accounts, status, and registrations." : "የተማሪ መለያዎችን፣ ሁኔታ እና ምዝገባዎችን ያስተዳድሩ።"}
+        actions={
+          <Button
+            size="sm"
+            as={Link}
+            href={`/${lang}/student/registration`}
+            color="primary"
+            endContent={<Plus className="size-4" />}
+          >
+            {lang === "en" ? "Add New Student" : "አዲስ ተማሪ ጨምር"}
+          </Button>
+        }
+      />
       <CustomTable
         columns={[
           { label: lang == "en" ? "Name" : "ስም", key: "name", sortable: true },
@@ -140,48 +157,37 @@ export default function Page() {
           }
         }}
         btns={
-          <>
-            <Dropdown>
-              <DropdownTrigger className="hidden sm:flex">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  color="primary"
-                  className="capitalize"
-                >
-                  {((v) => (v.length === 1 ? v : "status"))(
-                    Array.from(tableData.status)
-                  )}
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu
+          <Dropdown>
+            <DropdownTrigger className="hidden sm:flex">
+              <Button
+                size="sm"
                 variant="flat"
                 color="primary"
-                selectionMode="multiple"
-                closeOnSelect={false}
-                aria-label="Table Status"
-                selectedKeys={tableData.status}
-                onSelectionChange={(status) =>
-                  setTableData((prev) => ({ ...prev, status }))
-                }
+                className="capitalize"
               >
-                {["active", "inactive"].map((v) => (
-                  <DropdownItem key={v} className="capitalize ">
-                    {v}
-                  </DropdownItem>
-                ))}
-              </DropdownMenu>
-            </Dropdown>
-            <Button
-              size="sm"
-              as={Link}
-              href={`/${lang}/student/registration`}
+                {((v) => (v.length === 1 ? v : "status"))(
+                  Array.from(tableData.status)
+                )}
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu
+              variant="flat"
               color="primary"
-              endContent={<Plus className="size-4" />}
+              selectionMode="multiple"
+              closeOnSelect={false}
+              aria-label="Table Status"
+              selectedKeys={tableData.status}
+              onSelectionChange={(status) =>
+                setTableData((prev) => ({ ...prev, status }))
+              }
             >
-              Add New
-            </Button>
-          </>
+              {["active", "inactive"].map((v) => (
+                <DropdownItem key={v} className="capitalize ">
+                  {v}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
         }
       />
       {remove && (
@@ -191,6 +197,6 @@ export default function Page() {
           onOpenChange={() => setRemove(undefined)}
         />
       )}
-    </div>
+    </ScrollablePageWrapper>
   );
 }

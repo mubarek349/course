@@ -10,8 +10,9 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Moon, Sun, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button, Tooltip } from "@heroui/react";
+import { useState, useEffect } from "react";
 
 export default function SideBar({
   isSide,
@@ -23,90 +24,199 @@ export default function SideBar({
   lists: { label: string; url: string; icon: React.ReactNode }[];
 }) {
   const params = useParams<{ lang: string }>();
-             const lang = params?.lang || "en",
-    pathname = usePathname(),
-    selectedSegment = useSelectedLayoutSegment() || "",
-    router = useRouter(),
-    { theme, setTheme } = useTheme();
+  const lang = params?.lang || "en";
+  const pathname = usePathname();
+  const selectedSegment = useSelectedLayoutSegment() || "";
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div
       className={cn(
-        "z-50 absolute md:relative max-md:inset-0 max-md:bg-background/50 overflow-hidden- md:grid max-md:grid-cols-[1fr_auto] ",
-        isSide ? "max-md:grid" : "max-md:hidden"
+        "z-50 fixed md:relative max-md:inset-0 max-md:bg-black/50 max-md:backdrop-blur-sm md:flex md:flex-col md:h-screen max-md:grid max-md:grid-cols-[1fr_auto] transition-all duration-300",
+        isSide ? "max-md:grid" : "max-md:hidden",
+        isCollapsed ? "md:w-20" : "md:w-72"
       )}
     >
       <div
         className={cn(
-          " md:w-60 bg-primary-100 md:shadow-md md:shadow-primary/20 grid grid-rows-[auto_1fr_auto] "
+          "bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl border-r border-neutral-200/50 dark:border-neutral-800/50 shadow-soft grid grid-rows-[auto_1fr_auto] md:h-full md:fixed md:left-0 md:top-0 transition-all duration-300",
+          isCollapsed ? "md:w-20" : "md:w-72"
         )}
       >
-        <div className="h-36 pb-16 flex gap-1 justify-center items-center  ">
-          <Image
-            src={"/darulkubra.svg"}
-            alt=""
-            width={1000}
-            height={1000}
-            className="size-7  "
-          />
-          <Link
-            href={"/"}
-            className="text-xl font-[900] bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent"
-          >
-            {lang == "en" ? "DARUL KUBRA" : "ዳሩል ኩብራ"}
-          </Link>
-        </div>
-        <div className="px-5 grid gap-1 auto-rows-min">
-          {lists.map(({ label, url, icon }, i) => (
-            <Button
-              key={i + ""}
-              as={Link}
-              href={`/${lang}/${url}`}
-              onPress={() => setTimeout(() => setIsSide(false), 1100)}
-              color={"primary"}
-              size="sm"
-              variant={selectedSegment == url ? "flat" : "light"}
-              startContent={icon}
-              className={"justify-start "}
-            >
-              {label}
-            </Button>
-          ))}
-        </div>
-        <div className="h-16 p-2 grid grid-cols-2 [&>*]:place-self-center  ">
+        {/* Header Section */}
+        <div className={cn(
+          "flex items-center justify-between p-6 border-b border-neutral-200/50 dark:border-neutral-800/50",
+          isCollapsed && "md:justify-center md:px-4"
+        )}>
+          <div className={cn(
+            "flex items-center gap-3 transition-all duration-300",
+            isCollapsed && "md:justify-center"
+          )}>
+            <div className="relative">
+              <Image
+                src="/darulkubra.svg"
+                alt="Darul Kubra Logo"
+                width={32}
+                height={32}
+                className="size-8 transition-transform duration-300 hover:scale-110"
+              />
+              <div className="absolute -inset-1 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full opacity-20 blur-sm" />
+            </div>
+            {!isCollapsed && (
+              <Link
+                href="/"
+                className="text-lg font-bold bg-gradient-to-r from-brand-600 to-brand-800 dark:from-brand-400 dark:to-brand-600 bg-clip-text text-transparent hover:from-brand-700 hover:to-brand-900 dark:hover:from-brand-300 dark:hover:to-brand-500 transition-all duration-300"
+              >
+                {lang === "en" ? "DARUL KUBRA" : "ዳሩል ኩብራ"}
+              </Link>
+            )}
+          </div>
+          
+          {/* Collapse Button - Desktop Only */}
           <Button
             isIconOnly
-            color="primary"
-            variant="flat"
-            onPress={() =>
-              setTheme((prev) => (prev == "light" ? "dark" : "light"))
-            }
+            variant="light"
+            size="sm"
+            onPress={() => setIsCollapsed(!isCollapsed)}
+            className="hidden md:flex text-neutral-600 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
           >
-            {theme == "dark" ? (
-              <Sun className="size-6 stroke-warning-600 fill-warning-600 " />
+            {isCollapsed ? (
+              <ChevronRight className="size-4" />
             ) : (
-              <Moon className="size-6 stroke-none fill-warning-600 " />
+              <ChevronLeft className="size-4" />
             )}
           </Button>
-          <Button
-            isIconOnly
-            color="primary"
-            variant="flat"
-            onPress={() =>
-              router.push(
-                `/${lang == "en" ? "am" : "en"}/${pathname?.split("/")
-                  .slice(2)
-                  .join("/")}`
-              )
-            }
-          >
-            {lang == "en" ? "EN" : "አማ"}
-          </Button>
+        </div>
+
+        {/* Navigation Section */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <nav className="p-4 space-y-2">
+            {lists.map(({ label, url, icon }, i) => {
+              const isActive = selectedSegment === url;
+              return (
+                <Tooltip
+                  key={i}
+                  content={label}
+                  placement="right"
+                  isDisabled={!isCollapsed}
+                  delay={500}
+                >
+                  <Button
+                    as={Link}
+                    href={`/${lang}/${url}`}
+                    onPress={() => setTimeout(() => setIsSide(false), 300)}
+                    variant={isActive ? "flat" : "light"}
+                    color={isActive ? "primary" : "default"}
+                    size="md"
+                    startContent={
+                      <div className={cn(
+                        "transition-colors duration-200",
+                        isActive 
+                          ? "text-brand-600 dark:text-brand-400" 
+                          : "text-neutral-600 dark:text-neutral-400"
+                      )}>
+                        {icon}
+                      </div>
+                    }
+                    className={cn(
+                      "w-full justify-start font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+                      isCollapsed && "md:justify-center md:px-0",
+                      isActive && "bg-brand-50/50 dark:bg-brand-950/50 border-brand-200/50 dark:border-brand-800/50 shadow-inner-soft"
+                    )}
+                  >
+                    {!isCollapsed && (
+                      <span className="truncate text-sm">{label}</span>
+                    )}
+                  </Button>
+                </Tooltip>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Footer Section */}
+        <div className="p-4 border-t border-neutral-200/50 dark:border-neutral-800/50">
+          <div className={cn(
+            "flex gap-2",
+            isCollapsed ? "flex-col" : "flex-row"
+          )}>
+            <Tooltip
+              content={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              placement="right"
+              isDisabled={!isCollapsed}
+            >
+              <Button
+                isIconOnly={isCollapsed}
+                variant="flat"
+                color="secondary"
+                size="sm"
+                onPress={() => setTheme(theme === "light" ? "dark" : "light")}
+                startContent={
+                  theme === "dark" ? (
+                    <Sun className="size-4 text-amber-500" />
+                  ) : (
+                    <Moon className="size-4 text-brand-600" />
+                  )
+                }
+                className="transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                {!isCollapsed && (
+                  <span className="text-xs">
+                    {theme === "dark" ? "Light" : "Dark"}
+                  </span>
+                )}
+              </Button>
+            </Tooltip>
+            
+            <Tooltip
+              content={`Switch to ${lang === "en" ? "Amharic" : "English"}`}
+              placement="right"
+              isDisabled={!isCollapsed}
+            >
+              <Button
+                isIconOnly={isCollapsed}
+                variant="flat"
+                color="secondary"
+                size="sm"
+                onPress={() =>
+                  router.push(
+                    `/${lang === "en" ? "am" : "en"}/${pathname
+                      ?.split("/")
+                      .slice(2)
+                      .join("/")}`
+                  )
+                }
+                className="transition-all duration-200 hover:scale-105 active:scale-95 font-semibold"
+              >
+                <span className="text-xs font-bold">
+                  {lang === "en" ? "EN" : "አማ"}
+                </span>
+                {!isCollapsed && (
+                  <span className="text-xs opacity-70 ml-1">
+                    {lang === "en" ? "English" : "አማርኛ"}
+                  </span>
+                )}
+              </Button>
+            </Tooltip>
+          </div>
         </div>
       </div>
+      
+      {/* Mobile Overlay */}
       <div
         onClick={() => setIsSide(false)}
-        className="md:hidden w-[25dvw] bg-black/20 backdrop-blur-sm  "
+        className="md:hidden bg-black/20 backdrop-blur-sm transition-opacity duration-300"
       />
     </div>
   );

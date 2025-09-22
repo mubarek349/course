@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSession } from "next-auth/react";
-import { BookOpen, CheckCircle, Award } from "lucide-react";
+import { BookOpen, CheckCircle, Award, TrendingUp } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -14,6 +14,9 @@ import {
 } from "recharts";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import PageHeader from "@/components/layout/PageHeader";
+import Section from "@/components/layout/Section";
+import StatCard from "@/components/ui/StatCard";
 
 // Mock data - replace with your actual data fetching logic
 const enrolledCourses = [
@@ -42,18 +45,7 @@ const enrolledCourses = [
     category: "Web Development",
   },
 ];
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const StatCard = ({ icon, label, value, color }: any) => (
-  <div className={`bg-white p-6 rounded-lg shadow flex items-center gap-4`}>
-    <div className={`p-3 rounded-full ${color}`}>
-      {React.cloneElement(icon, { className: "text-white" })}
-    </div>
-    <div>
-      <p className="text-gray-500 text-sm">{label}</p>
-      <p className="text-2xl font-bold">{value}</p>
-    </div>
-  </div>
-);
+// Remove the old StatCard component as we're using the new one
 
 function Page() {
   const { data: session } = useSession();
@@ -75,79 +67,84 @@ function Page() {
   }));
 
   return (
-    <div className="p-1 md:p-6 h-full flex flex-col">
-      <h1 className="text-3xl font-bold mb-2">
-        {lang === "en" ? "Welcome back" : "እንኳን በደህና መጡ"}{" "}
-        {user?.name || "Student"}!
-      </h1>
-      <p className="text-gray-600 mb-8">
-        {lang === "en"
-          ? "Let's continue your learning journey."
-          : "የመማር ድረስ እንቀጥል።"}
-      </p>
+    <div className="space-y-6">
+      <PageHeader
+        title={`${lang === "en" ? "Welcome back" : "እንኳን በደህና መጡ"} ${user?.name || "Student"}!`}
+        subtitle={lang === "en" ? "Let's continue your learning journey." : "የመማር ድረስ እንቀጥል።"}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
-          icon={<BookOpen />}
+          icon={<BookOpen className="size-6" />}
           label={lang === "en" ? "Courses in Progress" : "በሂደት ላይ ያሉ ኮርሶች"}
           value={coursesInProgress}
-          color="bg-blue-500"
+          trend={{ value: 12, isPositive: true }}
         />
         <StatCard
-          icon={<CheckCircle />}
+          icon={<CheckCircle className="size-6" />}
           label={lang === "en" ? "Completed Courses" : "የተጠናቀቁ ኮርሶች"}
           value={completedCourses}
-          color="bg-green-500"
+          trend={{ value: 8, isPositive: true }}
         />
         <StatCard
-          icon={<Award />}
+          icon={<Award className="size-6" />}
           label={lang === "en" ? "Certificates Earned" : "የተገኙ የምስክር ወረቀቶች"}
           value={completedCourses}
-          color="bg-yellow-500"
+          trend={{ value: 25, isPositive: true }}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">
-            {lang === "en" ? "Course Progress" : "የኮርስ ሂደት"}
-          </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Course Progress Chart */}
+        <Section
+          title={lang === "en" ? "Course Progress" : "የኮርስ ሂደት"}
+          className="lg:col-span-2"
+        >
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Progress" fill="#8884d8" />
+              <Bar dataKey="Progress" fill="rgb(14 165 233)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Section>
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">
-            {lang === "en" ? "Continue Learning" : "መማርዎን ይቀጥሉ"}
-          </h2>
-          <div className="space-y-4">
+        {/* Continue Learning */}
+        <Section
+          title={lang === "en" ? "Continue Learning" : "መማርዎን ይቀጥሉ"}
+          description={lang === "en" ? "Pick up where you left off" : "ያቆሙበትን ቦታ ይቀጥሉ"}
+        >
+          <div className="space-y-3">
             {enrolledCourses
               .filter((c) => c.progress < 100)
               .map((course) => (
                 <Link href={`/${lang}/mycourse/${course.id}`} key={course.id}>
-                  <div className="p-4 border rounded-lg hover:bg-gray-100 cursor-pointer">
-                    <p className="font-semibold">{course.title}</p>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                      <div
-                        className="bg-primary h-2.5 rounded-full"
-                        style={{ width: `${course.progress}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-right text-sm text-gray-500 mt-1">
-                      {course.progress}%
+                  <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-800/50 cursor-pointer transition-colors">
+                    <p className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                      {course.title}
                     </p>
+                    <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 mb-2">
+                      <div
+                        className="bg-brand-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${course.progress}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                        {course.category}
+                      </span>
+                      <span className="text-sm font-medium text-brand-600 dark:text-brand-400">
+                        {course.progress}%
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}
           </div>
-        </div>
+        </Section>
       </div>
     </div>
   );

@@ -2,8 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import Loading from "@/components/loading";
-import NoData from "@/components/noData";
+import { Shield, AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@heroui/react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/layout/PageHeader";
+import Section from "@/components/layout/Section";
 import Overview01 from "../../@manager/_components/overview01";
 import Overview02 from "../../@manager/_components/overview02";
 import Overview03 from "../../@manager/_components/overview03";
@@ -36,73 +40,126 @@ export default function Page() {
     });
   }, [searchParams]);
 
-  return status === "loading" ? (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-        <p>Checking authentication...</p>
-      </div>
-    </div>
-  ) : status === "unauthenticated" ? (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="text-red-500 text-6xl">🔒</div>
-        <h2 className="text-xl font-semibold text-gray-800">Authentication Required</h2>
-        <p className="text-gray-600">Please log in to access the instructor dashboard.</p>
-        <button 
-          onClick={() => window.location.href = '/login'} 
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Go to Login
-        </button>
-      </div>
-    </div>
-  ) : session?.user?.role !== 'instructor' ? (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="text-orange-500 text-6xl">⚠️</div>
-        <h2 className="text-xl font-semibold text-gray-800">Access Denied</h2>
-        <p className="text-gray-600">You need instructor privileges to access this page.</p>
-        <div className="text-sm bg-gray-100 p-4 rounded">
-          <p>Current role: <strong>{session?.user?.role || 'Unknown'}</strong></p>
-          <p>Required role: <strong>instructor</strong></p>
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <LoadingSpinner size="lg" />
+          <p className="text-neutral-600 dark:text-neutral-400">Checking authentication...</p>
         </div>
       </div>
-    </div>
-  ) : loading ? (
-    <Loading />
-  ) : error ? (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="text-red-500 text-6xl">⚠️</div>
-        <h2 className="text-xl font-semibold text-gray-800">Error Loading Dashboard</h2>
-        <p className="text-gray-600">There was an issue loading your dashboard data.</p>
-        <details className="text-left text-sm bg-gray-100 p-4 rounded">
-          <summary className="cursor-pointer font-medium">Error Details</summary>
-          <pre className="mt-2 whitespace-pre-wrap">{String(error)}</pre>
-        </details>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Retry
-        </button>
-      </div>
-    </div>
-  ) : !data ? (
-    <NoData />
-  ) : (
-    <div className="overflow-auto">
-      <div className="py-4 grid gap-4 md:grid-cols-[1fr_auto] ">
-        <div className="grid gap-4">
-          <Overview01 data={data[0]} />
-          <div className="grid gap-4 md:grid-cols-2">
-            <Overview02 height={300} data={data[2]} />
+    );
+  }
+
+  // Unauthenticated state
+  if (status === "unauthenticated") {
+    return (
+      <EmptyState
+        icon={<Shield className="size-16" />}
+        title="Authentication Required"
+        description="Please log in to access the instructor dashboard."
+        action={{
+          label: "Go to Login",
+          onClick: () => window.location.href = '/login'
+        }}
+      />
+    );
+  }
+
+  // Access denied state
+  if (session?.user?.role !== 'instructor') {
+    return (
+      <EmptyState
+        icon={<AlertTriangle className="size-16" />}
+        title="Access Denied"
+        description={`You need instructor privileges to access this page. Current role: ${session?.user?.role || 'Unknown'}`}
+      />
+    );
+  }
+
+  // Loading data state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Instructor Dashboard"
+          subtitle="Loading your analytics and overview..."
+        />
+        <div className="grid gap-6">
+          <div className="card p-6">
+            <div className="h-32 skeleton" />
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="card p-6">
+              <div className="h-64 skeleton" />
+            </div>
+            <div className="card p-6">
+              <div className="h-64 skeleton" />
+            </div>
           </div>
         </div>
-        <Overview02 width={400} data={data[1]} />
       </div>
-      <Overview03 data={data[3]} />
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <EmptyState
+        icon={<AlertTriangle className="size-16" />}
+        title="Error Loading Dashboard"
+        description="There was an issue loading your dashboard data."
+        action={{
+          label: "Retry",
+          onClick: () => window.location.reload()
+        }}
+      />
+    );
+  }
+
+  // No data state
+  if (!data) {
+    return (
+      <EmptyState
+        icon={<RefreshCw className="size-16" />}
+        title="No Data Available"
+        description="There's no data to display at the moment."
+        action={{
+          label: "Refresh",
+          onClick: () => window.location.reload()
+        }}
+      />
+    );
+  }
+
+  // Success state with data
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Instructor Dashboard"
+        subtitle="Monitor your courses, students, and performance metrics."
+      />
+      
+      <div className="grid gap-6 md:grid-cols-[1fr_auto]">
+        <div className="grid gap-6">
+          <Section>
+            <Overview01 data={data[0]} />
+          </Section>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Section>
+              <Overview02 height={300} data={data[2]} />
+            </Section>
+          </div>
+        </div>
+        <Section className="md:w-96">
+          <Overview02 width={400} data={data[1]} />
+        </Section>
+      </div>
+      
+      <Section>
+        <Overview03 data={data[3]} />
+      </Section>
     </div>
   );
 }

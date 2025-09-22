@@ -7,7 +7,9 @@ import { Star, Search, Filter, Calendar, User } from "lucide-react";
 import useData from "@/hooks/useData";
 import { getCoursesList } from "@/actions/manager/course";
 import { getFeedback, getAverageRating } from "@/lib/data/courseMaterials";
-import NoData from "@/components/noData";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
 
 interface FeedbackItem {
   id: string;
@@ -88,17 +90,47 @@ export default function Page() {
     </div>
   );
 
+  if (loadingCourses) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title={lang === "en" ? "Course Feedback" : "የኮርስ አስተያየት"}
+          subtitle={lang === "en" ? "Loading feedback data..." : "አስተያየት መረጃ በመጫን ላይ..."}
+        />
+        <div className="space-y-6">
+          <div className="card p-6">
+            <div className="h-32 skeleton" />
+          </div>
+          <div className="card p-6">
+            <div className="h-64 skeleton" />
+          </div>
+        </div>
+      </ScrollablePageWrapper>
+    );
+  }
+
+  if (!courses || courses.length === 0) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title={lang === "en" ? "Course Feedback" : "የኮርስ አስተያየት"}
+          subtitle={lang === "en" ? "View and analyze student feedback for your courses." : "የተማሪዎችን አስተያየት ይመልከቱ እና ይተንትኑ።"}
+        />
+        <EmptyState
+          icon={<Star className="size-16" />}
+          title={lang === "en" ? "No Courses Available" : "ኮርስ የለም"}
+          description={lang === "en" ? "There are no courses available to view feedback for." : "አስተያየት ለማየት የሚገኝ ኮርስ የለም።"}
+        />
+      </ScrollablePageWrapper>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">{lang === "en" ? "Student Feedback" : "የተማሪ ግብረመልስ"}</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          {lang === "en"
-            ? "Review and analyze feedback left by students across your courses."
-            : "በኮርሶችዎ ላይ ተማሪዎች የሚተዉትን ግብረመልስ ይመልከቱ እና ይተንትኑ።"}
-        </p>
-      </div>
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Course Feedback" : "የኮርስ አስተያየት"}
+        subtitle={lang === "en" ? "View and analyze student feedback for your courses." : "የተማሪዎችን አስተያየት ይመልከቱ እና ይተንትኑ።"}
+      />
 
       {/* Controls */}
       <div className="flex flex-col lg:flex-row gap-3 lg:items-end">
@@ -211,7 +243,7 @@ export default function Page() {
 
         {/* Empty states */}
         {!selectedCourseId || (courses && courses.length === 0) ? (
-          <div className="grid place-content-center py-10"><NoData /></div>
+          <div className="text-center text-sm text-gray-500 py-8">{lang === "en" ? "Please select a course to view feedback." : "ግብረመልስ ለማየት ኮርስ ይምረጡ።"}</div>
         ) : filteredFeedbacks.length === 0 ? (
           <div className="text-center text-sm text-gray-500 py-8">{lang === "en" ? "No feedback found for current filters." : "ለአሁኑ ማጣሪያዎች ግብረመልስ አልተገኘም።"}</div>
         ) : (
@@ -252,6 +284,6 @@ export default function Page() {
           </div>
         )}
       </div>
-    </div>
+    </ScrollablePageWrapper>
   );
 }

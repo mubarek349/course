@@ -2,10 +2,11 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { AlignLeft, House } from "lucide-react";
+import { AlignLeft, House, ChevronRight } from "lucide-react";
 import User from "./user";
-import { BreadcrumbItem, Breadcrumbs, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function Header({
   setIsSide,
@@ -13,39 +14,62 @@ export default function Header({
   setIsSide: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const pathname = usePathname();
+  const pathSegments = pathname?.split("/").filter(Boolean) || [];
+  
+  // Generate breadcrumb items from path
+  const breadcrumbItems = [
+    { label: "Home", href: "/", icon: <House className="size-4" /> },
+    ...pathSegments.slice(1).map((segment, index) => ({
+      label: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
+      href: `/${pathSegments.slice(0, index + 2).join("/")}`,
+      icon: undefined,
+    })),
+  ];
 
   return (
-    <div className="py-2 px-2 md:pl-5 md:pr-10 grid max-md:gap-2 grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto] items-center">
-      <Button
-        isIconOnly
-        variant="flat"
-        color="primary"
-        onPress={() => setIsSide((prev) => !prev)}
-        className="md:hidden"
-      >
-        <AlignLeft className="" />
-      </Button>
-      <div className="">
-        <Breadcrumbs
-          variant="solid"
-          color="primary"
-          classNames={{ list: "bg-primary-100" }}
+    <header className="sticky top-0 z-40 w-full border-b border-neutral-200/50 dark:border-neutral-800/50 bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-xl supports-[backdrop-filter]:bg-surface-light/60 supports-[backdrop-filter]:dark:bg-surface-dark/60">
+      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+        {/* Mobile Menu Button */}
+        <Button
+          isIconOnly
+          variant="light"
+          size="sm"
+          onPress={() => setIsSide((prev) => !prev)}
+          className="md:hidden text-neutral-600 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-all duration-200"
         >
-          <BreadcrumbItem>
-            <Link href="/">
-              <House className="size-4" />
-            </Link>
-          </BreadcrumbItem>
-          <BreadcrumbItem
-            as={Link}
-            href={`/${pathname?.split("/")[2]}`}
-            className="capitalize"
-          >
-            {pathname?.split("/")[2]}
-          </BreadcrumbItem>
-        </Breadcrumbs>
+          <AlignLeft className="size-5" />
+        </Button>
+
+        {/* Breadcrumbs */}
+        <div className="flex-1 flex items-center min-w-0">
+          <nav className="flex items-center space-x-1 text-sm text-neutral-600 dark:text-neutral-400">
+            {breadcrumbItems.map((item, index) => (
+              <React.Fragment key={item.href}>
+                {index > 0 && (
+                  <ChevronRight className="size-4 text-neutral-400 dark:text-neutral-600 flex-shrink-0" />
+                )}
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-2 px-2 py-1 rounded-md transition-all duration-200 hover:bg-brand-50 dark:hover:bg-brand-950/50 hover:text-brand-700 dark:hover:text-brand-300 truncate",
+                    index === breadcrumbItems.length - 1
+                      ? "text-brand-700 dark:text-brand-300 font-medium"
+                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  )}
+                >
+                  {index === 0 && item.icon}
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              </React.Fragment>
+            ))}
+          </nav>
+        </div>
+
+        {/* User Section */}
+        <div className="flex items-center gap-2">
+          <User />
+        </div>
       </div>
-      <User />
-    </div>
+    </header>
   );
 }

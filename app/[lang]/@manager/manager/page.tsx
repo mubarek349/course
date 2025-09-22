@@ -11,9 +11,13 @@ import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import { RemoveManager } from "./removeManager";
 import { Permission } from "./permission";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
+import { usePathname } from "next/navigation";
 
 export default function Page() {
   const params = useParams<{ lang: string }>();
+  const pathname = usePathname();
   const lang = params?.lang || "en",
     [tableData, setTableData] = useState<TTableData>({
       search: "",
@@ -37,7 +41,22 @@ export default function Page() {
     [remove, setRemove] = useState<string>();
 
   return (
-    <div className="overflow-hidden">
+    <ScrollablePageWrapper>
+      <PageHeader
+        title={lang === "en" ? "Manager Management" : "የአስተዳዳሪ አስተዳደር"}
+        subtitle={lang === "en" ? "Manage system administrators and their permissions." : "የስርዓት አስተዳዳሪዎችን እና ፈቃዶቻቸውን ያስተዳድሩ።"}
+        actions={
+          <Button
+            size="sm"
+            color="primary"
+            endContent={<Plus className="size-4" />}
+            as={Link}
+            href={`${pathname}/registration`}
+          >
+            {lang === "en" ? "Add New Manager" : "አዲስ አስተዳዳሪ ጨምር"}
+          </Button>
+        }
+      />
       <CustomTable
         columns={[
           { label: lang == "en" ? "Name" : "", key: "name", sortable: true },
@@ -181,6 +200,6 @@ export default function Page() {
           onOpenChange={() => setRemove(undefined)}
         />
       )}
-    </div>
+    </ScrollablePageWrapper>
   );
 }

@@ -3,8 +3,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useData from "@/hooks/useData";
 import { getOverviewData } from "@/actions/manager/course";
-import Loading from "@/components/loading";
 import { useParams, useSearchParams } from "next/navigation";
+import { Calendar, TrendingUp } from "lucide-react";
+import { Button } from "@heroui/react";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
+import Section from "@/components/layout/Section";
+import EmptyState from "@/components/ui/EmptyState";
 import Overview01 from "../../_components/overview01";
 import Overview02 from "../../_components/overview02";
 import Overview03 from "../../_components/overview03";
@@ -36,23 +41,97 @@ export default function Page() {
     setDate(getDate());
   }, [getDate]);
 
-  return loading ? (
-    <Loading />
-  ) : (
-    data && (
-      <div className="overflow-auto">
-        <div className="py-4 grid gap-4 md:grid-cols-[1fr_auto] ">
-          <div className="grid gap-4">
-            <Overview01 data={data[0]} />
-            <div className="grid gap-4 md:grid-cols-2">
-              <Overview02 height={300} data={data[2]} />
-              <Overview02 height={300} data={data[3]} />
+  // Loading state
+  if (loading) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title="Course Analytics"
+          subtitle="Loading course performance data..."
+        />
+        <div className="space-y-6">
+          <div className="card p-6">
+            <div className="h-32 skeleton" />
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="card p-6">
+              <div className="h-64 skeleton" />
+            </div>
+            <div className="card p-6">
+              <div className="h-64 skeleton" />
             </div>
           </div>
-          <Overview02 width={400} data={data[1]} />
+          <div className="card p-6">
+            <div className="h-48 skeleton" />
+          </div>
         </div>
-        <Overview03 data={data[4]} />
+      </ScrollablePageWrapper>
+    );
+  }
+
+  // No data state
+  if (!data) {
+    return (
+      <ScrollablePageWrapper>
+        <PageHeader
+          title="Course Analytics"
+          subtitle="No analytics data available for this course."
+        />
+        <EmptyState
+          icon={<TrendingUp className="size-16" />}
+          title="No Data Available"
+          description="There's no analytics data to display for this course at the moment."
+          action={{
+            label: "Refresh Data",
+            onClick: () => window.location.reload()
+          }}
+        />
+      </ScrollablePageWrapper>
+    );
+  }
+
+  // Success state with data
+  return (
+    <ScrollablePageWrapper>
+      <PageHeader
+        title="Course Analytics"
+        subtitle="Detailed performance metrics and analytics for this course."
+        actions={
+          <Button
+            color="primary"
+            variant="flat"
+            startContent={<Calendar className="size-4" />}
+            size="sm"
+          >
+            Filter by Date
+          </Button>
+        }
+      />
+      
+      <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-[1fr_auto]">
+          <div className="grid gap-6">
+            <Section>
+              <Overview01 data={data[0]} />
+            </Section>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Section>
+                <Overview02 height={300} data={data[2]} />
+              </Section>
+              <Section>
+                <Overview02 height={300} data={data[3]} />
+              </Section>
+            </div>
+          </div>
+          <Section className="md:w-96">
+            <Overview02 width={400} data={data[1]} />
+          </Section>
+        </div>
+        
+        <Section>
+          <Overview03 data={data[4]} />
+        </Section>
       </div>
-    )
+    </ScrollablePageWrapper>
   );
 }
