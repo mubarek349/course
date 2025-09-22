@@ -49,7 +49,7 @@ export default function Page() {
           title="Course Analytics"
           subtitle="Loading course performance data..."
         />
-        <div className="space-y-6">
+        <div className="grid gap-6">
           <div className="card p-6">
             <div className="h-32 skeleton" />
           </div>
@@ -63,6 +63,9 @@ export default function Page() {
           </div>
           <div className="card p-6">
             <div className="h-48 skeleton" />
+          </div>
+          <div className="card p-6">
+            <div className="h-96 skeleton" />
           </div>
         </div>
       </ScrollablePageWrapper>
@@ -108,29 +111,65 @@ export default function Page() {
         }
       />
       
-      <div className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-[1fr_auto]">
-          <div className="grid gap-6">
+      <div className="grid gap-6 md:grid-cols-[1fr_auto]">
+        <div className="grid gap-6">
+          <Section>
+            <Overview01 data={data[0]} />
+          </Section>
+          <div className="grid gap-6 md:grid-cols-2">
             <Section>
-              <Overview01 data={data[0]} />
+              <Overview02 height={300} data={data[2]} />
             </Section>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Section>
-                <Overview02 height={300} data={data[2]} />
-              </Section>
-              <Section>
-                <Overview02 height={300} data={data[3]} />
-              </Section>
+            <Section>
+              <Overview02 height={300} data={data[3]} />
+            </Section>
+          </div>
+        </div>
+        <Section className="md:w-96">
+          <Overview02 width={400} data={data[1]} />
+        </Section>
+      </div>
+      
+      <Section>
+        <Overview03 data={data[4]} />
+      </Section>
+      
+      {/* Add extra content to ensure scrolling */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="card p-6">
+          <h3 className="font-semibold mb-4">Course Details</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-sm text-neutral-600">Total Students</span>
+              <span className="font-medium">456</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-neutral-600">Completion Rate</span>
+              <span className="font-medium">78%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-neutral-600">Average Rating</span>
+              <span className="font-medium">4.5/5</span>
             </div>
           </div>
-          <Section className="md:w-96">
-            <Overview02 width={400} data={data[1]} />
-          </Section>
         </div>
-        
-        <Section>
-          <Overview03 data={data[4]} />
-        </Section>
+        <div className="card p-6">
+          <h3 className="font-semibold mb-4">Recent Activity</h3>
+          <div className="space-y-3">
+            <div className="text-sm">
+              <div className="font-medium">New enrollment</div>
+              <div className="text-neutral-600">2 hours ago</div>
+            </div>
+            <div className="text-sm">
+              <div className="font-medium">Course updated</div>
+              <div className="text-neutral-600">1 day ago</div>
+            </div>
+            <div className="text-sm">
+              <div className="font-medium">Review submitted</div>
+              <div className="text-neutral-600">2 days ago</div>
+            </div>
+          </div>
+        </div>
       </div>
     </ScrollablePageWrapper>
   );

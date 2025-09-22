@@ -1,19 +1,22 @@
 "use client";
 
 import React from "react";
-import { cn } from "@/lib/utils";
+import PageContainer from "./PageContainer";
 
 type ScrollablePageWrapperProps = {
   children: React.ReactNode;
   className?: string;
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
 };
 
-export default function ScrollablePageWrapper({ children, className }: ScrollablePageWrapperProps) {
+export default function ScrollablePageWrapper({ 
+  children, 
+  className,
+  maxWidth = "xl"
+}: ScrollablePageWrapperProps) {
   return (
-    <div className="h-full overflow-y-auto px-4 md:px-8 py-6">
-      <div className={cn("mx-auto max-w-7xl", className)}>
-        {children}
-      </div>
-    </div>
+    <PageContainer maxWidth={maxWidth} className={className}>
+      {children}
+    </PageContainer>
   );
 }
