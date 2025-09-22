@@ -14,7 +14,7 @@ export default function UserLayout({
   const [isSide, setIsSide] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-brand-50/20 to-neutral-100 dark:from-neutral-950 dark:via-brand-950/30 dark:to-neutral-900">
+    <div className="min-h-screen  bg-gradient-to-br from-neutral-50 via-brand-50/20 to-neutral-100 dark:from-neutral-950 dark:via-brand-950/30 dark:to-neutral-900">
       <SideBar isSide={isSide} setIsSide={setIsSide} lists={list} />
       <Header setIsSide={setIsSide} />
       <main className="md:ml-60 pt-16">
