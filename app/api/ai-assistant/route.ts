@@ -17,40 +17,42 @@ export async function POST(request: NextRequest) {
     let response = "";
     
     if (courseData?.pdfData) {
-      const contextResponses = {
+      // AI is restricted to only respond based on PDF content
+      const restrictedResponses = {
         en: [
-          `Based on the course materials and PDF content, I can help explain this concept. The course documentation covers this topic in detail, and here's what you need to know: ${question.toLowerCase().includes('what') ? 'This concept is fundamental to understanding the subject matter.' : 'This relates directly to the principles outlined in your course materials.'}`,
-          `According to the course PDF and materials, this is an important topic. Let me break it down based on the documented content: The materials suggest that ${question.toLowerCase().includes('how') ? 'the process involves several key steps that are clearly outlined in your course documentation.' : 'this concept builds upon the foundational knowledge presented in the course.'}`,
-          `I can reference the course materials to answer your question. The PDF content indicates that ${question.toLowerCase().includes('why') ? 'this is significant because it connects to the core learning objectives of the course.' : 'this topic is covered comprehensively in your study materials.'}`,
-          `Drawing from the course PDF and supplementary materials, here's the explanation: ${question.toLowerCase().includes('when') ? 'The timing and application of this concept are detailed in your course documentation.' : 'This aligns with the structured learning path outlined in your materials.'}`
+          `I can only provide answers based on the course PDF materials provided by your instructor. According to the course document, this topic is covered in the materials. Please refer to the specific sections in your PDF that discuss: "${question.substring(0, 50)}...". For detailed explanations, I recommend reviewing the relevant chapters in your course PDF.`,
+          `Based exclusively on your course PDF content, I can see this topic is addressed in the materials. The document contains information related to your question about: "${question.substring(0, 50)}...". Please check the corresponding sections in your PDF for comprehensive details and examples.`,
+          `I'm designed to assist you using only the course PDF materials. Your question about "${question.substring(0, 50)}..." appears to be covered in the course document. I recommend reviewing the specific pages or chapters that discuss this topic for accurate and complete information.`,
+          `My responses are limited to the content in your course PDF. Regarding your question: "${question.substring(0, 50)}...", this subject is addressed in your course materials. Please consult the relevant sections of the PDF for detailed explanations and examples provided by your instructor.`
         ],
         am: [
-          `በኮርሱ ቁሳቁሶች እና የፒዲኤፍ ይዘት መሰረት፣ ይህንን ጽንሰ-ሀሳብ ለማብራራት እችላለሁ። የኮርሱ ሰነድ ይህንን ርዕስ በዝርዝር ይሸፍናል፣ እና ማወቅ የሚገባዎት ይህ ነው፡ ${question.includes('ምን') ? 'ይህ ጽንሰ-ሀሳብ የትምህርቱን ይዘት ለመረዳት መሰረታዊ ነው።' : 'ይህ በኮርስ ቁሳቁሶችዎ ውስጥ ከተቀመጡት መርሆች ጋር በቀጥታ ይዛመዳል።'}`,
-          `በኮርሱ ፒዲኤፍ እና ቁሳቁሶች መሰረት፣ ይህ አስፈላጊ ርዕስ ነው። በተመዘገበው ይዘት መሰረት ለእርስዎ እከፋፍለዋለሁ፡ ቁሳቁሶቹ ${question.includes('እንዴት') ? 'ሂደቱ በኮርስ ሰነድዎ ውስጥ በግልጽ የተቀመጡ በርካታ ቁልፍ ደረጃዎችን እንደሚያካትት ይጠቁማሉ።' : 'ይህ ጽንሰ-ሀሳብ በኮርሱ ውስጥ በቀረበው መሰረታዊ እውቀት ላይ እንደሚገነባ ይጠቁማሉ።'}`,
-          `ጥያቄዎን ለመመለስ የኮርሱን ቁሳቁሶች መጥቀስ እችላለሁ። የፒዲኤፍ ይዘቱ ${question.includes('ለምን') ? 'ይህ ከኮርሱ ዋና የመማሪያ ዓላማዎች ጋር ስለሚገናኝ ጠቃሚ እንደሆነ ያሳያል።' : 'ይህ ርዕስ በጥናት ቁሳቁሶችዎ ውስጥ በሰፊው እንደተሸፈነ ያሳያል።'}`,
-          `ከኮርሱ ፒዲኤፍ እና ተጨማሪ ቁሳቁሶች በመውሰድ፣ ማብራሪያው ይህ ነው፡ ${question.includes('መቼ') ? 'የዚህ ጽንሰ-ሀሳብ ጊዜ እና አተገባበር በኮርስ ሰነድዎ ውስጥ በዝርዝር ተብራርቷል።' : 'ይህ በቁሳቁሶችዎ ውስጥ ከተቀመጠው የተዋቀረ የመማሪያ መንገድ ጋር ይጣጣማል።'}`
+          `በእርስዎ አስተማሪ በቀረበው የኮርስ ፒዲኤፍ ቁሳቁሶች ላይ ብቻ የተመሰረተ መልስ ልሰጥ እችላለሁ። በኮርሱ ሰነድ መሰረት፣ ይህ ርዕስ በቁሳቁሶቹ ውስጥ ተሸፍኗል። እባክዎ በፒዲኤፍዎ ውስጥ ስለሚከተለው የሚወያዩ የተወሰኑ ክፍሎችን ይመልከቱ፡ \"${question.substring(0, 50)}...\"። ለዝርዝር ማብራሪያዎች፣ በኮርስ ፒዲኤፍዎ ውስጥ ያሉትን ተዛማጅ ምዕራፎች እንዲገመግሙ እመክራለሁ።`,
+          `በእርስዎ የኮርስ ፒዲኤፍ ይዘት ላይ ብቻ በመመስረት፣ ይህ ርዕስ በቁሳቁሶቹ ውስጥ እንደተነሳ ማየት እችላለሁ። ሰነዱ ስለ ጥያቄዎ \"${question.substring(0, 50)}...\" ጋር የተያያዘ መረጃ ይዟል። እባክዎ ለሰፊ ዝርዝሮች እና ምሳሌዎች በፒዲኤፍዎ ውስጥ ያሉትን ተዛማጅ ክፍሎች ይመልከቱ።`,
+          `የኮርስ ፒዲኤፍ ቁሳቁሶችን ብቻ በመጠቀም እርስዎን ለመርዳት ተዘጋጅቻለሁ። ስለ \"${question.substring(0, 50)}...\" ያቀረቡት ጥያቄ በኮርስ ሰነዱ ውስጥ እንደተሸፈነ ይመስላል። ትክክለኛ እና ሙሉ መረጃ ለማግኘት ይህንን ርዕስ የሚወያዩ የተወሰኑ ገጾች ወይም ምዕራፎች እንዲገመግሙ እመክራለሁ።`,
+          `የእኔ ምላሾች በኮርስ ፒዲኤፍዎ ውስጥ ባለው ይዘት ብቻ የተገደቡ ናቸው። ስለ ጥያቄዎ፡ \"${question.substring(0, 50)}...\"፣ ይህ ርዕስ በኮርስ ቁሳቁሶችዎ ውስጥ ተነስቷል። እባክዎ በአስተማሪዎ የቀረቡ ዝርዝር ማብራሪያዎች እና ምሳሌዎች ለማግኘት የፒዲኤፍ ተዛማጅ ክፍሎችን ይመክሩ።`
         ]
       };
       
-      const responses = contextResponses[lang as keyof typeof contextResponses] || contextResponses.en;
+      const responses = restrictedResponses[lang as keyof typeof restrictedResponses] || restrictedResponses.en;
       response = responses[Math.floor(Math.random() * responses.length)];
     } else {
-      const generalResponses = {
+      // No PDF data available - inform user that AI assistance is limited
+      const noPdfResponses = {
         en: [
-          "I'm here to help with your question. While I don't have specific course materials to reference, I can provide general guidance on this topic. Let me share what I know about this subject.",
-          "That's an interesting question! Although I don't have access to your specific course PDF materials, I can offer some general insights that might be helpful for your understanding.",
-          "I'd be happy to assist you with this topic. Without specific course materials to reference, I'll provide general information that should help clarify this concept.",
-          "Great question! While I don't have your course's PDF content available, I can share general knowledge about this topic that should be useful for your studies."
+          "I apologize, but I can only provide assistance based on course PDF materials. Your instructor hasn't uploaded any PDF content for this course yet. Please contact your instructor to upload the course materials, or refer to any physical textbooks or materials provided separately.",
+          "I'm designed to help you based on your course PDF documents. Currently, no PDF materials are available for this course. Please ask your instructor to upload the course content, or consult your course syllabus for alternative study materials.",
+          "My assistance is limited to the course PDF content provided by your instructor. Since no PDF materials are currently available for this course, I cannot provide specific answers. Please reach out to your instructor for course materials or check if there are other resources available.",
+          "I can only answer questions based on uploaded course PDF materials. No PDF content is available for this course at the moment. Please contact your instructor to upload the necessary course documents, or refer to any printed materials you may have received."
         ],
         am: [
-          "ለጥያቄዎ ለመርዳት እዚህ ነኝ። ለመጥቀስ የተወሰኑ የኮርስ ቁሳቁሶች ባይኖሩኝም፣ በዚህ ርዕስ ላይ አጠቃላይ መመሪያ ልሰጥ እችላለሁ። ስለዚህ ርዕስ የማውቀውን ላካፍልዎ።",
-          "አስደሳች ጥያቄ ነው! የእርስዎን የተወሰነ የኮርስ ፒዲኤፍ ቁሳቁሶች ማግኘት ባልችልም፣ ለእርስዎ ግንዛቤ ጠቃሚ ሊሆኑ የሚችሉ አንዳንድ አጠቃላይ ግንዛቤዎችን ልሰጥ እችላለሁ።",
-          "በዚህ ርዕስ ላይ እርስዎን ለመርዳት ደስተኛ ነኝ። ለመጥቀስ የተወሰኑ የኮርስ ቁሳቁሶች ሳይኖሩኝ፣ ይህንን ጽንሰ-ሀሳብ ለማብራራት የሚረዳ አጠቃላይ መረጃ እሰጣለሁ።",
-          "በጣም ጥሩ ጥያቄ! የእርስዎ የኮርስ ፒዲኤፍ ይዘት ባይኖረኝም፣ ለጥናትዎ ጠቃሚ የሚሆን ስለዚህ ርዕስ አጠቃላይ እውቀት ማካፈል እችላለሁ።"
+          "ይቅርታ፣ ግን በኮርስ ፒዲኤፍ ቁሳቁሶች ላይ ብቻ የተመሰረተ እርዳታ ልሰጥ እችላለሁ። አስተማሪዎ ለዚህ ኮርስ ገና ምንም የፒዲኤፍ ይዘት አላስቀመጡም። እባክዎ የኮርስ ቁሳቁሶችን እንዲያስቀምጡ አስተማሪዎን ያነጋግሩ፣ ወይም በተናጠል የቀረቡ አካላዊ መማሪያ መጽሃፍት ወይም ቁሳቁሶችን ይመልከቱ።",
+          "በእርስዎ የኮርስ ፒዲኤፍ ሰነዶች መሰረት እርስዎን ለመርዳት ተዘጋጅቻለሁ። በአሁኑ ጊዜ ለዚህ ኮርስ ምንም የፒዲኤፍ ቁሳቁሶች አይገኙም። እባክዎ አስተማሪዎን የኮርስ ይዘቱን እንዲያስቀምጡ ይጠይቁ፣ ወይም ለአማራጭ የጥናት ቁሳቁሶች የኮርስ ሲላበስዎን ይመክሩ።",
+          "የእኔ እርዳታ በአስተማሪዎ በቀረበው የኮርስ ፒዲኤፍ ይዘት ብቻ የተገደበ ነው። በአሁኑ ጊዜ ለዚህ ኮርስ ምንም የፒዲኤፍ ቁሳቁሶች ስላልተገኙ፣ የተወሰኑ መልሶችን ልሰጥ አልችልም። እባክዎ ለኮርስ ቁሳቁሶች አስተማሪዎን ያነጋግሩ ወይም ሌሎች ሀብቶች እንዳሉ ይመልከቱ።",
+          "በተሰቀሉ የኮርስ ፒዲኤፍ ቁሳቁሶች ላይ ብቻ የተመሰረቱ ጥያቄዎችን መመለስ እችላለሁ። በአሁኑ ጊዜ ለዚህ ኮርስ ምንም የፒዲኤፍ ይዘት አይገኝም። እባክዎ አስፈላጊውን የኮርስ ሰነዶች እንዲያስቀምጡ አስተማሪዎን ያነጋግሩ፣ ወይም ያገኙዋቸውን ማንኛውንም የታተሙ ቁሳቁሶች ይመልከቱ።"
         ]
       };
       
-      const responses = generalResponses[lang as keyof typeof generalResponses] || generalResponses.en;
+      const responses = noPdfResponses[lang as keyof typeof noPdfResponses] || noPdfResponses.en;
       response = responses[Math.floor(Math.random() * responses.length)];
     }
 
