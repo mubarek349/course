@@ -672,7 +672,7 @@ export default function Page() {
             </div>
           </div> */}
           <div className="p-2 flex-1 overflow-y-auto">
-            <ChatComponent />
+            <ChatComponent courseId={courseId} lang={lang} />
           </div>
         </div>
       ),
