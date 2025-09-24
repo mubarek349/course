@@ -15,12 +15,13 @@ export default function Header({
 }) {
   const pathname = usePathname();
   const pathSegments = pathname?.split("/").filter(Boolean) || [];
-  
+
   // Generate breadcrumb items from path
   const breadcrumbItems = [
-    { label: "Home", href: "/", icon: <House className="size-4" /> },
+    // { label: "Home", href: "/", icon: <House className="size-4" /> },
     ...pathSegments.slice(1).map((segment, index) => ({
-      label: segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
+      label:
+        segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
       href: `/${pathSegments.slice(0, index + 2).join("/")}`,
       icon: undefined,
     })),
