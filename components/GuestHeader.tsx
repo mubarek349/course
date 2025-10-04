@@ -23,7 +23,7 @@ export default function GuestHeader() {
         { label: lang == "en" ? "Home" : "መነሻ", url: "" },
         // { label: lang == "en" ? "Online Education" : "ኦንላይን ትምህርት", url: "online" },
         {
-          label: lang == "en" ? "Telegram Education" : "ቴሌግራም ትምህርት",
+          label: lang == "en" ? "Education" : "ትምህርት",
           url: "course",
         },
         // { label: lang == "en" ? "About" : "ስለ እኛ", url: "about" },

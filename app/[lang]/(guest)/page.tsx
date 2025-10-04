@@ -85,7 +85,7 @@ function HeroPage() {
             variant="shadow"
             className="w-60"
           >
-            {lang == "en" ? "Telegram Education" : "የቴሌግራም ትምህርት"}
+            {lang == "en" ? "Education" : "ትምህርት"}
           </CButton>
         </div>
       </motion.div>
