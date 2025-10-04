@@ -21,26 +21,12 @@ export async function courseRegistration(
       ...rest
     } = data;
 
-    // Prepare courseMaterials for DB (comma-separated string)
+    // Prepare courseMaterials for DB (comma-separated URLs only)
     const serializedMaterials: string | undefined = courseMaterials
-      ? Array.from(
-          new Map(
-            courseMaterials
-              .filter((m) => m && m.url)
-              .map((m) => [
-                m.url,
-                {
-                  name: m.name?.trim() || m.url.split("/").pop() || "material",
-                  url: m.url,
-                  type: (
-                    m.type ||
-                    m.url.split(".").pop() ||
-                    "file"
-                  ).toLowerCase(),
-                },
-              ])
-          ).values()
-        ).map((m) => `${m.name},${m.url},${m.type}`).join(',')
+      ? courseMaterials
+          .filter((m) => m && m.url)
+          .map((m) => m.url)
+          .join(',')
       : undefined;
 
     // Add pdfData and optionally courseMaterials to the rest data (mapping pdf to pdfData)
@@ -48,7 +34,7 @@ export async function courseRegistration(
       ...rest,
       pdfData: pdf || null, // Map pdf to pdfData for the database
       ...(serializedMaterials
-        ? { courseMaterials: { set: serializedMaterials } }
+        ? { courseMaterials: serializedMaterials }
         : {}),
     } as const;
 
@@ -99,12 +85,12 @@ export async function courseRegistration(
 
       const updatedCourse = await prisma.course.update({
         where: { id },
-        data: {
-          ...courseDataWithoutRelations, // Use courseData without relation fields (includes pdfData and possibly courseMaterials: set [...])
-          instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
-          channel: { connect: { id: channelId } }, // Fix: Use relation syntax
-          courseFor: { create: courseFor },
-          requirement: { create: requirement },
+      data: {
+        ...courseDataWithoutRelations, // Use courseData without relation fields (includes pdfData and courseMaterials)
+        instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
+        channel: { connect: { id: channelId } }, // Fix: Use relation syntax
+        courseFor: { create: courseFor },
+        requirement: { create: requirement },
           activity: {
             create: activity.map(
               ({ titleAm, titleEn, subActivity }, index) => ({

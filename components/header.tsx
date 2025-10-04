@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { AlignLeft, House, ChevronRight } from "lucide-react";
+import { AlignLeft, ChevronRight } from "lucide-react";
 import User from "./user";
 import { Button } from "@heroui/react";
 import Link from "next/link";

@@ -11,7 +11,6 @@ import { getSellers, removeSeller } from "@/actions/manager/seller";
 import CustomTable from "@/components/ui/custom-table";
 import { TTableData } from "@/lib/definations";
 import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
-import PageHeader from "@/components/layout/PageHeader";
 import {
   startOfMonth,
   endOfMonth,
