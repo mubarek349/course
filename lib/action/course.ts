@@ -27,11 +27,18 @@ export async function courseRegistration(
           new Map(
             courseMaterials
               .filter((m) => m && m.url)
-              .map((m) => [m.url, {
-                name: m.name?.trim() || m.url.split("/").pop() || "material",
-                url: m.url,
-                type: (m.type || m.url.split(".").pop() || "file").toLowerCase(),
-              }])
+              .map((m) => [
+                m.url,
+                {
+                  name: m.name?.trim() || m.url.split("/").pop() || "material",
+                  url: m.url,
+                  type: (
+                    m.type ||
+                    m.url.split(".").pop() ||
+                    "file"
+                  ).toLowerCase(),
+                },
+              ])
           ).values()
         ).map((m) => `${m.name},${m.url},${m.type}`).join(',')
       : undefined;
@@ -40,7 +47,9 @@ export async function courseRegistration(
     const courseData = {
       ...rest,
       pdfData: pdf || null, // Map pdf to pdfData for the database
-      ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
+      ...(serializedMaterials
+        ? { courseMaterials: { set: serializedMaterials } }
+        : {}),
     } as const;
 
     await prisma.course.updateMany({
@@ -224,17 +233,24 @@ export async function courseRegistration(
         }
       }
     } else {
-      const { instructorId: createInstructorId, channelId: createChannelId, ...restWithoutRelations } = rest as unknown as { [k: string]: any };
+      const {
+        instructorId: createInstructorId,
+        channelId: createChannelId,
+        ...restWithoutRelations
+      } = rest as unknown as { [k: string]: unknown };
       const courseId = await prisma.course
         .create({
           data: {
             ...restWithoutRelations,
             pdfData: pdf || null,
-            // For create, courseMaterials is a scalar field and accepts string directly
-            ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
-            instructor: { connect: { id: createInstructorId } },
-            channel: { connect: { id: createChannelId } },
-          },
+            // For create, courseMaterials is a scalar field and accepts string[] directly
+            ...(serializedMaterials
+              ? { courseMaterials: serializedMaterials }
+              : {}),
+            instructor: { connect: { id: createInstructorId as string } },
+            channel: { connect: { id: createChannelId as string } },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any,
         })
         .then((v) => v.id);
       if (courseId) {
@@ -453,6 +469,38 @@ export async function sellerRegistration(
         },
       });
     }
+    return { status: true };
+  } catch (error) {
+    console.log(error);
+    return { status: false, cause: "", message: "" };
+  }
+}
+
+export async function affiliateRegistration(
+  prevState: StateType,
+  data:
+    | {
+        firstName: string;
+        fatherName: string;
+        lastName: string;
+        phoneNumber: string;
+        password: string;
+      }
+    | undefined
+): Promise<StateType> {
+  try {
+    if (!data) throw new Error();
+    const { firstName, fatherName, lastName, phoneNumber, password } = data;
+    await prisma.user.create({
+      data: {
+        firstName,
+        fatherName,
+        lastName,
+        phoneNumber,
+        password: await bcryptjs.hash(password, 12),
+        role: "affiliate",
+      },
+    });
     return { status: true };
   } catch (error) {
     console.log(error);

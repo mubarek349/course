@@ -49,7 +49,7 @@ export default function SideBar({
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden transition-opacity duration-300"
         />
       )}
-      
+
       {/* Sidebar */}
       <div
         className={cn(
@@ -70,14 +70,18 @@ export default function SideBar({
           )}
         >
           {/* Header Section */}
-          <div className={cn(
-            "flex items-center justify-between p-6 border-b border-neutral-200/50 dark:border-neutral-800/50",
-            isCollapsed && "md:justify-center md:px-4"
-          )}>
-            <div className={cn(
-              "flex items-center gap-3 transition-all duration-300",
-              isCollapsed && "md:justify-center"
-            )}>
+          <div
+            className={cn(
+              "flex items-center justify-between p-6 border-b border-neutral-200/50 dark:border-neutral-800/50",
+              isCollapsed && "md:justify-center md:px-4"
+            )}
+          >
+            <div
+              className={cn(
+                "flex items-center gap-3 transition-all duration-300",
+                isCollapsed && "md:justify-center"
+              )}
+            >
               <div className="relative">
                 <Image
                   src="/darulkubra.svg"
@@ -97,7 +101,7 @@ export default function SideBar({
                 </Link>
               )}
             </div>
-            
+
             {/* Close Button - Mobile Only */}
             <Button
               isIconOnly
@@ -108,7 +112,7 @@ export default function SideBar({
             >
               <X className="size-5" />
             </Button>
-            
+
             {/* Collapse Button - Desktop Only */}
             <Button
               isIconOnly
@@ -146,19 +150,22 @@ export default function SideBar({
                       color={isActive ? "primary" : "default"}
                       size="md"
                       startContent={
-                        <div className={cn(
-                          "transition-colors duration-200",
-                          isActive 
-                            ? "text-brand-600 dark:text-brand-400" 
-                            : "text-neutral-600 dark:text-neutral-400"
-                        )}>
+                        <div
+                          className={cn(
+                            "transition-colors duration-200",
+                            isActive
+                              ? "text-brand-600 dark:text-brand-400"
+                              : "text-neutral-600 dark:text-neutral-400"
+                          )}
+                        >
                           {icon}
                         </div>
                       }
                       className={cn(
                         "w-full justify-start font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
                         isCollapsed && "md:justify-center md:px-0",
-                        isActive && "bg-brand-50/50 dark:bg-brand-950/50 border-brand-200/50 dark:border-brand-800/50 shadow-inner-soft"
+                        isActive &&
+                          "bg-brand-50/50 dark:bg-brand-950/50 border-brand-200/50 dark:border-brand-800/50 shadow-inner-soft"
                       )}
                     >
                       {!isCollapsed && (
@@ -173,12 +180,18 @@ export default function SideBar({
 
           {/* Footer Section */}
           <div className="p-4 border-t border-neutral-200/50 dark:border-neutral-800/50">
-            <div className={cn(
-              "flex gap-2",
-              isCollapsed ? "flex-col" : "flex-row"
-            )}>
+            <div
+              className={cn(
+                "flex gap-2",
+                isCollapsed ? "flex-col" : "flex-row"
+              )}
+            >
               <Tooltip
-                content={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                content={
+                  theme === "dark"
+                    ? "Switch to Light Mode"
+                    : "Switch to Dark Mode"
+                }
                 placement="right"
                 isDisabled={!isCollapsed}
               >
@@ -204,7 +217,7 @@ export default function SideBar({
                   )}
                 </Button>
               </Tooltip>
-              
+
               <Tooltip
                 content={`Switch to ${lang === "en" ? "Amharic" : "English"}`}
                 placement="right"
@@ -226,11 +239,11 @@ export default function SideBar({
                   className="transition-all duration-200 hover:scale-105 active:scale-95 font-semibold"
                 >
                   <span className="text-xs font-bold">
-                    {lang === "en" ? "EN" : "አማ"}
+                    {lang === "en" ? "አማ" : "EN"}
                   </span>
                   {!isCollapsed && (
                     <span className="text-xs opacity-70 ml-1">
-                      {lang === "en" ? "English" : "አማርኛ"}
+                      {lang === "en" ? "አማርኛ" : "English"}
                     </span>
                   )}
                 </Button>

@@ -20,7 +20,7 @@ interface AIAssistantProps {
   lang: string;
 }
 
-export default function AIAssistant({ lang }: AIAssistantProps) {
+export default function AIAssistant({ courseId, lang }: AIAssistantProps) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newQuestion, setNewQuestion] = useState("");
   const [aiResponse, setAiResponse] = useState("");

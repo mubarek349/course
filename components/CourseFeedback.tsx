@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Star, User, Calendar, MessageCircle } from "lucide-react";
-import { addFeedback, getFeedback, getAverageRating } from "@/lib/data/courseMaterials";
+import { Star, User, Calendar } from "lucide-react";
+import {
+  addFeedback,
+  getFeedback,
+  getAverageRating,
+} from "@/lib/data/courseMaterials";
 import useData from "@/hooks/useData";
-import useAction from "@/hooks/useAction";
 
 interface Feedback {
   id: string;
@@ -17,18 +20,22 @@ interface Feedback {
   };
 }
 
-export default function CourseFeedback({ 
-  courseId, 
-  lang 
-}: { 
-  courseId: string; 
-  lang: string; 
+export default function CourseFeedback({
+  courseId,
+  lang,
+}: {
+  courseId: string;
+  lang: string;
 }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const { data: feedbacks, loading: feedbacksLoading, refresh } = useData({
+  const {
+    data: feedbacks,
+    loading: feedbacksLoading,
+    refresh,
+  } = useData({
     func: getFeedback,
     args: [courseId],
   });
@@ -38,28 +45,26 @@ export default function CourseFeedback({
     args: [courseId],
   });
 
-  const { action, isPending: submitting } = useAction(
-    async (prevState: any, payload: { courseId: string; feedback: string; rating: number } | undefined) => {
-      if (!payload) return { status: false, cause: "invalid_data", message: "Invalid data" };
-      return await addFeedback(payload.courseId, payload.feedback, payload.rating);
-    },
-    undefined,
-    {
-      loading: lang === "en" ? "Submitting feedback..." : "ግብረመልስ በመስቀል ላይ...",
-      success: lang === "en" ? "Feedback submitted successfully!" : "ግብረመልስ በተሳካ ሁኔታ ተስቅሏል!",
-      error: lang === "en" ? "Failed to submit feedback. Please try again." : "ግብረመልስ መስቀል አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
-      onSuccess: () => {
-        refresh();
-        setRating(0);
-        setComment("");
-      }
+  const [submitting, setSubmitting] = useState(false);
+
+  const submitFeedback = async () => {
+    setSubmitting(true);
+    try {
+      await addFeedback(courseId, comment, rating);
+      refresh();
+      setRating(0);
+      setComment("");
+    } catch (error) {
+      console.error("Failed to submit feedback:", error);
+    } finally {
+      setSubmitting(false);
     }
-  );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating > 0 && comment.trim()) {
-      await action({ courseId, feedback: comment, rating });
+      await submitFeedback();
     }
   };
 
@@ -73,7 +78,11 @@ export default function CourseFeedback({
               star <= ratingValue
                 ? "fill-yellow-400 text-yellow-400"
                 : "text-gray-300"
-            } ${interactive ? "cursor-pointer hover:fill-yellow-400 hover:text-yellow-400" : ""}`}
+            } ${
+              interactive
+                ? "cursor-pointer hover:fill-yellow-400 hover:text-yellow-400"
+                : ""
+            }`}
             onClick={interactive ? () => setRating(star) : undefined}
             onMouseEnter={interactive ? () => setHoverRating(star) : undefined}
             onMouseLeave={interactive ? () => setHoverRating(0) : undefined}
@@ -98,7 +107,7 @@ export default function CourseFeedback({
         <h3 className="text-lg font-semibold mb-4">
           {lang === "en" ? "Share Your Feedback" : "ግብረመልስዎን ያጋሩ"}
         </h3>
-        
+
         {/* Average Rating Display */}
         {averageRating && averageRating.count > 0 && (
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -113,14 +122,15 @@ export default function CourseFeedback({
                     {averageRating.average.toFixed(1)}
                   </span>
                   <span className="text-sm text-gray-500">
-                    ({averageRating.count} {lang === "en" ? "reviews" : "ግምገማዎች"})
+                    ({averageRating.count}{" "}
+                    {lang === "en" ? "reviews" : "ግምገማዎች"})
                   </span>
                 </div>
               </div>
             </div>
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -129,12 +139,17 @@ export default function CourseFeedback({
             <div className="flex items-center gap-2">
               {renderStars(hoverRating || rating, true)}
               <span className="ml-2 text-sm text-gray-500">
-                {rating > 0 ? `${rating} ${lang === "en" ? "star" : "ኮከብ"}${rating > 1 ? "s" : ""}` : 
-                 lang === "en" ? "Select rating" : "ደረጃ ይምረጡ"}
+                {rating > 0
+                  ? `${rating} ${lang === "en" ? "star" : "ኮከብ"}${
+                      rating > 1 ? "s" : ""
+                    }`
+                  : lang === "en"
+                  ? "Select rating"
+                  : "ደረጃ ይምረጡ"}
               </span>
             </div>
           </div>
-          
+
           <div>
             <label htmlFor="comment" className="block text-sm font-medium mb-2">
               {lang === "en" ? "Your Feedback" : "ግብረመልስዎ"}
@@ -145,11 +160,15 @@ export default function CourseFeedback({
               onChange={(e) => setComment(e.target.value)}
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder={lang === "en" ? "Share your thoughts about this course..." : "ስለዚህ ኮርስ አስተያየትዎን ያጋሩ..."}
+              placeholder={
+                lang === "en"
+                  ? "Share your thoughts about this course..."
+                  : "ስለዚህ ኮርስ አስተያየትዎን ያጋሩ..."
+              }
               required
             />
           </div>
-          
+
           <button
             type="submit"
             disabled={submitting || rating === 0 || !comment.trim()}
@@ -160,24 +179,26 @@ export default function CourseFeedback({
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 {lang === "en" ? "Submitting..." : "በመስቀል ላይ..."}
               </span>
+            ) : lang === "en" ? (
+              "Submit Feedback"
             ) : (
-              lang === "en" ? "Submit Feedback" : "ግብረመልስ ይስቀሉ"
+              "ግብረመልስ ይስቀሉ"
             )}
           </button>
         </form>
       </div>
-      
+
       {/* Feedback List */}
       {feedbacks && feedbacks.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold mb-4">
             {lang === "en" ? "Student Feedback" : "የተማሪ ግብረመልስ"}
           </h3>
-          
+
           <div className="space-y-4">
             {feedbacks.map((feedback: Feedback) => (
-              <div 
-                key={feedback.id} 
+              <div
+                key={feedback.id}
                 className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
               >
                 <div className="flex items-start gap-4">
@@ -199,10 +220,10 @@ export default function CourseFeedback({
                             <span>
                               {new Date(feedback.createdAt).toLocaleDateString(
                                 lang === "en" ? "en-US" : "am-ET",
-                                { 
-                                  year: "numeric", 
-                                  month: "short", 
-                                  day: "numeric" 
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
                                 }
                               )}
                             </span>

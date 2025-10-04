@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSession } from "next-auth/react";
-import { BookOpen, CheckCircle, Award, TrendingUp } from "lucide-react";
+import { BookOpen, CheckCircle, Award } from "lucide-react";
 import {
   BarChart,
   Bar,

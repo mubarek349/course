@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Calendar, TrendingUp } from "lucide-react";
 import { Button } from "@heroui/react";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import PageHeader from "@/components/layout/PageHeader";
 import Section from "@/components/layout/Section";
 import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
@@ -86,7 +85,7 @@ export default function Page() {
             No Data Available
           </h3>
           <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-            There's no analytics data to display for the selected period.
+            There is no analytics data to display for the selected period.
           </p>
           <Button
             color="primary"

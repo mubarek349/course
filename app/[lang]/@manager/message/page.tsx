@@ -17,7 +17,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { sendMessageToAll } from "@/lib/action/message";
 import { getCourses } from "@/lib/data/course";
-import Loading from "@/components/loading";
 import useAction from "@/hooks/useAction";
 import { AlertTriangle, Link2, Send, Smartphone, Users, Calendar, MessageCircle } from "lucide-react";
 import { useParams } from "next/navigation";
