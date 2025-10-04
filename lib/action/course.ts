@@ -21,8 +21,8 @@ export async function courseRegistration(
       ...rest
     } = data;
 
-    // Prepare courseMaterials for DB (String[] of JSON strings)
-    const serializedMaterials: string[] | undefined = courseMaterials
+    // Prepare courseMaterials for DB (comma-separated string)
+    const serializedMaterials: string | undefined = courseMaterials
       ? Array.from(
           new Map(
             courseMaterials
@@ -33,14 +33,14 @@ export async function courseRegistration(
                 type: (m.type || m.url.split(".").pop() || "file").toLowerCase(),
               }])
           ).values()
-        ).map((m) => JSON.stringify(m))
+        ).map((m) => `${m.name},${m.url},${m.type}`).join(',')
       : undefined;
 
     // Add pdfData and optionally courseMaterials to the rest data (mapping pdf to pdfData)
     const courseData = {
       ...rest,
       pdfData: pdf || null, // Map pdf to pdfData for the database
-      ...(serializedMaterials ? { courseMaterials: { set: serializedMaterials } } : {}),
+      ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
     } as const;
 
     await prisma.course.updateMany({
@@ -230,7 +230,7 @@ export async function courseRegistration(
           data: {
             ...restWithoutRelations,
             pdfData: pdf || null,
-            // For create, courseMaterials is a scalar field and accepts string[] directly
+            // For create, courseMaterials is a scalar field and accepts string directly
             ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
             instructor: { connect: { id: createInstructorId } },
             channel: { connect: { id: createChannelId } },

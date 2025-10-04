@@ -7,8 +7,17 @@ import { useParams, usePathname } from "next/navigation";
 import React, { useState } from "react";
 import Link from "next/link";
 import { getCoursesList } from "@/actions/manager/course";
+import { getSellers, removeSeller } from "@/actions/manager/seller";
 import CustomTable from "@/components/ui/custom-table";
 import { TTableData } from "@/lib/definations";
+import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import PageHeader from "@/components/layout/PageHeader";
+import {
+  startOfMonth,
+  endOfMonth,
+  today,
+  getLocalTimeZone,
+} from "@internationalized/date";
 import {
   Button,
   Dropdown,
@@ -23,7 +32,6 @@ import {
 } from "@heroui/react";
 import UserStatusToggle from "@/components/userStatusToggle";
 import CustomDatePicker from "@/components/ui/custom-date-picker";
-import {
 import { CDropdownMenu } from "@/components/heroui";
 
 export default function Page() {
@@ -68,7 +76,11 @@ export default function Page() {
     <ScrollablePageWrapper>
       <PageHeader
         title={lang === "en" ? "Seller Management" : "የሻጭ አስተዳደር"}
-        subtitle={lang === "en" ? "Manage seller accounts and their sales performance." : "የሻጭ መለያዎችን እና የሽያጭ አፈጻጸማቸውን ያስተዳድሩ።"}
+        subtitle={
+          lang === "en"
+            ? "Manage seller accounts and their sales performance."
+            : "የሻጭ መለያዎችን እና የሽያጭ አፈጻጸማቸውን ያስተዳድሩ።"
+        }
         actions={
           <Button
             size="sm"
@@ -162,15 +174,6 @@ export default function Page() {
                     refresh={refresh}
                   />
                 </div>
-              );
-            }
-            case "status": {
-              return (
-                <UserStatusToggle
-                  id={rowData.id}
-                  status={rowData.status}
-                  refresh={refresh}
-                />
               );
             }
             case "actions": {
@@ -277,7 +280,7 @@ export default function Page() {
           onOpenChange={() => setRemove(undefined)}
         />
       )}
-    </div>
+    </ScrollablePageWrapper>
   );
 }
 
@@ -290,8 +293,8 @@ function RemoveSeller({
   refresh: () => void;
   onOpenChange: () => void;
 }) {
-  const params= useParams<{ lang: string}>();
-          const lang = params?.lang || "en",
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en",
     { action, isPending } = useAction(removeSeller, undefined, {
       loading: lang == "en" ? "deleting seller" : "አስተዳዳሪን በመሰረዝ ላይ",
       success:

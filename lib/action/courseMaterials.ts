@@ -27,14 +27,14 @@ export async function addCourseMaterials(
     // Deduplicate by URL
     const uniqueByUrl = Array.from(new Map(sanitized.map((m) => [m.url, m])).values());
 
-    // Serialize to store in String[] (schema: Course.courseMaterials String[])
-    const serialized = uniqueByUrl.map((m) => JSON.stringify(m));
+    // Convert to comma-separated string format for MySQL
+    const commaSeparated = uniqueByUrl.map((m) => `${m.name},${m.url},${m.type}`).join(',');
 
-    // Replace entire list to keep DB in sync with client state
+    // Update the course with comma-separated string
     await prisma.course.update({
       where: { id: courseId },
       data: {
-        courseMaterials: { set: serialized },
+        courseMaterials: commaSeparated,
       },
     });
 
@@ -52,36 +52,31 @@ export async function getCourseMaterials(courseId: string): Promise<CourseMateri
       select: { courseMaterials: true },
     });
 
-    const raw = course?.courseMaterials ?? [];
+    const raw = course?.courseMaterials ?? "";
 
-    const parsed: CourseMaterial[] = raw.map((item) => {
-      try {
-        const obj = JSON.parse(item as unknown as string);
-        if (obj && typeof obj === "object" && (obj as any).url) {
-          const url = (obj as any).url as string;
-          const name = (obj as any).name ?? url.split("/").pop() ?? "material";
-          const type = ((obj as any).type ?? url.split(".").pop() ?? "file").toString().toLowerCase();
-          return { name, url, type };
+    // Handle empty string
+    if (!raw || raw.trim() === "") {
+      return [];
+    }
+
+    // Parse comma-separated string format: "name1,url1,type1,name2,url2,type2"
+    const parts = raw.split(',');
+    const materials: CourseMaterial[] = [];
+
+    // Process in groups of 3 (name, url, type)
+    for (let i = 0; i < parts.length; i += 3) {
+      if (i + 2 < parts.length) {
+        const name = parts[i]?.trim() || "material";
+        const url = parts[i + 1]?.trim() || "";
+        const type = parts[i + 2]?.trim() || "file";
+        
+        if (url) {
+          materials.push({ name, url, type: type.toLowerCase() });
         }
-        // If parsed but not as expected, fall back to treating it as a URL string
-        const url = String(item);
-        return {
-          name: url.split("/").pop() ?? "material",
-          url,
-          type: url.split(".").pop() ?? "file",
-        };
-      } catch {
-        // Backward compatibility: previously stored plain URLs in the array
-        const url = String(item);
-        return {
-          name: url.split("/").pop() ?? "material",
-          url,
-          type: url.split(".").pop() ?? "file",
-        };
       }
-    });
+    }
 
-    return parsed;
+    return materials;
   } catch (error) {
     console.error("Error fetching course materials:", error);
     return [];
