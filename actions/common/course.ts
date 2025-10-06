@@ -42,6 +42,8 @@ export async function getCourses(tableData: TTableData) {
             sellerRate,
             affiliateRate,
             activity,
+            birrPrice,
+            dolarPrice,
             ...rest
           }) => ({
             id,
@@ -50,6 +52,8 @@ export async function getCourses(tableData: TTableData) {
             instructorRate: Number(instructorRate),
             sellerRate: Number(sellerRate),
             affiliateRate: Number(affiliateRate),
+            birrPrice,
+            dolarPrice,
             _count: {
               activity: activity.reduce((a, c) => a + c._count.subActivity, 0),
             },

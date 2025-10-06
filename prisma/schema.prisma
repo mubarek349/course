@@ -21,6 +21,11 @@ enum Role {
   ustaz
 }
 
+enum PaymentType {
+  chapa
+  stripe
+}
+
 enum UserStatus {
   pending
   active
@@ -109,7 +114,9 @@ model Course {
   pdfData         String?         @db.Text
   courseMaterials String          @default("")
   price           Decimal
-  currency        String          @default("ETB")
+  dolarPrice      Int
+  birrPrice       Int
+  // currency        String          @default("ETB")
   level           CourseLevel
   language        String          @default("Amharic")
   duration        String
@@ -272,7 +279,10 @@ model Order {
   status           OrderStatus @default(unpaid)
   totalPrice       Decimal
   price            Decimal
-  currency         String      @default("ETB")
+  paymentType      PaymentType
+  birrPrice        Decimal?
+  dolarPrice       Decimal?
+  // currency         String      @default("ETB")
   instructorIncome Decimal
   tx_ref           String?     @unique
   img              String      @db.Text()

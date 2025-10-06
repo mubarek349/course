@@ -18,6 +18,8 @@ interface PaymentMethodSelectorProps {
   onStripeSelect: () => void;
   title: string;
   price: number;
+  birrPrice: number;
+  dolarPrice: number;
 }
 
 export default function PaymentMethodSelector({
@@ -27,6 +29,8 @@ export default function PaymentMethodSelector({
   onStripeSelect,
   title,
   price,
+  birrPrice,
+  dolarPrice,
 }: PaymentMethodSelectorProps) {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
@@ -47,9 +51,13 @@ export default function PaymentMethodSelector({
             </ModalHeader>
             <div className="px-5">
               <p className="text-center text-lg font-semibold">{title}</p>
-              <p className="text-2xl text-center font-bold text-primary">
-                {price} ETB
-              </p>
+              <div className="text-center space-y-1">
+                <p className="text-sm text-gray-600">
+                  {lang === "en"
+                    ? "Choose payment method to see price"
+                    : "የዋጋ መጠን ለማየት የክፍያ ዘዴ ይምረጡ"}
+                </p>
+              </div>
             </div>
             <ModalBody>
               <div className="space-y-4">
@@ -63,7 +71,7 @@ export default function PaymentMethodSelector({
                 <Button
                   color="primary"
                   variant="bordered"
-                  className="w-full h-16 flex items-center justify-between p-4"
+                  className="w-full h-auto min-h-16 flex items-center justify-between p-4"
                   onPress={() => {
                     onChapaSelect();
                     onClose();
@@ -82,6 +90,9 @@ export default function PaymentMethodSelector({
                           ? "Mobile & Bank Transfer"
                           : "ሞባይል እና ባንክ ሽያጭ"}
                       </div>
+                      <div className="text-sm font-bold text-green-600 mt-1">
+                        {birrPrice} ETB
+                      </div>
                     </div>
                   </div>
                   <div className="text-green-600">→</div>
@@ -91,7 +102,7 @@ export default function PaymentMethodSelector({
                 <Button
                   color="primary"
                   variant="bordered"
-                  className="w-full h-16 flex items-center justify-between p-4"
+                  className="w-full h-auto min-h-16 flex items-center justify-between p-4"
                   onPress={() => {
                     onStripeSelect();
                     onClose();
@@ -107,6 +118,9 @@ export default function PaymentMethodSelector({
                         {lang === "en"
                           ? "Card & Digital Wallet"
                           : "ካርድ እና ዲጂታል የሚያያዝ"}
+                      </div>
+                      <div className="text-sm font-bold text-blue-600 mt-1">
+                        ${dolarPrice} USD
                       </div>
                     </div>
                   </div>

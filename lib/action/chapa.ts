@@ -26,10 +26,33 @@ export async function pay(
   try {
     if (!data) return undefined;
     const { id, phoneNumber, affiliateCode } = data,
-      course = await prisma.course.findFirst({ where: { id: id } }),
+      course = await prisma.course.findFirst({
+        where: { id: id },
+        select: {
+          id: true,
+          price: true,
+          birrPrice: true,
+          dolarPrice: true,
+          instructorRate: true,
+          affiliateRate: true,
+          titleEn: true,
+          titleAm: true,
+        },
+      }),
       lang = ((await headers()).get("darulkubra-url") ?? "").split("/")[3];
 
     if (!course) throw new Error();
+
+    // Convert Decimal fields to Number to prevent serialization errors
+    const courseData = {
+      ...course,
+      price: Number(course.price),
+      birrPrice: course.birrPrice ? Number(course.birrPrice) : null,
+      dolarPrice: course.dolarPrice ? Number(course.dolarPrice) : null,
+      instructorRate: Number(course.instructorRate),
+      affiliateRate: Number(course.affiliateRate),
+    };
+
     let user = await prisma.user.findFirst({
       where: { role: "student", phoneNumber },
     });
@@ -46,11 +69,11 @@ export async function pay(
       where: { code: affiliateCode },
       select: {
         code: true,
-        IncomeRate: { where: { courseId: course.id } },
+        IncomeRate: { where: { courseId: courseData.id } },
       },
     });
     let order = await prisma.order.findFirst({
-      where: { userId: user.id, courseId: course.id },
+      where: { userId: user.id, courseId: courseData.id },
       select: { id: true, tx_ref: true, income: true, status: true },
     });
     // console.log("ORDER :: ", oldOrder);
@@ -86,13 +109,15 @@ export async function pay(
         where: { id: order.id },
         data: {
           tx_ref,
-          totalPrice: course.price,
-          price: course.price,
+          totalPrice: courseData.birrPrice || courseData.price, // Use birrPrice for Chapa
+          price: courseData.birrPrice || courseData.price, // Use birrPrice for Chapa
           date: new Date(),
+          paymentType: "chapa",
           ...(affiliate
             ? {
                 code: affiliate.code,
-                income: affiliate.IncomeRate[0]?.rate || course.affiliateRate,
+                income:
+                  affiliate.IncomeRate[0]?.rate || courseData.affiliateRate,
               }
             : {}),
         },
@@ -102,18 +127,22 @@ export async function pay(
       order = await prisma.order.create({
         data: {
           userId: user.id,
-          courseId: course.id,
-          totalPrice: course.price,
-          price: course.price,
+          courseId: courseData.id,
+          totalPrice: courseData.birrPrice || courseData.price, // Use birrPrice for Chapa
+          price: courseData.birrPrice || courseData.price, // Use birrPrice for Chapa
           tx_ref: randomUUID(),
           date: new Date(),
           instructorIncome:
-            (Number(course.price) * Number(course.instructorRate)) / 100,
+            ((courseData.birrPrice || courseData.price) *
+              courseData.instructorRate) /
+            100,
           img: "",
+          paymentType: "chapa",
           ...(affiliate
             ? {
                 code: affiliate.code,
-                income: affiliate.IncomeRate[0]?.rate || course.affiliateRate,
+                income:
+                  affiliate.IncomeRate[0]?.rate || courseData.affiliateRate,
               }
             : {}),
         },
@@ -130,7 +159,7 @@ export async function pay(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: course.price,
+          amount: courseData.birrPrice || courseData.price, // Use birrPrice for Chapa
           phone_number: user.phoneNumber,
           tx_ref: order.tx_ref,
           callback_url: `${process.env.MAIN_API}/api/verify-payment/${order.tx_ref}`,
@@ -189,7 +218,17 @@ export async function verifyPayment(
       const newOrder = await prisma.order.update({
         where: { id: order.id },
         data: { status: "paid" },
-        select: { user: true, course: true, code: true, income: true },
+        select: {
+          user: true,
+          course: {
+            select: {
+              titleEn: true,
+              titleAm: true,
+            },
+          },
+          code: true,
+          income: true,
+        },
       });
       await sendSMSToCustomer(
         newOrder.user.phoneNumber,

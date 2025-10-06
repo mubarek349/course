@@ -30,6 +30,7 @@ interface StripeCheckoutProps {
   courseId: string;
   courseTitle: string;
   coursePrice: number;
+  dolarPrice: number;
   lang: string;
 }
 
@@ -37,6 +38,7 @@ function CheckoutForm({
   courseId,
   courseTitle,
   coursePrice,
+  dolarPrice,
   phoneNumber,
   affiliateCode,
   lang,
@@ -45,6 +47,7 @@ function CheckoutForm({
   courseId: string;
   courseTitle: string;
   coursePrice: number;
+  dolarPrice: number;
   phoneNumber: string;
   affiliateCode?: string;
   lang: string;
@@ -68,7 +71,7 @@ function CheckoutForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: coursePrice,
+          amount: dolarPrice,
           courseId,
           phoneNumber,
           affiliateCode,
@@ -114,14 +117,20 @@ function CheckoutForm({
         return;
       }
 
-      // Call API to update order status
+      // Call API to update order status with Stripe payment details
       const response = await fetch("/api/update-order-status", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ courseId, phoneNumber }),
+        body: JSON.stringify({
+          courseId,
+          phoneNumber,
+          paymentType: "stripe",
+          amount: dolarPrice,
+          currency: "USD",
+        }),
       });
 
       if (!response.ok) {
@@ -162,7 +171,7 @@ function CheckoutForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="p-4 border rounded-lg bg-gray-50">
         <h3 className="font-semibold">{courseTitle}</h3>
-        <p className="text-2xl font-bold text-green-600">{coursePrice} ETB</p>
+        <p className="text-2xl font-bold text-green-600">${dolarPrice} USD</p>
         <p className="text-sm text-gray-600">Phone: {phoneNumber}</p>
       </div>
 
@@ -189,7 +198,7 @@ function CheckoutForm({
         isDisabled={!stripe || loading}
         className="w-full"
       >
-        {loading ? "Processing..." : `Pay ${coursePrice} ETB`}
+        {loading ? "Processing..." : `Pay $${dolarPrice} USD`}
       </Button>
 
       {message && (
@@ -211,6 +220,7 @@ export default function StripeCheckout({
   courseId,
   courseTitle,
   coursePrice,
+  dolarPrice,
   lang,
 }: StripeCheckoutProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -274,7 +284,7 @@ export default function StripeCheckout({
                     <div className="p-4 border rounded-lg bg-gray-50">
                       <h3 className="font-semibold">{courseTitle}</h3>
                       <p className="text-2xl font-bold text-green-600">
-                        {coursePrice} ETB
+                        ${dolarPrice} USD
                       </p>
                     </div>
 
@@ -329,6 +339,7 @@ export default function StripeCheckout({
                       courseId={courseId}
                       courseTitle={courseTitle}
                       coursePrice={coursePrice}
+                      dolarPrice={dolarPrice}
                       phoneNumber={phoneNumber}
                       affiliateCode={affiliateCode}
                       lang={lang}

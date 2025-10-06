@@ -30,6 +30,8 @@ export default function Payment({
   affiliateCode,
   title,
   price,
+  birrPrice,
+  dolarPrice,
 }: {
   isOpen: boolean;
   id: string;
@@ -37,6 +39,8 @@ export default function Payment({
   affiliateCode?: string;
   title: string;
   price: number;
+  birrPrice: number;
+  dolarPrice: number;
 }) {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
@@ -148,6 +152,8 @@ export default function Payment({
         onStripeSelect={handleStripeSelect}
         title={title}
         price={price}
+        birrPrice={birrPrice}
+        dolarPrice={dolarPrice}
       />
 
       {/* Payment Form */}
@@ -177,7 +183,11 @@ export default function Payment({
                 </ModalHeader>
                 <div className="px-5">
                   <p className="text-center">{title}</p>
-                  <p className="text-2xl text-center font-bold ">{price} ETB</p>
+                  <p className="text-2xl text-center font-bold ">
+                    {selectedMethod === "chapa"
+                      ? `${birrPrice} ETB`
+                      : `$${dolarPrice} USD`}
+                  </p>
                 </div>
                 <ModalBody>
                   <Input
@@ -223,6 +233,8 @@ export default function Payment({
         courseId={id}
         courseTitle={title}
         coursePrice={price}
+        birrPrice={birrPrice}
+        dolarPrice={dolarPrice}
         lang={lang}
       />
     </>

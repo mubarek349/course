@@ -39,8 +39,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { courseId, phoneNumber } = body;
-    console.log("Extracted courseId:", courseId, "phoneNumber:", phoneNumber);
+    const { courseId, phoneNumber, paymentType, amount, currency } = body;
+    console.log(
+      "Extracted courseId:",
+      courseId,
+      "phoneNumber:",
+      phoneNumber,
+      "paymentType:",
+      paymentType,
+      "amount:",
+      amount,
+      "currency:",
+      currency
+    );
 
     if (!courseId || !phoneNumber) {
       console.log("Missing required fields");
@@ -91,7 +102,11 @@ export async function POST(request: NextRequest) {
         // Get course details to set proper pricing
         const course = await prisma.course.findUnique({
           where: { id: courseId },
-          select: { price: true },
+          select: {
+            price: true,
+            birrPrice: true,
+            dolarPrice: true,
+          },
         });
 
         if (!course) {
@@ -101,17 +116,26 @@ export async function POST(request: NextRequest) {
           );
         }
 
+        // Determine the correct price based on payment type
+        let orderPrice;
+        if (paymentType === "stripe") {
+          orderPrice = course.dolarPrice || course.price; // Use dolarPrice for Stripe
+        } else {
+          orderPrice = course.birrPrice || course.price; // Use birrPrice for Chapa
+        }
+
         // Create a new order if none exists
         const newOrder = await prisma.order.create({
           data: {
             userId: user.id,
             courseId: courseId,
             status: "paid",
-            totalPrice: course.price,
-            price: course.price,
+            totalPrice: amount || orderPrice,
+            price: amount || orderPrice,
             date: new Date(),
-            instructorIncome: course.price * 0.7, // Assuming 70% for instructor
+            instructorIncome: (amount || orderPrice) * 0.7,
             img: "", // Empty for now
+            paymentType: paymentType || "chapa",
           },
         });
 

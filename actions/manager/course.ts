@@ -392,10 +392,10 @@ export async function getCourse(id: string) {
             titleEn: true,
             titleAm: true,
             subActivity: true,
-            question:true,
+            question: true,
           },
         },
-        
+
         instructor: {
           select: { firstName: true, fatherName: true, lastName: true },
         },
@@ -410,6 +410,8 @@ export async function getCourse(id: string) {
             instructorRate: Number(res.instructorRate),
             sellerRate: Number(res.sellerRate),
             affiliateRate: Number(res.affiliateRate),
+            birrPrice: res.birrPrice,
+            dolarPrice: res.dolarPrice,
           }
         : res
     );

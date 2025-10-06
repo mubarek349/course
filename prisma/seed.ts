@@ -2,9 +2,11 @@ import prisma from "@/lib/db";
 
 (async () => {
   try {
-    // Create users
-    const manager = await prisma.user.create({
-      data: {
+    // Create users (or update if they exist)
+    const manager = await prisma.user.upsert({
+      where: { phoneNumber: "0945467891" },
+      update: {},
+      create: {
         role: "manager",
         firstName: "abdelkerim",
         fatherName: "ahmed",
@@ -17,8 +19,10 @@ import prisma from "@/lib/db";
         },
       },
     });
-    await prisma.user.create({
-      data: {
+    await prisma.user.upsert({
+      where: { phoneNumber: "0942303571" },
+      update: {},
+      create: {
         role: "student",
         firstName: "mubarek",
         fatherName: "ahmed",
@@ -30,8 +34,10 @@ import prisma from "@/lib/db";
       },
     });
 
-    const instructor = await prisma.user.create({
-      data: {
+    const instructor = await prisma.user.upsert({
+      where: { phoneNumber: "0910203040" },
+      update: {},
+      create: {
         role: "instructor",
         firstName: "Fuad",
         fatherName: "Abdurahaman",
@@ -43,8 +49,10 @@ import prisma from "@/lib/db";
       },
     });
 
-    const seller = await prisma.user.create({
-      data: {
+    const seller = await prisma.user.upsert({
+      where: { phoneNumber: "0945467893" },
+      update: {},
+      create: {
         role: "seller",
         firstName: "abubeker",
         fatherName: "ahmed",
@@ -56,8 +64,10 @@ import prisma from "@/lib/db";
       },
     });
 
-    const affiliate = await prisma.user.create({
-      data: {
+    const affiliate = await prisma.user.upsert({
+      where: { phoneNumber: "0933807447" },
+      update: {},
+      create: {
         role: "affiliate",
         firstName: "ahmed",
         fatherName: "ahmed",
@@ -70,11 +80,15 @@ import prisma from "@/lib/db";
     });
 
     // Create channels
-    const channel01 = await prisma.channel.create({
-      data: { chatId: -1002346735030, title: "Quran" },
+    const channel01 = await prisma.channel.upsert({
+      where: { chatId: -1002346735030 },
+      update: {},
+      create: { chatId: -1002346735030, title: "Quran" },
     });
-    await prisma.channel.create({
-      data: { chatId: -1002465362272, title: "Hadith" },
+    await prisma.channel.upsert({
+      where: { chatId: -1002465362272 },
+      update: {},
+      create: { chatId: -1002465362272, title: "Hadith" },
     });
 
     // Create a course (used for activity/question seeding below)
@@ -90,8 +104,9 @@ import prisma from "@/lib/db";
         thumbnail: "https://img.youtube.com/vi/tak7aLltLuU/0.jpg",
         video:
           "https://www.youtube.com/embed/tak7aLltLuU?si=pF6IhoZmLLjZdFjF&amp;controls=0",
-        price: 100,
-        currency: "ETB",
+        price: 200,
+        birrPrice: 1500,
+        dolarPrice: 100,
         level: "beginner",
         language: "amharic",
         duration: "04:00",

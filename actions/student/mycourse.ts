@@ -45,6 +45,8 @@ export async function getAllMyCourses(studentId: string) {
             sellerRate,
             affiliateRate,
             activity,
+            birrPrice,
+            dolarPrice,
             ...rest
           }) => ({
             id,
@@ -53,6 +55,8 @@ export async function getAllMyCourses(studentId: string) {
             instructorRate: Number(instructorRate),
             sellerRate: Number(sellerRate),
             affiliateRate: Number(affiliateRate),
+            birrPrice,
+            dolarPrice,
             _count: {
               activity: activity.reduce((a, c) => a + c._count.subActivity, 0),
             },
@@ -140,6 +144,8 @@ export async function getMySingleCourse(studentId: string, courseId: string) {
     return {
       ...course,
       price: Number(course.price),
+      birrPrice: course.birrPrice,
+      dolarPrice: course.dolarPrice,
     };
   } catch (error) {
     console.error("Error fetching single course:", error);

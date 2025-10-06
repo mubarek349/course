@@ -348,6 +348,8 @@ export async function getCourseForCustomer(id: string) {
               instructorRate: Number(res.instructorRate),
               sellerRate: Number(res.sellerRate),
               affiliateRate: Number(res.affiliateRate),
+              birrPrice: res.birrPrice,
+              dolarPrice: res.dolarPrice,
             }
           : res
       );
