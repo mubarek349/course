@@ -21,6 +21,7 @@ import {
   SelectItem,
 } from "@heroui/react";
 import PaymentMethodSelector from "./PaymentMethodSelector";
+import StripeCheckout from "./StripeCheckout";
 
 export default function Payment({
   isOpen,
@@ -41,13 +42,12 @@ export default function Payment({
   const lang = params?.lang || "en";
   const [showMethodSelector, setShowMethodSelector] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<
     "chapa" | "stripe" | null
   >(null);
   const formSchema = z.object({
     id: z.string({ message: "" }).nonempty("ID is required"),
-    fullName: z.string({ message: "" }).nonempty("Name is required"),
-    gender: z.enum(["Female", "Male"], { message: "Gender is required" }),
     phoneNumber: z
       .string({ message: "" })
       .length(10, "Must be 10 digits")
@@ -62,8 +62,6 @@ export default function Payment({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id,
-      fullName: "",
-      gender: "Female",
       phoneNumber: "",
       affiliateCode,
     },
@@ -110,6 +108,7 @@ export default function Payment({
       reset();
       setShowMethodSelector(true);
       setShowPaymentForm(false);
+      setShowStripeCheckout(false);
       setSelectedMethod(null);
     }
   }, [isOpen, reset]);
@@ -123,7 +122,7 @@ export default function Payment({
   const handleStripeSelect = () => {
     setSelectedMethod("stripe");
     setShowMethodSelector(false);
-    setShowPaymentForm(true);
+    setShowStripeCheckout(true);
   };
 
   const handleFormSubmit = (data: z.infer<typeof formSchema>) => {
@@ -182,25 +181,9 @@ export default function Payment({
                 </div>
                 <ModalBody>
                   <Input
-                    {...register("fullName")}
-                    color="primary"
-                    placeholder={lang == "en" ? "Full Name" : "ሙሉ ስም"}
-                  />
-                  <Select
-                    {...register("gender")}
-                    color="primary"
-                    placeholder={lang == "en" ? "Gender" : "ፆታ"}
-                    disallowEmptySelection
-                  >
-                    <SelectItem key={"Female"}>Female</SelectItem>
-                    <SelectItem key={"Male"}>Male</SelectItem>
-                  </Select>
-                  <Input
                     {...register("phoneNumber")}
                     color="primary"
-                    placeholder={
-                      lang == "en" ? "Telegram number" : "የቴሌግራም ቁጥር"
-                    }
+                    placeholder={lang == "en" ? "Phone Number" : "የስልክ ቁጥር"}
                   />
                 </ModalBody>
                 <ModalFooter>
@@ -233,6 +216,15 @@ export default function Payment({
           </ModalContent>
         </Form>
       </Modal>
+
+      <StripeCheckout
+        isOpen={showStripeCheckout}
+        onOpenChange={() => setShowStripeCheckout(false)}
+        courseId={id}
+        courseTitle={title}
+        coursePrice={price}
+        lang={lang}
+      />
     </>
   );
 }

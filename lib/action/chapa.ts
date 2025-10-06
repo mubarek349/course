@@ -18,8 +18,6 @@ export async function pay(
   data:
     | {
         id: string;
-        fullName: string;
-        gender: "Female" | "Male";
         phoneNumber: string;
         affiliateCode?: string;
       }
@@ -27,10 +25,7 @@ export async function pay(
 ): Promise<TPayState> {
   try {
     if (!data) return undefined;
-    const { id, fullName, gender, phoneNumber, affiliateCode } = data,
-      [firstName = "", fatherName = "", lastName = ""] = fullName
-        .split(" ")
-        .filter((v) => !!v),
+    const { id, phoneNumber, affiliateCode } = data,
       course = await prisma.course.findFirst({ where: { id: id } }),
       lang = ((await headers()).get("darulkubra-url") ?? "").split("/")[3];
 
@@ -40,19 +35,13 @@ export async function pay(
     });
 
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          role: "student",
-          firstName,
-          fatherName,
-          lastName,
-          gender,
-          phoneNumber,
-          password: "",
-        },
-      });
+      return {
+        status: false,
+        cause: "user_not_found",
+        message:
+          "Please register with this phone number before ordering the course",
+      };
     }
-    if (!user) throw new Error();
     const affiliate = await prisma.user.findFirst({
       where: { code: affiliateCode },
       select: {
@@ -69,7 +58,7 @@ export async function pay(
       if (order.status === "paid") {
         return {
           status: true,
-          url: `${process.env.BOT_URL}`,
+          url: `${process.env.MAIN_API}/${lang}/student/mycourse`,
         };
       } else if (order.tx_ref) {
         const response = await verify(order.tx_ref);

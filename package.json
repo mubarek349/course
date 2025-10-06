@@ -17,6 +17,8 @@
     "@internationalized/date": "^3.6.0",
     "@prisma/client": "^6.1.0",
     "@react-aria/i18n": "^3.12.4",
+    "@stripe/react-stripe-js": "^2.9.0",
+    "@stripe/stripe-js": "^4.10.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",

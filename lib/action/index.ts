@@ -71,7 +71,9 @@ export async function sendSMSToAffiliate(to: string, income: number) {
 }
 
 export async function redirectToBot(prevState: StateType) {
-  redirect(`${process.env.BOT_URL}`);
+  // Get the language from the URL or use default
+  const lang = "en"; // Default language, you can make this dynamic if needed
+  redirect(`/${lang}/student/mycourse`);
   return { status: true } as const;
   console.log(prevState);
 }

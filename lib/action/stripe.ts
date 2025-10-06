@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import prisma from "@/lib/db";
 import { randomUUID } from "crypto";
 
 type TPayState =
@@ -11,8 +11,6 @@ export async function payWithStripe(
   data:
     | {
         id: string;
-        fullName: string;
-        gender: "Female" | "Male";
         phoneNumber: string;
         affiliateCode?: string;
         lang?: string;
@@ -21,17 +19,7 @@ export async function payWithStripe(
 ): Promise<TPayState> {
   try {
     if (!data) return undefined;
-    const {
-        id,
-        fullName,
-        gender,
-        phoneNumber,
-        affiliateCode,
-        lang = "en",
-      } = data,
-      [firstName = "", fatherName = "", lastName = ""] = fullName
-        .split(" ")
-        .filter((v) => !!v),
+    const { id, phoneNumber, affiliateCode, lang = "en" } = data,
       course = await prisma.course.findFirst({ where: { id: id } });
 
     if (!course) throw new Error();
@@ -41,19 +29,13 @@ export async function payWithStripe(
     });
 
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          role: "student",
-          firstName,
-          fatherName,
-          lastName,
-          gender,
-          phoneNumber,
-          password: "",
-        },
-      });
+      return {
+        status: false,
+        cause: "user_not_found",
+        message:
+          "Please register with this phone number before ordering the course",
+      };
     }
-    if (!user) throw new Error();
 
     const affiliate = await prisma.user.findFirst({
       where: { code: affiliateCode },
@@ -72,7 +54,7 @@ export async function payWithStripe(
       if (order.status === "paid") {
         return {
           status: true,
-          url: `${process.env.BOT_URL}`,
+          url: `${process.env.MAIN_API}/${lang}/student/mycourse`,
         };
       } else if (order.tx_ref) {
         // Check if Stripe payment is already completed
