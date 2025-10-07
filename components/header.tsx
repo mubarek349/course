@@ -31,9 +31,9 @@ export default function Header({
 
   return (
     <header className={cn(
-      "fixed top-0 z-50 w-full border-b border-gray-200/60 dark:border-slate-600/60 bg-gradient-to-r from-white/95 via-white/98 to-white/95 dark:from-slate-900/95 dark:via-slate-800/98 dark:to-slate-900/95 backdrop-blur-xl shadow-lg dark:shadow-black/20 transition-all duration-300",
-      "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-50/10 before:via-transparent before:to-indigo-50/10 dark:before:from-blue-950/5 dark:before:via-transparent dark:before:to-indigo-950/5 before:pointer-events-none",
-      "after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.08)_1px,transparent_0)] dark:after:bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.03)_1px,transparent_0)] after:[background-size:16px_16px] after:opacity-50 after:pointer-events-none",
+      "fixed top-0 z-50 w-full border-b border-gray-200/60 dark:border-gray-700/60 bg-gradient-to-r from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl shadow-lg dark:shadow-2xl transition-all duration-300 overflow-hidden",
+      "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-50/20 before:via-transparent before:to-purple-50/20 dark:before:from-blue-950/10 dark:before:via-transparent dark:before:to-purple-950/10 before:pointer-events-none",
+      "after:absolute after:inset-0 after:bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.02)_0%,transparent_70%)] dark:after:bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.01)_0%,transparent_70%)] after:pointer-events-none",
       isCollapsed ? "md:left-20 md:w-[calc(100%-5rem)]" : "md:left-72 md:w-[calc(100%-18rem)]"
     )}>
       <div className="relative flex h-16 items-center justify-between px-4 md:px-6">

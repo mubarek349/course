@@ -15,10 +15,10 @@ export default function PageHeader({ title, subtitle, actions, className }: Page
     <div
       className={cn(
         "mb-6 md:mb-8",
-        "rounded-2xl border border-gray-200/60 dark:border-slate-600/60",
-        "bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl shadow-lg dark:shadow-black/20 relative",
+        "rounded-2xl border border-gray-200/60 dark:border-gray-700/60",
+        "bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-lg dark:shadow-xl relative overflow-hidden",
         "px-4 md:px-6 py-4 md:py-5",
-        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-50/20 before:via-transparent before:to-indigo-50/10 dark:before:from-blue-950/10 dark:before:via-transparent dark:before:to-indigo-950/5 before:rounded-2xl before:pointer-events-none",
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-50/20 before:via-transparent before:to-purple-50/10 dark:before:from-blue-950/10 dark:before:via-transparent dark:before:to-purple-950/5 before:rounded-2xl before:pointer-events-none",
         className
       )}
     >

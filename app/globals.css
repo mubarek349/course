@@ -89,7 +89,7 @@
 @layer components {
   /* Modern card component */
   .card {
-    @apply bg-white/95 dark:bg-slate-800/95 border border-gray-200/60 dark:border-slate-600/60 rounded-xl shadow-lg dark:shadow-black/20 backdrop-blur-sm relative;
+    @apply bg-white/95 dark:bg-gray-900/95 border border-gray-200/60 dark:border-gray-700/60 rounded-xl shadow-lg dark:shadow-xl backdrop-blur-sm relative overflow-hidden;
     background-image: 
       radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.1) 1px, transparent 0),
       linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
@@ -99,8 +99,13 @@
   .dark .card {
     background-image: 
       radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.05) 1px, transparent 0),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
-    background-size: 20px 20px, 100% 100%;
+      linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+      linear-gradient(45deg, rgba(30, 58, 138, 0.03) 0%, rgba(67, 56, 202, 0.02) 50%, rgba(30, 58, 138, 0.03) 100%);
+    background-size: 20px 20px, 100% 100%, 200% 200%;
+    box-shadow: 
+      0 10px 25px -3px rgba(0, 0, 0, 0.3),
+      0 4px 6px -2px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .card-hover {
@@ -118,7 +123,16 @@
 
   /* Glass morphism effect */
   .glass {
-    @apply bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border border-white/20 dark:border-neutral-800/20;
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border border-white/20 dark:border-gray-800/20;
+  }
+
+  /* Professional dark mode enhancements */
+  .dark {
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(30, 58, 138, 0.01) 0%, transparent 50%);
+    background-size: 100% 100%, 100% 100%, 100% 100%;
   }
 
   /* Gradient text */
