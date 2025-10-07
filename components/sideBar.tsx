@@ -18,10 +18,14 @@ export default function SideBar({
   isSide,
   setIsSide,
   lists,
+  isCollapsed,
+  setIsCollapsed,
 }: {
   isSide: boolean;
   setIsSide: React.Dispatch<React.SetStateAction<boolean>>;
   lists: { label: string; url: string; icon: React.ReactNode }[];
+  isCollapsed: boolean;
+  setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
@@ -29,7 +33,6 @@ export default function SideBar({
   const selectedSegment = useSelectedLayoutSegment() || "";
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -64,7 +67,9 @@ export default function SideBar({
       >
         <div
           className={cn(
-            "bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-xl border-r border-neutral-200/50 dark:border-neutral-800/50 shadow-soft grid grid-rows-[auto_1fr_auto] h-full transition-all duration-300",
+            "bg-gradient-to-b from-white/95 via-white/90 to-white/85 dark:from-slate-900/95 dark:via-slate-800/90 dark:to-slate-700/85 backdrop-blur-xl border-r border-gray-200/60 dark:border-slate-600/60 shadow-2xl dark:shadow-black/20 grid grid-rows-[auto_1fr_auto] h-full transition-all duration-300 relative",
+            "before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-50/20 before:via-transparent before:to-indigo-50/10 dark:before:from-blue-950/10 dark:before:via-transparent dark:before:to-indigo-950/5 before:pointer-events-none",
+            "after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_2px_2px,rgba(59,130,246,0.1)_1px,transparent_0)] dark:after:bg-[radial-gradient(circle_at_2px_2px,rgba(59,130,246,0.05)_1px,transparent_0)] after:[background-size:24px_24px] after:opacity-40 after:pointer-events-none",
             isCollapsed ? "md:w-20" : "md:w-72",
             "max-md:w-80"
           )}
@@ -72,7 +77,7 @@ export default function SideBar({
           {/* Header Section */}
           <div
             className={cn(
-              "flex items-center justify-between p-6 border-b border-neutral-200/50 dark:border-neutral-800/50",
+              "relative flex items-center justify-between p-6 border-b border-gray-200/60 dark:border-gray-700/60 bg-gradient-to-r from-white/50 to-white/30 dark:from-gray-900/50 dark:to-gray-900/30",
               isCollapsed && "md:justify-center md:px-4"
             )}
           >
@@ -82,20 +87,22 @@ export default function SideBar({
                 isCollapsed && "md:justify-center"
               )}
             >
-              <div className="relative">
-                <Image
-                  src="/darulkubra.svg"
-                  alt="Darul Kubra Logo"
-                  width={32}
-                  height={32}
-                  className="size-8 transition-transform duration-300 hover:scale-110"
-                />
-                <div className="absolute -inset-1 bg-gradient-to-r from-brand-400 to-brand-600 rounded-full opacity-20 blur-sm" />
+              <div className="relative group">
+                <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 rounded-full opacity-0 group-hover:opacity-100 blur-sm transition-all duration-300" />
+                <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-2 shadow-lg">
+                  <Image
+                    src="/darulkubra.svg"
+                    alt="Darul Kubra Logo"
+                    width={32}
+                    height={32}
+                    className="size-8 transition-transform duration-300 group-hover:scale-110 filter brightness-0 invert"
+                  />
+                </div>
               </div>
               {!isCollapsed && (
                 <Link
                   href="/"
-                  className="text-lg font-bold bg-gradient-to-r from-brand-600 to-brand-800 dark:from-brand-400 dark:to-brand-600 bg-clip-text text-transparent hover:from-brand-700 hover:to-brand-900 dark:hover:from-brand-300 dark:hover:to-brand-500 transition-all duration-300"
+                  className="text-xl font-bold bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 dark:from-gray-100 dark:via-gray-200 dark:to-gray-100 bg-clip-text text-transparent hover:from-blue-600 hover:via-purple-600 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:via-purple-400 dark:hover:to-blue-400 transition-all duration-300"
                 >
                   {lang === "en" ? "DARUL KUBRA" : "ዳሩል ኩብራ"}
                 </Link>
@@ -108,7 +115,7 @@ export default function SideBar({
               variant="light"
               size="sm"
               onPress={() => setIsSide(false)}
-              className="md:hidden text-neutral-600 dark:text-neutral-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+              className="md:hidden text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-all duration-200 rounded-lg"
             >
               <X className="size-5" />
             </Button>
@@ -119,7 +126,7 @@ export default function SideBar({
               variant="light"
               size="sm"
               onPress={() => setIsCollapsed(!isCollapsed)}
-              className="hidden md:flex text-neutral-600 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+              className="hidden md:flex text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-all duration-200 rounded-lg"
             >
               {isCollapsed ? (
                 <ChevronRight className="size-4" />
@@ -130,8 +137,8 @@ export default function SideBar({
           </div>
 
           {/* Navigation Section */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
-            <nav className="p-4 space-y-2">
+          <div className="flex-1 overflow-y-auto scrollbar-hide bg-gradient-to-b from-transparent via-gray-50/30 to-gray-100/50 dark:from-transparent dark:via-gray-800/30 dark:to-gray-900/50">
+            <nav className="p-4 space-y-3">
               {lists.map(({ label, url, icon }, i) => {
                 const isActive = selectedSegment === url;
                 return (
@@ -146,30 +153,30 @@ export default function SideBar({
                       as={Link}
                       href={`/${lang}/${url}`}
                       onPress={() => setTimeout(() => setIsSide(false), 300)}
-                      variant={isActive ? "flat" : "light"}
-                      color={isActive ? "primary" : "default"}
+                      variant="light"
                       size="md"
                       startContent={
                         <div
                           className={cn(
-                            "transition-colors duration-200",
+                            "transition-all duration-200",
                             isActive
-                              ? "text-brand-600 dark:text-brand-400"
-                              : "text-neutral-600 dark:text-neutral-400"
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-600 dark:text-gray-400"
                           )}
                         >
                           {icon}
                         </div>
                       }
                       className={cn(
-                        "w-full justify-start font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]",
+                        "w-full justify-start font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] rounded-xl",
                         isCollapsed && "md:justify-center md:px-0",
-                        isActive &&
-                          "bg-brand-50/50 dark:bg-brand-950/50 border-brand-200/50 dark:border-brand-800/50 shadow-inner-soft"
+                        isActive
+                          ? "bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 border border-blue-200/50 dark:border-blue-800/50 shadow-lg dark:shadow-xl text-blue-700 dark:text-blue-300"
+                          : "hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:shadow-md dark:hover:shadow-lg hover:text-gray-900 dark:hover:text-gray-100"
                       )}
                     >
                       {!isCollapsed && (
-                        <span className="truncate text-sm">{label}</span>
+                        <span className="truncate text-sm font-semibold">{label}</span>
                       )}
                     </Button>
                   </Tooltip>
@@ -179,10 +186,10 @@ export default function SideBar({
           </div>
 
           {/* Footer Section */}
-          <div className="p-4 border-t border-neutral-200/50 dark:border-neutral-800/50">
+          <div className="p-4 border-t border-gray-200/60 dark:border-gray-700/60 bg-gradient-to-r from-white/50 to-white/30 dark:from-gray-900/50 dark:to-gray-900/30">
             <div
               className={cn(
-                "flex gap-2",
+                "flex gap-3",
                 isCollapsed ? "flex-col" : "flex-row"
               )}
             >
@@ -197,7 +204,7 @@ export default function SideBar({
               >
                 <Button
                   isIconOnly={isCollapsed}
-                  variant="flat"
+                  variant="light"
                   color="secondary"
                   size="sm"
                   onPress={() => setTheme(theme === "light" ? "dark" : "light")}
@@ -205,13 +212,13 @@ export default function SideBar({
                     theme === "dark" ? (
                       <Sun className="size-4 text-amber-500" />
                     ) : (
-                      <Moon className="size-4 text-brand-600" />
+                      <Moon className="size-4 text-indigo-600 dark:text-indigo-400" />
                     )
                   }
-                  className="transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="transition-all duration-200 hover:scale-105 active:scale-95 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   {!isCollapsed && (
-                    <span className="text-xs">
+                    <span className="text-xs font-semibold">
                       {theme === "dark" ? "Light" : "Dark"}
                     </span>
                   )}
@@ -225,7 +232,7 @@ export default function SideBar({
               >
                 <Button
                   isIconOnly={isCollapsed}
-                  variant="flat"
+                  variant="light"
                   color="secondary"
                   size="sm"
                   onPress={() =>
@@ -236,7 +243,7 @@ export default function SideBar({
                         .join("/")}`
                     )
                   }
-                  className="transition-all duration-200 hover:scale-105 active:scale-95 font-semibold"
+                  className="transition-all duration-200 hover:scale-105 active:scale-95 font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <span className="text-xs font-bold">
                     {lang === "en" ? "አማ" : "EN"}
