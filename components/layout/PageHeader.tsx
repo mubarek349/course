@@ -15,17 +15,18 @@ export default function PageHeader({ title, subtitle, actions, className }: Page
     <div
       className={cn(
         "mb-6 md:mb-8",
-        "rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60",
-        "bg-surface-light/70 dark:bg-surface-dark/70 backdrop-blur-xl",
-        "px-4 md:px-6 py-4 md:py-5 shadow-soft",
+        "rounded-2xl border border-gray-200/60 dark:border-slate-600/60",
+        "bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl shadow-lg dark:shadow-black/20 relative",
+        "px-4 md:px-6 py-4 md:py-5",
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-50/20 before:via-transparent before:to-indigo-50/10 dark:before:from-blue-950/10 dark:before:via-transparent dark:before:to-indigo-950/5 before:rounded-2xl before:pointer-events-none",
         className
       )}
     >
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">{title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{title}</h1>
           {subtitle && (
-            <p className="mt-1 text-sm md:text-base text-neutral-600 dark:text-neutral-400">{subtitle}</p>
+            <p className="mt-1 text-sm md:text-base text-gray-600 dark:text-gray-300">{subtitle}</p>
           )}
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}

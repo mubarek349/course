@@ -31,36 +31,38 @@ export default function Header({
 
   return (
     <header className={cn(
-      "fixed top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm transition-all duration-300",
+      "fixed top-0 z-50 w-full border-b border-gray-200/60 dark:border-slate-600/60 bg-gradient-to-r from-white/95 via-white/98 to-white/95 dark:from-slate-900/95 dark:via-slate-800/98 dark:to-slate-900/95 backdrop-blur-xl shadow-lg dark:shadow-black/20 transition-all duration-300",
+      "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-50/10 before:via-transparent before:to-indigo-50/10 dark:before:from-blue-950/5 dark:before:via-transparent dark:before:to-indigo-950/5 before:pointer-events-none",
+      "after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.08)_1px,transparent_0)] dark:after:bg-[radial-gradient(circle_at_1px_1px,rgba(59,130,246,0.03)_1px,transparent_0)] after:[background-size:16px_16px] after:opacity-50 after:pointer-events-none",
       isCollapsed ? "md:left-20 md:w-[calc(100%-5rem)]" : "md:left-72 md:w-[calc(100%-18rem)]"
     )}>
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
+      <div className="relative flex h-16 items-center justify-between px-4 md:px-6">
         {/* Mobile Menu Button */}
         <Button
           isIconOnly
           variant="light"
           size="sm"
           onPress={() => setIsSide((prev) => !prev)}
-          className="md:hidden text-neutral-600 dark:text-neutral-400 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-all duration-200"
+          className="md:hidden text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-all duration-200 rounded-lg"
         >
           <AlignLeft className="size-5" />
         </Button>
 
         {/* Breadcrumbs */}
         <div className="flex-1 flex items-center min-w-0">
-          <nav className="flex items-center space-x-1 text-sm text-neutral-600 dark:text-neutral-400">
+          <nav className="flex items-center space-x-2 text-sm">
             {breadcrumbItems.map((item, index) => (
               <React.Fragment key={item.href}>
                 {index > 0 && (
-                  <ChevronRight className="size-4 text-neutral-400 dark:text-neutral-600 flex-shrink-0" />
+                  <ChevronRight className="size-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
                 )}
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1 rounded-md transition-all duration-200 hover:bg-brand-50 dark:hover:bg-brand-950/50 hover:text-brand-700 dark:hover:text-brand-300 truncate",
+                    "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 hover:shadow-md dark:hover:shadow-lg truncate font-medium",
                     index === breadcrumbItems.length - 1
-                      ? "text-brand-700 dark:text-brand-300 font-medium"
-                      : "text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+                      ? "text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-950/50 shadow-sm dark:shadow-md"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                   )}
                 >
                   {index === 0 && item.icon}
