@@ -120,6 +120,8 @@ export async function pay(
           price: courseData.birrPrice || courseData.price, // Use birrPrice for Chapa
           date: new Date(),
           paymentType: "chapa",
+          currency: "ETB",
+          birrPrice: courseData.birrPrice || courseData.price,
           ...(affiliate
             ? {
                 code: affiliate.code,
@@ -145,6 +147,8 @@ export async function pay(
             100,
           img: "",
           paymentType: "chapa",
+          currency: "ETB",
+          birrPrice: courseData.birrPrice || courseData.price,
           ...(affiliate
             ? {
                 code: affiliate.code,
@@ -235,9 +239,53 @@ export async function verifyPayment(
     const response = await verify(order.tx_ref);
 
     if (response) {
-      const newOrder = await prisma.order.update({
+      // Use the new Chapa API to update the order status
+      try {
+        const apiResponse = await fetch(
+          `${process.env.MAIN_API}/api/update-order-status-by-chapa`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              courseId: order.courseId,
+              phoneNumber: order.user.phoneNumber,
+              amount: Number(order.price || 0),
+              currency: "ETB",
+              tx_ref: order.tx_ref,
+              reference: null,
+              code: null,
+              img: "",
+            }),
+          }
+        );
+
+        if (!apiResponse.ok) {
+          console.error(
+            "Chapa API error:",
+            apiResponse.status,
+            apiResponse.statusText
+          );
+          throw new Error("API call failed");
+        }
+
+        const apiResult = await apiResponse.json();
+        console.log("Chapa API Response:", apiResult);
+      } catch (apiError) {
+        console.error("Error calling Chapa API:", apiError);
+        // Fallback to direct database update
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            status: "paid",
+            currency: "ETB",
+          },
+        });
+      }
+
+      const newOrder = await prisma.order.findFirst({
         where: { id: order.id },
-        data: { status: "paid" },
         select: {
           user: true,
           course: {

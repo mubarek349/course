@@ -1,5 +1,5 @@
-import prisma from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const tx_ref = url.pathname.split("/").pop();
 
-    console.log("PAYMENT CALLBACK >> tx_ref:", tx_ref);
+    console.log("CHAPA PAYMENT CALLBACK >> tx_ref:", tx_ref);
 
     if (!tx_ref) {
       return new NextResponse("Missing tx_ref", { status: 400 });
@@ -17,23 +17,63 @@ export async function GET(request: NextRequest) {
     let data = null;
     try {
       data = await request.json();
-      console.log("PAYMENT CALLBACK >> JSON data:", data);
+      console.log("CHAPA PAYMENT CALLBACK >> JSON data:", data);
     } catch (jsonError) {
       console.log("No JSON body, using URL parameter");
     }
 
-    // Update order status based on callback data or default to paid
-    const status = data?.status === true ? "paid" : "paid"; // Default to paid for Chapa callbacks
-
-    await prisma.order.updateMany({
+    // Find the order to get user and course information
+    const order = await prisma.order.findFirst({
       where: { tx_ref: tx_ref },
-      data: { status: status },
+      include: {
+        user: { select: { phoneNumber: true } },
+        course: { select: { id: true } },
+      },
     });
 
-    console.log("Updated order status to:", status);
-    return new NextResponse("", { status: 200 });
+    if (!order) {
+      console.log("Order not found for tx_ref:", tx_ref);
+      return new NextResponse("Order not found", { status: 404 });
+    }
+
+    // Use the new Chapa API to update the order status
+    try {
+      const response = await fetch(
+        `${process.env.MAIN_API}/api/update-order-status-by-chapa`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            courseId: order.course.id,
+            phoneNumber: order.user.phoneNumber,
+            amount: Number(order.price),
+            currency: "ETB",
+            tx_ref: tx_ref,
+            reference: data?.reference || null,
+            code: data?.code || null,
+            img: data?.img || "",
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("CHAPA API Response:", result);
+        return new NextResponse("Payment processed successfully", {
+          status: 200,
+        });
+      } else {
+        console.error("Chapa API error:", response.status, response.statusText);
+        return new NextResponse("API error", { status: 500 });
+      }
+    } catch (apiError) {
+      console.error("Error calling Chapa API:", apiError);
+      return new NextResponse("API call failed", { status: 500 });
+    }
   } catch (error) {
-    console.log("PAYMENT CALLBACK ERROR:", error);
+    console.log("CHAPA PAYMENT CALLBACK ERROR:", error);
     return new NextResponse("", { status: 404 });
   }
 }
