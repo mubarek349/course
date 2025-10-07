@@ -280,15 +280,15 @@ model Order {
   totalPrice       Decimal
   price            Decimal
   paymentType      PaymentType
-  birrPrice        Decimal?
-  dolarPrice       Decimal?
-  // currency         String      @default("ETB")
+  currency         String     
   instructorIncome Decimal
   tx_ref           String?     @unique
   img              String      @db.Text()
   reference        String?
   code             String?
   income           Decimal?
+  birrPrice        Decimal?
+  dolarPrice       Decimal?
 }
 
 model IncomeRate {

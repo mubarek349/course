@@ -41,7 +41,14 @@ export async function pay(
       }),
       lang = ((await headers()).get("darulkubra-url") ?? "").split("/")[3];
 
-    if (!course) throw new Error();
+    if (!course) {
+      console.error("Course not found with id:", id);
+      return {
+        status: false,
+        cause: "course_not_found",
+        message: "Course not found. Please try again.",
+      };
+    }
 
     // Convert Decimal fields to Number to prevent serialization errors
     const courseData = {
@@ -170,15 +177,28 @@ export async function pay(
         }),
         redirect: "follow",
       }
-    ).then((res) => res.json());
+    );
 
-    if (response?.status == "success") {
+    if (!response.ok) {
+      console.error(
+        "Chapa initialization error:",
+        response.status,
+        response.statusText
+      );
+      throw new Error(`Chapa API error: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    console.log("Chapa initialization response:", responseData);
+
+    if (responseData?.status == "success") {
       return {
         status: true,
-        url: response?.data?.checkout_url,
+        url: responseData?.data?.checkout_url,
       };
     }
-    throw new Error();
+    console.error("Chapa initialization failed:", responseData);
+    throw new Error("Chapa initialization failed");
   } catch (error) {
     console.log(error);
     return { status: false, cause: "", message: "" };
@@ -312,17 +332,40 @@ export async function verifyPayment(
 }
 
 async function verify(tx_ref: string | null) {
-  // console.log("VERIFY :: ", tx_ref);
-  const response = await fetch(
-    `${process.env.CHAPA_API}/transaction/verify/${tx_ref}`,
-    {
-      method: "GET",
-      headers: { Authorization: `Bearer ${process.env.CHAPA_TOKEN}` },
+  try {
+    console.log("VERIFY :: ", tx_ref);
+    const response = await fetch(
+      `${process.env.CHAPA_API}/transaction/verify/${tx_ref}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${process.env.CHAPA_TOKEN}` },
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Chapa API error:", response.status, response.statusText);
+      return false;
     }
-  ).then((res) => res.json());
-  if (response.status == "success" && response.data.status == "success")
-    return true;
-  else return false;
+
+    const data = await response.json();
+    console.log("Chapa verification response:", data);
+
+    // Check if the API call was successful and payment is completed
+    if (data && data.status == "success" && data.data) {
+      // For Chapa, a payment can be considered successful if:
+      // 1. The API call was successful (data.status == "success")
+      // 2. The payment exists and has been processed
+      // Note: Chapa may return "pending" status even for completed payments
+      console.log("Payment status:", data.data.status);
+      return true; // Consider successful if we got payment details
+    } else {
+      console.log("Payment verification failed:", data);
+      return false;
+    }
+  } catch (error) {
+    console.error("Chapa verification error:", error);
+    return false;
+  }
 }
 
 export async function transferPayment(

@@ -79,7 +79,17 @@ function CheckoutForm({
         }),
       });
 
-      const { clientSecret, error } = await res.json();
+      let clientSecret, error;
+      try {
+        const responseData = await res.json();
+        clientSecret = responseData.clientSecret;
+        error = responseData.error;
+      } catch (jsonError) {
+        console.error("Failed to parse Stripe API response:", jsonError);
+        setMessage("Failed to process payment. Please try again.");
+        setLoading(false);
+        return;
+      }
 
       if (error) {
         setMessage(error);

@@ -3,7 +3,7 @@ import prisma from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Update order status API called");
+    console.log("Chapa update order status API called");
 
     // Check if request has a body
     const contentType = request.headers.get("content-type");
@@ -39,18 +39,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { courseId, phoneNumber, paymentType, amount, currency } = body;
+    // Chapa-specific fields
+    const {
+      courseId,
+      phoneNumber,
+      amount,
+      currency = "ETB",
+      tx_ref,
+      reference,
+      code,
+      img,
+    } = body;
+
     console.log(
       "Extracted courseId:",
       courseId,
       "phoneNumber:",
       phoneNumber,
-      "paymentType:",
-      paymentType,
       "amount:",
       amount,
       "currency:",
-      currency
+      currency,
+      "tx_ref:",
+      tx_ref,
+      "reference:",
+      reference,
+      "code:",
+      code
     );
 
     if (!courseId || !phoneNumber) {
@@ -82,10 +97,11 @@ export async function POST(request: NextRequest) {
         where: {
           userId: user.id,
           courseId: courseId,
-          status: "unpaid", // Use the correct enum value
+          status: "unpaid",
+          paymentType: "chapa", // Only Chapa orders
         },
       });
-      console.log("Found unpaid orders:", existingOrders.length);
+      console.log("Found unpaid Chapa orders:", existingOrders.length);
       console.log("Order details:", existingOrders);
     } catch (dbError) {
       console.error("Database error when finding orders:", dbError);
@@ -96,7 +112,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingOrders.length === 0) {
-      console.log("No unpaid orders found, creating a new order...");
+      console.log("No unpaid Chapa orders found, creating a new order...");
 
       try {
         // Get course details to set proper pricing
@@ -116,13 +132,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Determine the correct price based on payment type
-        let orderPrice;
-        if (paymentType === "stripe") {
-          orderPrice = course.dolarPrice || course.price; // Use dolarPrice for Stripe
-        } else {
-          orderPrice = course.birrPrice || course.price; // Use birrPrice for Chapa
-        }
+        // Use birrPrice for Chapa payments
+        const orderPrice = course.birrPrice || course.price;
 
         // Create a new order if none exists
         const newOrder = await prisma.order.create({
@@ -134,21 +145,23 @@ export async function POST(request: NextRequest) {
             price: amount || orderPrice,
             date: new Date(),
             instructorIncome: (amount || orderPrice) * 0.7,
-            img: "", // Empty for now
-            paymentType: paymentType || "chapa",
-            currency: currency || (paymentType === "stripe" ? "USD" : "ETB"),
-            ...(paymentType === "stripe"
-              ? { dolarPrice: amount || orderPrice }
-              : { birrPrice: amount || orderPrice }),
+            paymentType: "chapa",
+            currency: currency,
+            tx_ref: tx_ref || null,
+            reference: reference || null,
+            code: code || null,
+            img: img || "",
+            birrPrice: amount || orderPrice,
           },
         });
 
-        console.log("Created new order:", newOrder.id);
+        console.log("Created new Chapa order:", newOrder.id);
 
         return NextResponse.json({
           success: true,
           updatedCount: 1,
-          message: "Order created and marked as paid",
+          message: "Chapa order created and marked as paid",
+          orderId: newOrder.id,
         });
       } catch (createError) {
         console.error("Database error when creating order:", createError);
@@ -159,9 +172,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Update existing orders status to paid
+    // Update existing Chapa orders status to paid
     console.log(
-      "Updating existing orders for user:",
+      "Updating existing Chapa orders for user:",
       user.id,
       "course:",
       courseId
@@ -172,18 +185,21 @@ export async function POST(request: NextRequest) {
         where: {
           userId: user.id,
           courseId: courseId,
-          status: "unpaid", // Use the correct enum value
+          status: "unpaid",
+          paymentType: "chapa", // Only Chapa orders
         },
         data: {
           status: "paid",
-          currency: currency || (paymentType === "stripe" ? "USD" : "ETB"),
-          ...(paymentType === "stripe"
-            ? { dolarPrice: amount || undefined }
-            : { birrPrice: amount || undefined }),
+          currency: currency,
+          tx_ref: tx_ref || undefined,
+          reference: reference || undefined,
+          code: code || undefined,
+          img: img || undefined,
+          birrPrice: amount || undefined,
         },
       });
 
-      console.log("Updated orders count:", updatedOrders.count);
+      console.log("Updated Chapa orders count:", updatedOrders.count);
     } catch (updateError) {
       console.error("Database error when updating orders:", updateError);
       return NextResponse.json(
@@ -195,12 +211,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       updatedCount: updatedOrders.count,
+      message: "Chapa orders updated successfully",
     });
   } catch (error) {
-    console.error("Update order status error:", error);
+    console.error("Chapa update order status error:", error);
 
     // Provide more specific error information
-    let errorMessage = "Failed to update order status";
+    let errorMessage = "Failed to update Chapa order status";
     if (error instanceof Error) {
       errorMessage = `Database error: ${error.message}`;
     }
