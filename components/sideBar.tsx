@@ -18,10 +18,14 @@ export default function SideBar({
   isSide,
   setIsSide,
   lists,
+  isCollapsed,
+  setIsCollapsed,
 }: {
   isSide: boolean;
   setIsSide: React.Dispatch<React.SetStateAction<boolean>>;
   lists: { label: string; url: string; icon: React.ReactNode }[];
+  isCollapsed: boolean;
+  setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
@@ -29,7 +33,6 @@ export default function SideBar({
   const selectedSegment = useSelectedLayoutSegment() || "";
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

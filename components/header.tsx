@@ -10,8 +10,10 @@ import { cn } from "@/lib/utils";
 
 export default function Header({
   setIsSide,
+  isCollapsed = false,
 }: {
   setIsSide: React.Dispatch<React.SetStateAction<boolean>>;
+  isCollapsed?: boolean;
 }) {
   const pathname = usePathname();
   const pathSegments = pathname?.split("/").filter(Boolean) || [];
@@ -28,7 +30,10 @@ export default function Header({
   ];
 
   return (
-    <header className="fixed top-0 z-50 w-full md:left-72 md:w-[calc(100%-18rem)] border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm">
+    <header className={cn(
+      "fixed top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm transition-all duration-300",
+      isCollapsed ? "md:left-20 md:w-[calc(100%-5rem)]" : "md:left-72 md:w-[calc(100%-18rem)]"
+    )}>
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Mobile Menu Button */}
         <Button
