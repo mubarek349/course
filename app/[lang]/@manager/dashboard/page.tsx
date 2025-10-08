@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Calendar, TrendingUp } from "lucide-react";
+import { Calendar, TrendingUp, Users, BookOpen, DollarSign } from "lucide-react";
 import { Button } from "@heroui/react";
 import PageHeader from "@/components/layout/PageHeader";
 import Section from "@/components/layout/Section";
-import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
+import StatCard from "@/components/ui/StatCard";
 import Overview01 from "../_components/overview01";
 import Overview02 from "../_components/overview02";
 import Overview03 from "../_components/overview03";
@@ -43,7 +43,7 @@ export default function Page() {
   // Loading state
   if (loading) {
     return (
-      <ScrollablePageWrapper>
+      <div className="space-y-6">
         <PageHeader
           title="Manager Dashboard"
           subtitle="Loading analytics and overview data..."
@@ -67,14 +67,14 @@ export default function Page() {
             <div className="h-96 skeleton" />
           </div>
         </div>
-      </ScrollablePageWrapper>
+      </div>
     );
   }
 
   // No data state
   if (!data) {
     return (
-      <ScrollablePageWrapper>
+      <div className="space-y-6">
         <PageHeader
           title="Manager Dashboard"
           subtitle="No data available at the moment."
@@ -95,13 +95,13 @@ export default function Page() {
             Refresh Data
           </Button>
         </div>
-      </ScrollablePageWrapper>
+      </div>
     );
   }
 
   // Success state with data
   return (
-    <ScrollablePageWrapper>
+    <div className="space-y-6">
       <PageHeader
         title="Manager Dashboard"
         subtitle="Comprehensive overview of platform analytics and performance metrics."
@@ -116,84 +116,141 @@ export default function Page() {
           </Button>
         }
       />
-      
-      <div className="grid gap-6 md:grid-cols-[1fr_auto]">
-        <div className="grid gap-6">
-          <Section>
-            <Overview01 data={data[0]} />
-          </Section>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Section>
-              <Overview02 height={300} data={data[2]} />
-            </Section>
-            <Section>
-              <Overview02 height={300} data={data[3]} />
-            </Section>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          icon={<Users className="size-6" />}
+          label="Total Sales"
+          value={data[0]?.find(item => item.label === "Sale")?.value || 0}
+          trend={{ value: 12, isPositive: true }}
+        />
+        <StatCard
+          icon={<BookOpen className="size-6" />}
+          label="Total Courses"
+          value={data[0]?.find(item => item.label === "Course")?.value || 0}
+          trend={{ value: 8, isPositive: true }}
+        />
+        <StatCard
+          icon={<DollarSign className="size-6" />}
+          label="Total Revenue"
+          value={`ETB ${data[0]?.find(item => item.label === "Earn ETB")?.value || 0}`}
+          trend={{ value: 25, isPositive: true }}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Analytics */}
+        <Section
+          title="Platform Analytics"
+          className="lg:col-span-2"
+        >
+          <Overview01 data={data[0]} />
+        </Section>
+
+        {/* Quick Stats */}
+        <Section
+          title="Quick Stats"
+          description="Key performance indicators"
+        >
+          <div className="space-y-4">
+            <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Conversion Rate</span>
+                <span className="text-sm font-bold text-brand-600 dark:text-brand-400">12.5%</span>
+              </div>
+              <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                <div className="bg-brand-500 h-2 rounded-full" style={{ width: "12.5%" }} />
+              </div>
+            </div>
+            <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">User Satisfaction</span>
+                <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">94%</span>
+              </div>
+              <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                <div className="bg-emerald-500 h-2 rounded-full" style={{ width: "94%" }} />
+              </div>
+            </div>
+            <div className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">Course Completion</span>
+                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">78%</span>
+              </div>
+              <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: "78%" }} />
+              </div>
+            </div>
           </div>
-        </div>
-        <Section className="md:w-96">
-          <Overview02 width={400} data={data[1]} />
         </Section>
       </div>
-      
+
+      {/* Detailed Analytics */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Section>
+          <Overview02 height={300} data={data[2]} />
+        </Section>
+        <Section>
+          <Overview02 height={300} data={data[3]} />
+        </Section>
+      </div>
+
+      {/* Comprehensive Overview */}
       <Section>
         <Overview03 data={data[4]} />
       </Section>
-      
-      {/* Add extra content to ensure scrolling works */}
+
+      {/* Additional Metrics */}
       <div className="grid gap-6 md:grid-cols-3">
-        <div className="card p-6">
-          <h3 className="font-semibold mb-4">Additional Metrics</h3>
+        <Section title="Performance Metrics">
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Active Users</span>
-              <span className="font-medium">1,234</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Page Load Time</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">1.2s</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Conversion Rate</span>
-              <span className="font-medium">12.5%</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Uptime</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">99.9%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Revenue</span>
-              <span className="font-medium">$45,678</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Response Time</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">245ms</span>
             </div>
           </div>
-        </div>
-        <div className="card p-6">
-          <h3 className="font-semibold mb-4">Performance</h3>
+        </Section>
+        <Section title="System Health">
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Page Load</span>
-              <span className="font-medium">1.2s</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">CPU Usage</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">45%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Uptime</span>
-              <span className="font-medium">99.9%</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Memory Usage</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">2.1GB</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Response Time</span>
-              <span className="font-medium">245ms</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Storage</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">78%</span>
             </div>
           </div>
-        </div>
-        <div className="card p-6">
-          <h3 className="font-semibold mb-4">System Health</h3>
+        </Section>
+        <Section title="Recent Activity">
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">CPU Usage</span>
-              <span className="font-medium">45%</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">New Users Today</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">23</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Memory</span>
-              <span className="font-medium">2.1GB</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Courses Started</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">15</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-neutral-600">Storage</span>
-              <span className="font-medium">78%</span>
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">Courses Completed</span>
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">8</span>
             </div>
           </div>
-        </div>
+        </Section>
       </div>
-    </ScrollablePageWrapper>
+    </div>
   );
 }

@@ -205,14 +205,15 @@ CREATE TABLE `Order` (
     `totalPrice` DECIMAL(65, 30) NOT NULL,
     `price` DECIMAL(65, 30) NOT NULL,
     `paymentType` ENUM('chapa', 'stripe') NOT NULL,
-    `birrPrice` DECIMAL(65, 30) NULL,
-    `dolarPrice` DECIMAL(65, 30) NULL,
+    `currency` VARCHAR(191) NOT NULL,
     `instructorIncome` DECIMAL(65, 30) NOT NULL,
     `tx_ref` VARCHAR(191) NULL,
     `img` TEXT NOT NULL,
     `reference` VARCHAR(191) NULL,
     `code` VARCHAR(191) NULL,
     `income` DECIMAL(65, 30) NULL,
+    `birrPrice` DECIMAL(65, 30) NULL,
+    `dolarPrice` DECIMAL(65, 30) NULL,
 
     UNIQUE INDEX `Order_tx_ref_key`(`tx_ref`),
     PRIMARY KEY (`id`)
