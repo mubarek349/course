@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import prisma from "@/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia",
+  apiVersion: "2025-02-24.acacia",
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -66,14 +66,16 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
       where: {
         userId: user.id,
         courseId: courseId,
-        status: "pending",
+        status: "unpaid",
       },
       data: { status: "paid" },
     });
 
-    console.log("Order status updated successfully for payment:", paymentIntent.id);
+    console.log(
+      "Order status updated successfully for payment:",
+      paymentIntent.id
+    );
   } catch (error) {
     console.error("Error handling payment success:", error);
   }
 }
-

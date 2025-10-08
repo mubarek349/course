@@ -251,7 +251,7 @@ export async function verifyPayment(
             body: JSON.stringify({
               courseId: order.courseId,
               phoneNumber: order.user.phoneNumber,
-              amount: Number(order.price || 0),
+              // amount: Number(order.price || 0),
               currency: "ETB",
               tx_ref: order.tx_ref,
               reference: null,
@@ -299,18 +299,18 @@ export async function verifyPayment(
         },
       });
       await sendSMSToCustomer(
-        newOrder.user.phoneNumber,
-        newOrder.course.titleEn,
-        newOrder.course.titleAm
+        newOrder?.user?.phoneNumber || "",
+        newOrder?.course?.titleEn || "",
+        newOrder?.course?.titleAm || ""
       );
-      if (newOrder.code) {
+      if (newOrder?.code) {
         const affiliate = await prisma.user.findFirst({
-          where: { code: newOrder.code },
+          where: { code: newOrder?.code || "" },
         });
         if (affiliate) {
           await sendSMSToAffiliate(
             affiliate.phoneNumber,
-            Number(newOrder.income) || 0
+            Number(newOrder?.income) || 0
           );
         }
       }
@@ -324,7 +324,7 @@ export async function verifyPayment(
 
         const todaySalesCount = await prisma.order.count({
             where: {
-              code: newOrder.code,
+              code: newOrder?.code || "",
               date: {
                 gte: startOfDay,
                 lte: endOfDay,
@@ -334,7 +334,7 @@ export async function verifyPayment(
           today = new Date(),
           totalSalesCount = await prisma.order.count({
             where: {
-              code: newOrder.code,
+              code: newOrder?.code || "",
               date: {
                 gte: new Date(today.getFullYear(), today.getMonth(), 1),
                 lte: new Date(today.getFullYear(), today.getMonth() + 1, 0),
@@ -342,7 +342,7 @@ export async function verifyPayment(
             },
           }),
           affiliate = await prisma.user.findFirst({
-            where: { code: newOrder.code || "" },
+            where: { code: newOrder?.code || "" },
           });
 
         await bot.api
@@ -350,13 +350,15 @@ export async function verifyPayment(
             channelId,
             `
             📢 Course Notification:
-            -   Name: ${newOrder.user.firstName} ${newOrder.user.fatherName} ${
-              newOrder.user.lastName
-            } 
+            -   Name: ${newOrder?.user?.firstName} ${
+              newOrder?.user?.fatherName
+            } ${newOrder?.user.lastName} 
             -   Order ID: ${order.id}
             -   Transaction Number: ${order.tx_ref}
-            -   Course: ${newOrder.course.titleEn} / ${newOrder.course.titleAm}
-            -   Phone: ${newOrder.user.phoneNumber}
+            -   Course: ${newOrder?.course?.titleEn} / ${
+              newOrder?.course?.titleAm
+            }
+            -   Phone: ${newOrder?.user.phoneNumber}
             -   Affiliate Name: ${affiliate?.firstName ?? ""} ${
               affiliate?.lastName ?? ""
             }

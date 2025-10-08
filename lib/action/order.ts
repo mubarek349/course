@@ -91,6 +91,8 @@ export default async function sale(
             code: seller.code,
             instructorIncome: (price * Number(course.instructorRate)) / 100,
             income: seller.IncomeRate?.[0]?.rate ?? course.sellerRate,
+            paymentType: "chapa",
+            currency: "ETB",
           },
         });
       }

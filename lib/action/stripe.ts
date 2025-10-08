@@ -103,6 +103,9 @@ export async function payWithStripe(
           instructorIncome:
             (Number(course.price) * Number(course.instructorRate)) / 100,
           img: "",
+          dolarPrice: course.price,
+          paymentType: "stripe",
+          currency: "USD",
           ...(affiliate
             ? {
                 code: affiliate.code,
@@ -159,7 +162,12 @@ export async function verifyStripePayment(
   tx_ref: string | undefined
 ): Promise<TVerifyState> {
   try {
-    if (!tx_ref) return undefined;
+    if (!tx_ref)
+      return {
+        status: false,
+        cause: "invalid_tx_ref",
+        message: "Transaction reference is required",
+      };
 
     const order = await prisma.order.findFirst({
       where: { tx_ref },

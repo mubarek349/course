@@ -11,13 +11,17 @@ export async function GET(request: NextRequest) {
     const xClientIp = request.headers.get("x-client-ip");
     const xClusterClientIp = request.headers.get("x-cluster-client-ip");
     const xForwarded = request.headers.get("x-forwarded");
-    const xForwardedForOriginal = request.headers.get("x-forwarded-for-original");
-    const xOriginalForwardedFor = request.headers.get("x-original-forwarded-for");
+    const xForwardedForOriginal = request.headers.get(
+      "x-forwarded-for-original"
+    );
+    const xOriginalForwardedFor = request.headers.get(
+      "x-original-forwarded-for"
+    );
     const remoteAddr = request.headers.get("remote-addr");
     const clientIp = request.headers.get("client-ip");
 
     // Try to get IP from different sources (VPN-friendly)
-    let ip = 
+    let ip =
       forwarded?.split(",")[0]?.trim() ||
       realIp?.trim() ||
       cfConnectingIp?.trim() ||
@@ -35,6 +39,32 @@ export async function GET(request: NextRequest) {
     // Clean up the IP (remove port if present)
     ip = ip.split(":")[0].trim();
 
+    // For localhost/development, try to get real device IP
+    if (
+      ip === "127.0.0.1" ||
+      ip === "::1" ||
+      ip === "localhost" ||
+      ip === "undefined" ||
+      ip.startsWith("192.168.") ||
+      ip.startsWith("10.") ||
+      ip.startsWith("172.")
+    ) {
+      console.log("Localhost detected, trying to get real device IP...");
+
+      try {
+        // Try to get real IP from external service
+        const realIpResponse = await fetch("https://api.ipify.org?format=json");
+        const realIpData = await realIpResponse.json();
+
+        if (realIpData.ip && realIpData.ip !== "127.0.0.1") {
+          ip = realIpData.ip;
+          console.log("Real device IP detected:", ip);
+        }
+      } catch (error) {
+        console.log("Failed to get real IP:", error);
+      }
+    }
+
     console.log("IP Detection Debug:", {
       detectedIp: ip,
       headers: {
@@ -49,8 +79,8 @@ export async function GET(request: NextRequest) {
         xForwardedForOriginal,
         xOriginalForwardedFor,
         remoteAddr,
-        clientIp
-      }
+        clientIp,
+      },
     });
 
     return NextResponse.json({
@@ -69,17 +99,17 @@ export async function GET(request: NextRequest) {
         xForwardedForOriginal,
         xOriginalForwardedFor,
         remoteAddr,
-        clientIp
-      }
+        clientIp,
+      },
     });
   } catch (error) {
     console.error("IP detection error:", error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Failed to detect IP",
-        ip: "127.0.0.1"
-      }, 
+        ip: "127.0.0.1",
+      },
       { status: 500 }
     );
   }

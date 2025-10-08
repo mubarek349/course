@@ -17,7 +17,6 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-
 } from "@heroui/react";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import StripeCheckout from "./StripeCheckout";

@@ -60,19 +60,37 @@ export async function GET(request: NextRequest) {
       clientIp,
     });
 
-    // For localhost/development, use a test IP
-    // if (
-    //   ip === "127.0.0.1" ||
-    //   ip === "::1" ||
-    //   ip === "localhost" ||
-    //   ip ||
-    //   ip === "undefined"
-    // ) {
-    //   // You can change this to test different countries
-    //   //   ip = "41.207.251.142"; // Ethiopian IP for testing
-    //   ip = "51.158.253.90";
-    //   console.log("Using test IP for development:", ip);
-    // }
+    // For localhost/development, try to get real device IP
+    if (
+      ip === "127.0.0.1" ||
+      ip === "::1" ||
+      ip === "localhost" ||
+      ip === "undefined" ||
+      ip.startsWith("192.168.") ||
+      ip.startsWith("10.") ||
+      ip.startsWith("172.")
+    ) {
+      console.log("Localhost detected, trying to get real device IP...");
+
+      try {
+        // Try to get real IP from external service
+        const realIpResponse = await fetch("https://api.ipify.org?format=json");
+        const realIpData = await realIpResponse.json();
+
+        if (realIpData.ip && realIpData.ip !== "127.0.0.1") {
+          ip = realIpData.ip;
+          console.log("Real device IP detected:", ip);
+        } else {
+          // Fallback to test IP
+          // ip = "41.207.251.142"; // Ethiopian IP for testing
+          console.log("Using test IP for development:", ip);
+        }
+      } catch (error) {
+        console.log("Failed to get real IP, using test IP:", error);
+        // ip = "41.207.251.142"; // Ethiopian IP for testing
+        console.log("Using test IP for development:", ip);
+      }
+    }
 
     // Check cache first
     const cacheKey = `geo_${ip}`;

@@ -30,6 +30,7 @@ interface StripeCheckoutProps {
   courseId: string;
   courseTitle: string;
   coursePrice: number;
+  birrPrice: number;
   dolarPrice: number;
   lang: string;
 }
@@ -230,6 +231,7 @@ export default function StripeCheckout({
   courseId,
   courseTitle,
   coursePrice,
+  // birrPrice,
   dolarPrice,
   lang,
 }: StripeCheckoutProps) {

@@ -175,7 +175,8 @@ export default function Page() {
 
         // Handle activity data separately since it requires proper type alignment
         if (data.activity) {
-          const transformedActivity = data.activity.map((activity) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const transformedActivity = data.activity.map((activity: any) => ({
             titleEn: activity.titleEn,
             titleAm: activity.titleAm,
             subActivity: activity.subActivity,
@@ -942,7 +943,8 @@ export default function Page() {
                     subActivity: [],
                     questions: [],
                   },
-                  ...watch("activity").map((activity) => ({
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  ...watch("activity").map((activity: any) => ({
                     ...activity,
                     questions: activity.questions || [],
                   })),

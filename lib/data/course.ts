@@ -160,7 +160,6 @@ export async function getCourseForManager(id: string) {
         certificate: true,
         accessAm: true,
         accessEn: true,
-        currency: true,
         thumbnail: true,
         video: true,
       },
