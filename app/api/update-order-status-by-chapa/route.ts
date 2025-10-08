@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           courseId: courseId,
           status: "unpaid",
-          paymentType: "chapa", // Only Chapa orders
+          // Don't filter by paymentType - we want to update any unpaid order
         },
       });
       console.log("Found unpaid Chapa orders:", existingOrders.length);
@@ -186,10 +186,11 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           courseId: courseId,
           status: "unpaid",
-          paymentType: "chapa", // Only Chapa orders
+          // Don't filter by paymentType - update any unpaid order
         },
         data: {
           status: "paid",
+          paymentType: "chapa", // Set payment type to chapa
           currency: currency,
           tx_ref: tx_ref || undefined,
           reference: reference || undefined,

@@ -36,7 +36,7 @@ interface StripeCheckoutProps {
 function CheckoutForm({
   courseId,
   courseTitle,
-  coursePrice,
+  // coursePrice,
   dolarPrice,
   phoneNumber,
   affiliateCode,
@@ -113,7 +113,7 @@ function CheckoutForm({
         await updateOrderStatus(courseId, phoneNumber);
         onSuccess();
       }
-    } catch (error) {
+    } catch {
       setMessage("Payment failed. Please try again.");
     }
 
@@ -264,12 +264,12 @@ export default function StripeCheckout({
     router.push(`/${lang}/student/mycourse`);
   };
 
-  const resetForm = () => {
-    setPhoneNumber("");
-    setAffiliateCode("");
-    setShowCardForm(false);
-    setUserExists(false);
-  };
+  // const resetForm = () => {
+  //   setPhoneNumber("");
+  //   setAffiliateCode("");
+  //   setShowCardForm(false);
+  //   setUserExists(false);
+  // };
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg">

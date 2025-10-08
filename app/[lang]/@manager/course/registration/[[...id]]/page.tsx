@@ -17,7 +17,7 @@ import ActivityManager, { TQuestion } from "@/components/ActivityManager";
 import CourseMediaSection from "@/components/course-form/CourseMediaSection";
 import CourseBasicInfo from "@/components/course-form/CourseBasicInfo";
 import CourseSettings from "@/components/course-form/CourseSettings";
-import { Prisma } from "@prisma/client";
+// import { Prisma } from "@prisma/client";
 import {
   Button,
   Link,
@@ -163,7 +163,7 @@ export default function Page() {
             name !== "finalExamQuestions" &&
             name !== "activity"
           ) {
-            if (value instanceof Prisma.Decimal) {
+            if (value && typeof value === "object" && "toNumber" in value) {
               setValue(name as keyof TCourse, Number(value), {
                 shouldValidate: false,
               });

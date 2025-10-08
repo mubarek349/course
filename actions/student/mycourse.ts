@@ -16,6 +16,8 @@ export async function getAllMyCourses(studentId: string) {
       select: { courseId: true },
     });
 
+    console.log("paidOrders >>fuads  ", paidOrders);
+
     const courseIds = paidOrders.map((order) => order.courseId);
 
     if (courseIds.length === 0) {
@@ -101,6 +103,8 @@ export async function getMySingleCourse(studentId: string, courseId: string) {
         video: true,
         pdfData: true, // Add PDF field
         price: true,
+        birrPrice: true,
+        dolarPrice: true,
         thumbnail: true,
         level: true,
         language: true,
