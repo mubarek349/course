@@ -23,6 +23,7 @@ import CourseFor from "@/components/courseFor";
 import CourseActivity from "@/components/courseActivity";
 import CourseTopOverview from "@/components/courseTopOverview";
 import { Button, useDisclosure } from "@heroui/react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
@@ -31,6 +32,16 @@ export default function Page() {
     searchParams = useSearchParams(),
     { data, loading } = useData({ func: getCourseForCustomer, args: [id] }),
     { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const router = useRouter();
+
+  const loginRedirect = () => {
+    // Redirect to login page with course ID and affiliate code
+    const affiliateCode = searchParams?.get("code") || "";
+    const redirectUrl = `/${lang}/login?redirect=${encodeURIComponent(
+      `/${lang}/course/${id}`
+    )}${affiliateCode ? `&code=${affiliateCode}` : ""}`;
+    router.push(redirectUrl);
+  };
 
   return (
     <div className="h-dvh">
@@ -52,8 +63,8 @@ export default function Page() {
             <CourseAbout data={lang == "en" ? data.aboutEn : data.aboutAm} />
             <CourseMainDescription
               btn={
-                <Button onPress={onOpen} variant="solid" color="primary">
-                  {lang == "en" ? "Enroll" : "ይመዝገቡ"}
+                <Button onPress={loginRedirect} variant="solid" color="primary">
+                  {lang == "en" ? "Login & Enroll" : " ይመዝገቡ"}
                 </Button>
               }
               data={[
