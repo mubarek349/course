@@ -110,6 +110,8 @@ export default function Page() {
             affiliateCode={searchParams?.get("code") || ""}
             title={lang == "en" ? data.titleEn : data.titleAm}
             price={data.price}
+            birrPrice={data.birrPrice}
+            dolarPrice={data.dolarPrice}
           />
         </div>
       )}

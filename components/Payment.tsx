@@ -17,8 +17,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Select,
-  SelectItem,
+
 } from "@heroui/react";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import StripeCheckout from "./StripeCheckout";
@@ -175,7 +174,7 @@ export default function Payment({
           )}
         >
           <ModalContent>
-            {(onClose) => (
+            {() => (
               <>
                 <ModalHeader>
                   {lang === "en" ? "Course Payment" : "የትምህርት ክፍያ"} -{" "}

@@ -24,7 +24,7 @@ export async function payWithStripe(
 
     if (!course) throw new Error();
 
-    let user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: { role: "student", phoneNumber },
     });
 
@@ -193,7 +193,7 @@ export async function verifyStripePayment(
     const verification = await response.json();
 
     if (verification.success) {
-      const newOrder = await prisma.order.update({
+      await prisma.order.update({
         where: { id: order.id },
         data: { status: "paid" },
         select: { user: true, course: true, code: true, income: true },

@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update all unpaid orders for this user to paid
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const whereClause: any = {
       userId: user.id,
       status: "unpaid",

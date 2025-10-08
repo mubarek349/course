@@ -103,6 +103,8 @@ export async function getMySingleCourse(studentId: string, courseId: string) {
         video: true,
         pdfData: true, // Add PDF field
         price: true,
+        birrPrice: true,
+        dolarPrice: true,
         thumbnail: true,
         level: true,
         language: true,

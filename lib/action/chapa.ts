@@ -60,7 +60,7 @@ export async function pay(
       affiliateRate: Number(course.affiliateRate),
     };
 
-    let user = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: { role: "student", phoneNumber },
     });
 

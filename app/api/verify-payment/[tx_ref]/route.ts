@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     try {
       data = await request.json();
       console.log("CHAPA PAYMENT CALLBACK >> JSON data:", data);
-    } catch (jsonError) {
+    } catch {
       console.log("No JSON body, using URL parameter");
     }
 
