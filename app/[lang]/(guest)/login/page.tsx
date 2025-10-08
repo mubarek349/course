@@ -96,7 +96,7 @@ export default function Page() {
                 >
                   Forgot Password?
                 </button>
-                If you don't have an account, please{" "}
+                If you don&apos;t have an account, please{" "}
                 <button
                   type="button"
                   onClick={handleSignUp}

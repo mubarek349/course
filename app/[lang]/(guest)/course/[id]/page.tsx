@@ -31,7 +31,7 @@ export default function Page() {
   const id = params?.id ?? "",
     searchParams = useSearchParams(),
     { data, loading } = useData({ func: getCourseForCustomer, args: [id] }),
-    { isOpen, onOpen, onOpenChange } = useDisclosure();
+    { isOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
 
   const loginRedirect = () => {
