@@ -8,7 +8,7 @@ export default async function Layout({
   manager,
   seller,
   affiliate,
-  Instructor,
+  instructor,
   student,
   children,
 }: {
@@ -17,7 +17,7 @@ export default async function Layout({
   manager: React.ReactNode;
   seller: React.ReactNode;
   affiliate: React.ReactNode;
-  Instructor: React.ReactNode;
+  instructor: React.ReactNode;
   student: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -42,7 +42,7 @@ export default async function Layout({
     : session.user?.role === "affiliate"
     ? affiliate
     : session.user?.role === "instructor"
-    ? Instructor
+    ? instructor
     : session.user?.role === "student"
     ? student
     : children;
