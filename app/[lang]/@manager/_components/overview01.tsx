@@ -10,31 +10,31 @@ export default function Overview01({
   data: { label: string; value: number | string; status?: number }[];
 }) {
   return (
-    <div className="grid gap-1 md:gap-4 grid-cols-2 md:grid-cols-3 auto-rows-min text-xs">
+    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {data.map(({ label, value, status }, i) => (
-        <div key={i + ""} className="p-2 bg-primary-100 rounded-md ">
-          <p className="">{label}</p>
-          <div className="grid grid-cols-[1fr_auto] ">
-            <p className="content-center text-2xl font-bold ">{value}</p>
+        <div key={i + ""} className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
+          <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">{label}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{value}</p>
             {status !== undefined && (
-              <div className="grid">
+              <div className="flex flex-col items-end">
                 <Chip
                   size="sm"
                   variant="flat"
                   color={status > 0 ? "success" : "danger"}
                   startContent={
                     status > 0 ? (
-                      <MoveUp strokeWidth={2} className="size-4" />
-                    ) : status > 0 ? (
-                      <MoveDown strokeWidth={2} className="size-4" />
-                    ) : undefined
+                      <MoveUp strokeWidth={2} className="size-3" />
+                    ) : (
+                      <MoveDown strokeWidth={2} className="size-3" />
+                    )
                   }
-                  endContent={<Percent className="size-4" />}
-                  className="place-self-center"
+                  endContent={<Percent className="size-3" />}
+                  className="text-xs"
                 >
-                  {status}
+                  {Math.abs(status)}
                 </Chip>
-                <p className="text-xs opacity-70 ">Since last month</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">Since last month</p>
               </div>
             )}
           </div>

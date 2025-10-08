@@ -32,15 +32,15 @@ export default function Overview03({
   return (
     <div
       className={cn(
-        "bg-primary-100 rounded-md overflow-hidden grid content-center items-center   ",
-        "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 ",
-        "[&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none",
-        " [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted",
-        " [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none"
+        "border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 overflow-hidden",
+        "[&_.recharts-cartesian-axis-tick_text]:fill-neutral-600 dark:[&_.recharts-cartesian-axis-tick_text]:fill-neutral-400 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-neutral-200 dark:[&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-neutral-700",
+        "[&_.recharts-curve.recharts-tooltip-cursor]:stroke-neutral-300 dark:[&_.recharts-curve.recharts-tooltip-cursor]:stroke-neutral-600 [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none",
+        "[&_.recharts-polar-grid_[stroke='#ccc']]:stroke-neutral-200 dark:[&_.recharts-polar-grid_[stroke='#ccc']]:stroke-neutral-700 [&_.recharts-radial-bar-background-sector]:fill-neutral-100 dark:[&_.recharts-radial-bar-background-sector]:fill-neutral-800 [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-neutral-100 dark:[&_.recharts-rectangle.recharts-tooltip-cursor]:fill-neutral-800",
+        "[&_.recharts-reference-line_[stroke='#ccc']]:stroke-neutral-200 dark:[&_.recharts-reference-line_[stroke='#ccc']]:stroke-neutral-700 [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none"
       )}
     >
-      <div className="px-5 pt-2 flex justify-between">
-        <p className="text-xl font-bold">Sales</p>
+      <div className="px-6 pt-4 pb-2 flex justify-between items-center">
+        <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">Sales</p>
         <CustomDatePicker date={date} setDate={setDate} />
       </div>
       <ResponsiveContainer width={"100%"} height={200} className="">
@@ -56,18 +56,18 @@ export default function Overview03({
           <Tooltip
             cursor={false}
             content={({ payload, label }) => (
-              <div className="p-2 bg-background/80 rounded-md backdrop-blur-md">
-                <p className="pb-1">{label}</p>
+              <div className="p-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg backdrop-blur-md">
+                <p className="pb-2 font-medium text-neutral-900 dark:text-neutral-100">{label}</p>
                 {payload?.map(({ name, value, payload, color }, i) => (
-                  <p key={i + ""} className="flex gap-1 items-center">
+                  <p key={i + ""} className="flex gap-2 items-center text-sm">
                     <span
                       style={{
                         backgroundColor: payload?.payload?.fill ?? color,
                       }}
-                      className="p-2 rounded "
+                      className="w-3 h-3 rounded-full"
                     />
-                    <span className="flex-1 pr-10">{name}</span>
-                    <span className="">{value}</span>
+                    <span className="flex-1 text-neutral-700 dark:text-neutral-300">{name}</span>
+                    <span className="font-medium text-neutral-900 dark:text-neutral-100">{value}</span>
                   </p>
                 ))}
               </div>
@@ -76,25 +76,25 @@ export default function Overview03({
           <Bar
             dataKey="seller"
             stackId="a"
-            fill="hsl(var(--heroui-primary-300))"
+            fill="rgb(156 163 175)"
             radius={[0, 0, 4, 4]}
           />
           <Bar
             dataKey="affiliate"
             stackId="a"
-            fill="hsl(var(--heroui-primary-700))"
+            fill="rgb(107 114 128)"
             radius={[0, 0, 0, 0]}
           />
           <Bar
             dataKey="own"
             stackId="a"
-            fill="hsl(var(--heroui-primary))"
+            fill="rgb(55 65 81)"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>
       </ResponsiveContainer>
-      <div className="px-5 pt-5 pb-2">
-        <p className="opacity-60">
+      <div className="px-6 pt-4 pb-4">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Showing total sales from {new Date().toString().slice(4, 15)} to
           {new Date().toString().slice(4, 15)}
         </p>

@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
 import {
   Elements,
-  CardElement,
+  PaymentElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
@@ -18,7 +19,6 @@ import {
   ModalHeader,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
-// Removed prisma import - will use API calls instead
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -98,11 +98,13 @@ function CheckoutForm({
         return;
       }
 
-      // 2. CONFIRM PAYMENT WITH CARD
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement)!,
+      // 2. CONFIRM PAYMENT WITH PAYMENT ELEMENT
+      const result = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/${lang}/student/mycourse`,
         },
+        redirect: 'if_required',
       });
 
       if (result.error) {
@@ -187,17 +189,9 @@ function CheckoutForm({
       </div>
 
       <div className="p-3 border rounded-md bg-white">
-        <CardElement
+        <PaymentElement
           options={{
-            style: {
-              base: {
-                fontSize: "16px",
-                color: "#424770",
-                "::placeholder": {
-                  color: "#aab7c4",
-                },
-              },
-            },
+            layout: "tabs",
           }}
         />
       </div>

@@ -21,26 +21,26 @@ export default function Overview02({
   return (
     <div
       className={cn(
-        "bg-primary-100 rounded-md grid place-content-center overflow-hidden  ",
-        "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-success/50 ",
-        "[&_.recharts-curve.recharts-tooltip-cursor]:stroke-success [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none",
-        " [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-success [&_.recharts-radial-bar-background-sector]:fill-secondary [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-secondary",
-        " [&_.recharts-reference-line_[stroke='#ccc']]:stroke-success [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none"
+        "border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 grid place-content-center overflow-hidden",
+        "[&_.recharts-cartesian-axis-tick_text]:fill-neutral-600 dark:[&_.recharts-cartesian-axis-tick_text]:fill-neutral-400 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-neutral-200 dark:[&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-neutral-700",
+        "[&_.recharts-curve.recharts-tooltip-cursor]:stroke-neutral-300 dark:[&_.recharts-curve.recharts-tooltip-cursor]:stroke-neutral-600 [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none",
+        "[&_.recharts-polar-grid_[stroke='#ccc']]:stroke-neutral-200 dark:[&_.recharts-polar-grid_[stroke='#ccc']]:stroke-neutral-700 [&_.recharts-radial-bar-background-sector]:fill-neutral-100 dark:[&_.recharts-radial-bar-background-sector]:fill-neutral-800 [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-neutral-100 dark:[&_.recharts-rectangle.recharts-tooltip-cursor]:fill-neutral-800",
+        "[&_.recharts-reference-line_[stroke='#ccc']]:stroke-neutral-200 dark:[&_.recharts-reference-line_[stroke='#ccc']]:stroke-neutral-700 [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none"
       )}
     >
       <PieChart width={width} height={height} className="">
         <Tooltip
           cursor={false}
           content={({ payload }) => (
-            <div className="p-2 bg-background/80 rounded-md backdrop-blur-md">
+            <div className="p-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg backdrop-blur-md">
               {payload?.map(({ name, value, payload }, i) => (
-                <p key={i + ""} className="flex gap-1 items-center">
+                <p key={i + ""} className="flex gap-2 items-center text-sm">
                   <span
                     style={{ backgroundColor: payload.payload.fill }}
-                    className="p-2 rounded "
+                    className="w-3 h-3 rounded-full"
                   />
-                  <span className="flex-1 pr-10">{name}</span>
-                  <span className="">{value}</span>
+                  <span className="flex-1 text-neutral-700 dark:text-neutral-300">{name}</span>
+                  <span className="font-medium text-neutral-900 dark:text-neutral-100">{value}</span>
                 </p>
               ))}
             </div>
@@ -51,7 +51,7 @@ export default function Overview02({
           align="center"
           content={({ payload }) =>
             payload ? (
-              <div className="p-2 bg-primary-50 rounded-md text-xs space-y-[1px]">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-xs space-y-2">
                 {payload.map(({ payload }, i) => (
                   <div key={i + ""} className="flex gap-2 items-center">
                     <span
@@ -60,13 +60,13 @@ export default function Overview02({
                           payload as { [index: string]: string }
                         )?.fill,
                       }}
-                      className="p-1 rounded-[1px]"
+                      className="w-3 h-3 rounded-full"
                     />
-                    <p className="flex-1 flex gap-1 justify-between">
-                      <span className="">
+                    <p className="flex-1 flex justify-between">
+                      <span className="text-neutral-700 dark:text-neutral-300">
                         {(payload as { [index: string]: string })?.label}
                       </span>
-                      <span className="">
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
                         {(payload as { [index: string]: string })?.value}
                       </span>
                     </p>
@@ -102,14 +102,14 @@ export default function Overview02({
                     <tspan
                       x={viewBox.cx}
                       y={viewBox.cy}
-                      className="fill-foreground text-3xl font-bold"
+                      className="fill-neutral-900 dark:fill-neutral-100 text-3xl font-bold"
                     >
                       {sales}
                     </tspan>
                     <tspan
                       x={viewBox.cx}
                       y={(viewBox.cy || 0) + 24}
-                      className="fill-primary-700"
+                      className="fill-neutral-600 dark:fill-neutral-400 text-sm"
                     >
                       Sales
                     </tspan>
