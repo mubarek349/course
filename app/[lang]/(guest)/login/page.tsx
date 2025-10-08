@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,7 +18,7 @@ const formSchema = z.object({
 
 export default function Page() {
   const params = useParams<{ lang: string }>(),
-      lang = params?.lang ?? "en",
+    lang = params?.lang ?? "en",
     searchParams = useSearchParams(),
     { handleSubmit, register, formState } = useForm<z.infer<typeof formSchema>>(
       {
@@ -26,7 +26,7 @@ export default function Page() {
         defaultValues: { userName: "", password: "" },
       }
     ),
-    // router = useRouter(),
+    router = useRouter(),
     { action, isPending } = useAction(authenticate, undefined, {
       onSuccess(state) {
         if (state.status) {
@@ -47,6 +47,14 @@ export default function Page() {
       }
     }
   }, [searchParams]);
+
+  const handleForgotPassword = () => {
+    router.push(`/${lang}/forgetPassword`);
+  };
+
+  const handleSignUp = () => {
+    router.push(`/${lang}/signup`);
+  };
 
   return (
     <div className="h-dvh p-4 grid content-center md:justify-center">
@@ -78,6 +86,45 @@ export default function Page() {
           <CButton type="submit" color="primary" isLoading={isPending}>
             {lang == "en" ? "Login" : "ይግቡ"}
           </CButton>
+          <p className="text-sm text-center text-gray-600 mt-2">
+            {lang == "en" ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-primary hover:underline mr-2"
+                >
+                  Forgot Password?
+                </button>
+                If you don't have an account, please{" "}
+                <button
+                  type="button"
+                  onClick={handleSignUp}
+                  className="text-primary hover:underline"
+                >
+                  register
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-primary hover:underline mr-2"
+                >
+                  የይለፍ ቃል ረሳሁ?
+                </button>
+                ምልክት ካላደረጉ{" "}
+                <button
+                  type="button"
+                  onClick={handleSignUp}
+                  className="text-primary hover:underline"
+                >
+                  ይመዝገቡ
+                </button>
+              </>
+            )}
+          </p>
         </div>
       </Form>
     </div>
