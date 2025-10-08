@@ -16,6 +16,8 @@ export async function getAllMyCourses(studentId: string) {
       select: { courseId: true },
     });
 
+    console.log("paidOrders >>fuads  ", paidOrders);
+
     const courseIds = paidOrders.map((order) => order.courseId);
 
     if (courseIds.length === 0) {

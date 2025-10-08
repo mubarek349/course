@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           courseId: courseId,
           status: "unpaid",
-          paymentType: "stripe", // Only Stripe orders
+          // Don't filter by paymentType - we want to update any unpaid order
         },
       });
       console.log("Found unpaid Stripe orders:", existingOrders.length);
@@ -186,10 +186,11 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           courseId: courseId,
           status: "unpaid",
-          paymentType: "stripe", // Only Stripe orders
+          // Don't filter by paymentType - update any unpaid order
         },
         data: {
           status: "paid",
+          paymentType: "stripe", // Set payment type to stripe
           currency: currency,
           tx_ref: sessionId || paymentIntentId || undefined,
           reference: paymentIntentId || undefined,
