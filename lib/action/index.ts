@@ -91,13 +91,13 @@ export async function sendOTP(
     if (otp) {
       otp = await prisma.otp.update({
         where: { id: otp.id },
-        data: { code: Math.floor(1000 + Math.random() * 9000) },
+        data: { code: Math.floor(100000 + Math.random() * 900000) },
       });
     } else {
       otp = await prisma.otp.create({
         data: {
           phoneNumber: data.phoneNumber,
-          code: Math.floor(1000 + Math.random() * 9000),
+          code: Math.floor(100000 + Math.random() * 900000),
         },
       });
     }

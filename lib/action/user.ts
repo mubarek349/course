@@ -79,6 +79,102 @@ export async function signup(
   return { status: true, message: "User created successfully" };
 }
 
+export async function signupWithOTP(
+  prevState: StateType,
+  data:
+    | {
+        countryCode: string;
+        phoneNumber: string;
+        otp: string;
+        password: string;
+        confirmPassword: string;
+      }
+    | undefined
+): Promise<StateType> {
+  try {
+    if (!data)
+      return {
+        status: false,
+        cause: "No data provided",
+        message: "No data provided",
+      };
+
+    const { countryCode, phoneNumber, otp, password, confirmPassword } = data;
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      return {
+        status: false,
+        cause: "Password doesn't match",
+        message: "Password doesn't match",
+      };
+    }
+
+    // Combine country code with phone number
+    const fullPhoneNumber = `${countryCode}${phoneNumber}`;
+
+    // Verify OTP
+    const otpRecord = await prisma.otp.findFirst({
+      where: { phoneNumber: fullPhoneNumber },
+    });
+
+    if (!otpRecord) {
+      return {
+        status: false,
+        cause: "OTP not found",
+        message: "Please request OTP first",
+      };
+    }
+
+    if (otpRecord.code !== parseInt(otp)) {
+      return {
+        status: false,
+        cause: "Invalid OTP",
+        message: "Invalid OTP code",
+      };
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: { phoneNumber: fullPhoneNumber, role: "student" },
+    });
+
+    if (existingUser) {
+      return {
+        status: false,
+        cause: "User already exist",
+        message: "User already exist",
+      };
+    }
+
+    // Hash the password
+    const hashedPassword = await bcryptjs.hash(password, 10);
+
+    // Create the user
+    await prisma.user.create({
+      data: {
+        phoneNumber: fullPhoneNumber,
+        password: hashedPassword,
+        role: "student",
+      },
+    });
+
+    // Delete the used OTP
+    await prisma.otp.delete({
+      where: { id: otpRecord.id },
+    });
+
+    return { status: true, message: "User created successfully" };
+  } catch (error) {
+    console.log("Signup error:", error);
+    return {
+      status: false,
+      cause: "Registration failed",
+      message: "Registration failed",
+    };
+  }
+}
+
 export async function unauthentic(prevState: StateType): Promise<StateType> {
   try {
     await signOut({ redirect: false });
