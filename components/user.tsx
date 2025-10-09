@@ -25,7 +25,7 @@ import { useParams } from "next/navigation";
 
 export default function User() {
   const params = useParams<{ lang: string }>();
-             const lang = params?.lang || "en",
+  const lang = params?.lang || "en",
     formSchema = z.object({
       password: z.string({ message: "" }).nonempty("Password is required"),
       confirmPassword: z
@@ -56,7 +56,7 @@ export default function User() {
 
   useEffect(() => {
     if (isOpen) reset();
-  }, [isOpen]);
+  }, [isOpen, reset]);
 
   return (
     <div className="">
