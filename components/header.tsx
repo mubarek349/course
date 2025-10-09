@@ -50,7 +50,7 @@ export default function Header({
           icon: undefined,
         };
       })
-      .filter(Boolean), // Remove null entries
+      .filter((item): item is NonNullable<typeof item> => item !== null), // Remove null entries with proper typing
   ];
 
   return (
