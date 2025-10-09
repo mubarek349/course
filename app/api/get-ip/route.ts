@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     // Clean up the IP (remove port if present)
     ip = ip.split(":")[0].trim();
 
-    // For localhost/development, try to get real device IP
+    // For localhost/development, use test IP for consistent testing
     if (
       ip === "127.0.0.1" ||
       ip === "::1" ||
@@ -49,20 +49,11 @@ export async function GET(request: NextRequest) {
       ip.startsWith("10.") ||
       ip.startsWith("172.")
     ) {
-      console.log("Localhost detected, trying to get real device IP...");
-
-      try {
-        // Try to get real IP from external service
-        const realIpResponse = await fetch("https://api.ipify.org?format=json");
-        const realIpData = await realIpResponse.json();
-
-        if (realIpData.ip && realIpData.ip !== "127.0.0.1") {
-          ip = realIpData.ip;
-          console.log("Real device IP detected:", ip);
-        }
-      } catch (error) {
-        console.log("Failed to get real IP:", error);
-      }
+      console.log("Localhost detected, using test IP for development...");
+      
+      // Use the same test IP as get-country route for consistency
+      ip = "51.158.254.158";
+      console.log("Using test IP for development:", ip);
     }
 
     console.log("IP Detection Debug:", {

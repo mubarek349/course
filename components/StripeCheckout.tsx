@@ -67,44 +67,13 @@ function CheckoutForm({
     setMessage("");
 
     try {
-      // 1. CALL BACKEND TO CREATE PAYMENT INTENT
-      const res = await fetch("/api/stripe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: dolarPrice,
-          courseId,
-          phoneNumber,
-          affiliateCode,
-          lang,
-        }),
-      });
-
-      let clientSecret, error;
-      try {
-        const responseData = await res.json();
-        clientSecret = responseData.clientSecret;
-        error = responseData.error;
-      } catch (jsonError) {
-        console.error("Failed to parse Stripe API response:", jsonError);
-        setMessage("Failed to process payment. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      if (error) {
-        setMessage(error);
-        setLoading(false);
-        return;
-      }
-
-      // 2. CONFIRM PAYMENT WITH PAYMENT ELEMENT
+      // CONFIRM PAYMENT WITH PAYMENT ELEMENT
       const result = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: `${window.location.origin}/${lang}/student/mycourse`,
         },
-        redirect: 'if_required',
+        redirect: "if_required",
       });
 
       if (result.error) {
@@ -234,7 +203,41 @@ export default function StripeCheckout({
   const [showCardForm, setShowCardForm] = useState(false);
   const [userExists, setUserExists] = useState(false);
   const [checkingUser, setCheckingUser] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [isLoadingClientSecret, setIsLoadingClientSecret] = useState(false);
   const router = useRouter();
+
+  const createPaymentIntent = async () => {
+    if (!phoneNumber) return;
+
+    setIsLoadingClientSecret(true);
+    try {
+      const response = await fetch("/api/stripe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: dolarPrice,
+          courseId,
+          phoneNumber,
+          affiliateCode,
+          lang,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error("Error creating payment intent:", data.error);
+        return;
+      }
+
+      setClientSecret(data.clientSecret);
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+    } finally {
+      setIsLoadingClientSecret(false);
+    }
+  };
 
   const checkUserExists = async () => {
     if (!phoneNumber || phoneNumber.length !== 10) {
@@ -253,6 +256,8 @@ export default function StripeCheckout({
       setUserExists(exists);
 
       if (exists) {
+        // Create payment intent when user exists
+        await createPaymentIntent();
         setShowCardForm(true);
       }
     } catch (error) {
@@ -265,6 +270,15 @@ export default function StripeCheckout({
   const handleSuccess = () => {
     onOpenChange();
     router.push(`/${lang}/student/mycourse`);
+  };
+
+  const handleClose = () => {
+    setShowCardForm(false);
+    setClientSecret(null);
+    setPhoneNumber("");
+    setAffiliateCode("");
+    setUserExists(false);
+    onOpenChange();
   };
 
   // const resetForm = () => {
@@ -324,7 +338,7 @@ export default function StripeCheckout({
                 </ModalBody>
 
                 <ModalFooter>
-                  <Button variant="flat" onPress={onClose}>
+                  <Button variant="flat" onPress={handleClose}>
                     {lang === "en" ? "Cancel" : "ይሰርዙ"}
                   </Button>
                   <Button
@@ -340,23 +354,47 @@ export default function StripeCheckout({
             ) : (
               <>
                 <ModalBody>
-                  <Elements stripe={stripePromise}>
-                    <CheckoutForm
-                      courseId={courseId}
-                      courseTitle={courseTitle}
-                      coursePrice={coursePrice}
-                      dolarPrice={dolarPrice}
-                      phoneNumber={phoneNumber}
-                      affiliateCode={affiliateCode}
-                      lang={lang}
-                      onSuccess={handleSuccess}
-                    />
-                  </Elements>
+                  {isLoadingClientSecret ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                        <p className="text-sm text-gray-600">
+                          {lang === "en"
+                            ? "Preparing payment..."
+                            : "ክፍያ እየተዘጋጀ ነው..."}
+                        </p>
+                      </div>
+                    </div>
+                  ) : clientSecret ? (
+                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                      <CheckoutForm
+                        courseId={courseId}
+                        courseTitle={courseTitle}
+                        coursePrice={coursePrice}
+                        dolarPrice={dolarPrice}
+                        phoneNumber={phoneNumber}
+                        affiliateCode={affiliateCode}
+                        lang={lang}
+                        onSuccess={handleSuccess}
+                      />
+                    </Elements>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-red-600">
+                        {lang === "en"
+                          ? "Failed to initialize payment"
+                          : "ክፍያ ማስጀመር አልተሳካም"}
+                      </p>
+                    </div>
+                  )}
                 </ModalBody>
 
                 <ModalFooter>
                   <Button variant="flat" onPress={() => setShowCardForm(false)}>
                     {lang === "en" ? "Back" : "ይመለሱ"}
+                  </Button>
+                  <Button variant="flat" onPress={handleClose}>
+                    {lang === "en" ? "Cancel" : "ይሰርዙ"}
                   </Button>
                 </ModalFooter>
               </>
