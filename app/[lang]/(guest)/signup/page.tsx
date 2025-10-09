@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,6 +35,7 @@ export default function Page() {
   const params = useParams<{ lang: string }>(),
     lang = params?.lang ?? "en",
     searchParams = useSearchParams(),
+    router = useRouter(),
     [selectedCountry, setSelectedCountry] = useState("+251"),
     [otp, setOtp] = useState(""),
     [isOtpSent, setIsOtpSent] = useState(false),
@@ -245,6 +246,35 @@ export default function Page() {
           >
             {lang == "en" ? "Sign up" : "ይመዝገቡ"}
           </CButton>
+        </div>
+
+        {/* Login Link */}
+        <div className="text-center mt-6 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            {lang == "en" ? (
+              <>
+                If you have an account, please{" "}
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${lang}/login`)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  login
+                </button>
+              </>
+            ) : (
+              <>
+                መለያ ካላችሁ{" "}
+                <button
+                  type="button"
+                  onClick={() => router.push(`/${lang}/login`)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  ይግቡ
+                </button>
+              </>
+            )}
+          </p>
         </div>
       </Form>
     </div>
