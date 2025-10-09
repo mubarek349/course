@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-sns": "^3.906.0",
     "@heroui/react": "^2.7.10",
     "@heroui/system": "^2.4.22",
     "@heroui/theme": "^2.4.22",

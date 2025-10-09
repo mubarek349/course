@@ -108,8 +108,7 @@ export async function sendOTP(
 
 Your one-time OTP code is: ${otp.code}
 
-⚠️ SECURITY WARNING: DO NOT SHARE YOUR OTP WITH ANYONE
-This code is valid for 10 minutes only.
+ DO NOT SHARE YOUR OTP WITH ANYONE
 
 If you didn't request this code, please ignore this message.
 
