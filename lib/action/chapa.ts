@@ -219,6 +219,7 @@ export async function verifyPayment(
 ): Promise<TVerifyState> {
   try {
     if (!tx_ref) return undefined;
+    console.log("VERIFY :: ", tx_ref);
     const order = await prisma.order.findFirst({
       where: { tx_ref },
       select: {
