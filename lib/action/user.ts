@@ -175,6 +175,86 @@ export async function signupWithOTP(
   }
 }
 
+export async function resetPassword(
+  prevState: StateType,
+  data:
+    | {
+        phoneNumber: string;
+        otp: string;
+        newPassword: string;
+      }
+    | undefined
+): Promise<StateType> {
+  try {
+    if (!data) {
+      return {
+        status: false,
+        cause: "No data provided",
+        message: "No data provided",
+      };
+    }
+
+    const { phoneNumber, otp, newPassword } = data;
+
+    // Verify OTP
+    const otpRecord = await prisma.otp.findFirst({
+      where: { phoneNumber },
+    });
+
+    if (!otpRecord) {
+      return {
+        status: false,
+        cause: "OTP not found",
+        message: "Please request OTP first",
+      };
+    }
+
+    if (otpRecord.code !== parseInt(otp)) {
+      return {
+        status: false,
+        cause: "Invalid OTP",
+        message: "Invalid OTP code",
+      };
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findFirst({
+      where: { phoneNumber, role: "student" },
+    });
+
+    if (!user) {
+      return {
+        status: false,
+        cause: "User not found",
+        message: "User not found",
+      };
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+
+    // Update the user's password
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    // Delete the used OTP
+    await prisma.otp.delete({
+      where: { id: otpRecord.id },
+    });
+
+    return { status: true, message: "Password reset successfully" };
+  } catch (error) {
+    console.log("Reset password error:", error);
+    return {
+      status: false,
+      cause: "Reset failed",
+      message: "Password reset failed",
+    };
+  }
+}
+
 export async function unauthentic(prevState: StateType): Promise<StateType> {
   try {
     await signOut({ redirect: false });

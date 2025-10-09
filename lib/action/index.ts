@@ -104,13 +104,10 @@ export async function sendOTP(
 
     await sendSMS(
       otp.phoneNumber,
-      `DARULKUBRA COURSE REGISTRATION
-
+      `
 Your one-time OTP code is: ${otp.code}
 
- DO NOT SHARE YOUR OTP WITH ANYONE
-
-If you didn't request this code, please ignore this message.
+ Do not share your OTP with anyone
 
 Thank you for choosing Darulkubra!`
     );
