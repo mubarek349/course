@@ -1,43 +1,24 @@
-import React from "react";
-import PageHeader from "@/components/layout/PageHeader";
-import Section from "@/components/layout/Section";
+"use client";
+
+import React, { useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 function Page() {
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Student Dashboard"
-        subtitle="Welcome back! Here is an overview of your learning progress."
-      />
+  const params = useParams<{ lang: string }>();
+  const router = useRouter();
+  const lang = params?.lang || "en";
 
-      <Section
-        title="Your Courses"
-        description="Continue where you left off or explore new content."
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <div className="card p-4">
-            <div className="h-24 skeleton" />
-            <div className="mt-3">
-              <div className="h-5 w-2/3 skeleton" />
-              <div className="mt-2 h-4 w-1/2 skeleton" />
-            </div>
-          </div>
-          <div className="card p-4">
-            <div className="h-24 skeleton" />
-            <div className="mt-3">
-              <div className="h-5 w-2/3 skeleton" />
-              <div className="mt-2 h-4 w-1/2 skeleton" />
-            </div>
-          </div>
-          <div className="card p-4">
-            <div className="h-24 skeleton" />
-            <div className="mt-3">
-              <div className="h-5 w-2/3 skeleton" />
-              <div className="mt-2 h-4 w-1/2 skeleton" />
-            </div>
-          </div>
-        </div>
-      </Section>
+  useEffect(() => {
+    // Redirect to mycourse page
+    router.replace(`/${lang}/mycourse`);
+  }, [lang, router]);
+
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-gray-600">Redirecting to your courses...</p>
+      </div>
     </div>
   );
 }
