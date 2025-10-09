@@ -263,7 +263,6 @@ export default function CountrySelector({
       {countries.map((country) => (
         <SelectItem
           key={country.code}
-          value={country.code}
           textValue={`${country.flag} ${country.name} (${country.code})`}
         >
           <div className="flex items-center gap-2">
