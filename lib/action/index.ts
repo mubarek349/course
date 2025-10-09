@@ -102,7 +102,19 @@ export async function sendOTP(
       });
     }
 
-    await sendSMS(otp.phoneNumber, `CODE : ${otp.code}`);
+    await sendSMS(
+      otp.phoneNumber,
+      `DARULKUBRA COURSE REGISTRATION
+
+Your one-time OTP code is: ${otp.code}
+
+⚠️ SECURITY WARNING: DO NOT SHARE YOUR OTP WITH ANYONE
+This code is valid for 10 minutes only.
+
+If you didn't request this code, please ignore this message.
+
+Thank you for choosing Darulkubra!`
+    );
 
     return { status: true };
   } catch {
