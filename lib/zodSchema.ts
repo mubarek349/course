@@ -58,6 +58,12 @@ export const courseSchema = z.object({
     )
     .optional(),
   price: z.coerce.number({ message: "" }).gt(0, "price must be greater than 0"),
+  dolarPrice: z.coerce
+    .number({ message: "" })
+    .gt(0, "dollar price must be greater than 0"),
+  birrPrice: z.coerce
+    .number({ message: "" })
+    .gt(0, "birr price must be greater than 0"),
   currency: z.string({ message: "" }).nonempty(""),
   level: z.enum(["beginner", "intermediate", "advanced"], { message: "" }),
   language: z.string({ message: "" }).nonempty("language is required"),

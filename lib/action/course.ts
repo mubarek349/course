@@ -6,10 +6,53 @@ import bcryptjs from "bcryptjs";
 
 export async function courseRegistration(
   prevState: StateType,
-  data: TCourse | undefined
+  data: TCourse | undefined | null
 ): Promise<StateType> {
   try {
-    if (!data) return undefined;
+    if (!data || data === null) {
+      console.log("No data provided to courseRegistration");
+      return {
+        status: false,
+        cause: "No data provided",
+        message: "Course data is required",
+      };
+    }
+
+    console.log("Course registration data received:", {
+      titleEn: data.titleEn,
+      titleAm: data.titleAm,
+      instructorId: data.instructorId,
+      channelId: data.channelId,
+      dolarPrice: data.dolarPrice,
+      birrPrice: data.birrPrice,
+      price: data.price,
+    });
+
+    // Validate required fields
+    if (!data.titleEn || !data.titleAm) {
+      return {
+        status: false,
+        cause: "Validation Error",
+        message: "Course title is required",
+      };
+    }
+
+    if (!data.instructorId || !data.channelId) {
+      return {
+        status: false,
+        cause: "Validation Error",
+        message: "Instructor and channel are required",
+      };
+    }
+
+    if (!data.dolarPrice || !data.birrPrice) {
+      return {
+        status: false,
+        cause: "Validation Error",
+        message: "Dollar price and Birr price are required",
+      };
+    }
+
     const {
       id,
       courseFor,
@@ -26,16 +69,14 @@ export async function courseRegistration(
       ? courseMaterials
           .filter((m) => m && m.url)
           .map((m) => m.url)
-          .join(',')
+          .join(",")
       : undefined;
 
     // Add pdfData and optionally courseMaterials to the rest data (mapping pdf to pdfData)
     const courseData = {
       ...rest,
       pdfData: pdf || null, // Map pdf to pdfData for the database
-      ...(serializedMaterials
-        ? { courseMaterials: serializedMaterials }
-        : {}),
+      ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
     } as const;
 
     await prisma.course.updateMany({
@@ -85,12 +126,12 @@ export async function courseRegistration(
 
       const updatedCourse = await prisma.course.update({
         where: { id },
-      data: {
-        ...courseDataWithoutRelations, // Use courseData without relation fields (includes pdfData and courseMaterials)
-        instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
-        channel: { connect: { id: channelId } }, // Fix: Use relation syntax
-        courseFor: { create: courseFor },
-        requirement: { create: requirement },
+        data: {
+          ...courseDataWithoutRelations, // Use courseData without relation fields (includes pdfData and courseMaterials)
+          instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
+          channel: { connect: { id: channelId } }, // Fix: Use relation syntax
+          courseFor: { create: courseFor },
+          requirement: { create: requirement },
           activity: {
             create: activity.map(
               ({ titleAm, titleEn, subActivity }, index) => ({
@@ -375,9 +416,12 @@ export async function courseRegistration(
     }
 
     return { status: true } as const;
-  } catch (error) {
-    console.log(error);
-    return { status: false, cause: "", message: "" } as const;
+  } catch {
+    return {
+      status: false,
+      cause: "Unknown Error",
+      message: "An unexpected error occurred while processing the course",
+    };
   }
 }
 
@@ -390,9 +434,17 @@ export async function changeRate(
         rate: number;
       }
     | undefined
+    | null
 ): Promise<StateType> {
   try {
-    if (!data) throw new Error();
+    if (!data || data === null) {
+      console.log("No data provided to changeRate");
+      return {
+        status: false,
+        cause: "No data provided",
+        message: "Rate data is required",
+      };
+    }
     const { userId, courseId, rate } = data,
       incomeRate = await prisma.incomeRate.findFirst({
         where: { userId, courseId },
@@ -407,8 +459,34 @@ export async function changeRate(
     }
     return { status: true };
   } catch (error) {
-    console.log(error);
-    return { status: false, cause: "", message: "" };
+    console.error("Change rate error:", error);
+
+    // Handle different types of errors
+    if (error instanceof Error) {
+      return {
+        status: false,
+        cause: error.name,
+        message: error.message,
+      };
+    }
+
+    // Handle Prisma errors
+    if (error && typeof error === "object" && "code" in error) {
+      return {
+        status: false,
+        cause: "Database Error",
+        message: `Database operation failed: ${
+          (error as any).code || "Unknown error"
+        }`,
+      };
+    }
+
+    // Fallback for unknown errors
+    return {
+      status: false,
+      cause: "Unknown Error",
+      message: "An unexpected error occurred while updating the rate",
+    };
   }
 }
 
@@ -424,9 +502,17 @@ export async function sellerRegistration(
         password?: string;
       }
     | undefined
+    | null
 ): Promise<StateType> {
   try {
-    if (!data) throw new Error();
+    if (!data || data === null) {
+      console.log("No data provided to sellerRegistration");
+      return {
+        status: false,
+        cause: "No data provided",
+        message: "Seller data is required",
+      };
+    }
     const { id, firstName, fatherName, lastName, phoneNumber, password } = data;
     if (id) {
       await prisma.user.update({
@@ -473,9 +559,17 @@ export async function affiliateRegistration(
         password: string;
       }
     | undefined
+    | null
 ): Promise<StateType> {
   try {
-    if (!data) throw new Error();
+    if (!data || data === null) {
+      console.log("No data provided to affiliateRegistration");
+      return {
+        status: false,
+        cause: "No data provided",
+        message: "Affiliate data is required",
+      };
+    }
     const { firstName, fatherName, lastName, phoneNumber, password } = data;
     await prisma.user.create({
       data: {

@@ -78,6 +78,8 @@ export default function Page() {
         video: "",
         pdf: "",
         price: 0,
+        dolarPrice: 0,
+        birrPrice: 0,
         currency: "ETB",
         level: "beginner",
         duration: "01:09:09",

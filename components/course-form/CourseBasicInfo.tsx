@@ -43,6 +43,27 @@ export default function CourseBasicInfo({
         />
       </div>
 
+      <div className="grid gap-3 sm:gap-4 md:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2">
+        <CInput
+          label={lang === "en" ? "Dollar Price" : "የዶላር ዋጋ"}
+          type="number"
+          color="primary"
+          value={watch ? watch("dolarPrice")?.toString() : ""}
+          {...register("dolarPrice", { valueAsNumber: true })}
+          endContent={<span className="text-sm text-gray-500">USD</span>}
+          className="w-full"
+        />
+        <CInput
+          label={lang === "en" ? "Birr Price" : "የብር ዋጋ"}
+          type="number"
+          color="primary"
+          value={watch ? watch("birrPrice")?.toString() : ""}
+          {...register("birrPrice", { valueAsNumber: true })}
+          endContent={<span className="text-sm text-gray-500">ETB</span>}
+          className="w-full"
+        />
+      </div>
+
       <div className="grid gap-3 sm:gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
         <CTextarea
           {...register("aboutEn")}
