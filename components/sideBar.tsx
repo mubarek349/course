@@ -49,14 +49,15 @@ export default function SideBar({
       {isSide && (
         <div
           onClick={() => setIsSide(false)}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden transition-opacity duration-300"
+          className="fixed inset-0 z-[55] bg-black/50 backdrop-blur-sm md:hidden transition-opacity duration-300"
         />
       )}
 
       {/* Sidebar */}
       <div
         className={cn(
-          "z-50 transition-all duration-300",
+          "transition-all duration-300",
+          "md:z-50 max-md:z-[60]", // Higher z-index for mobile to appear above header
           // Desktop styles - Fixed positioning
           "md:fixed md:left-0 md:top-0 md:flex md:flex-col md:h-screen",
           isCollapsed ? "md:w-20" : "md:w-72",
@@ -176,7 +177,9 @@ export default function SideBar({
                       )}
                     >
                       {!isCollapsed && (
-                        <span className="truncate text-sm font-semibold">{label}</span>
+                        <span className="truncate text-sm font-semibold">
+                          {label}
+                        </span>
                       )}
                     </Button>
                   </Tooltip>
