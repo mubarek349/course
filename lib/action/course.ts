@@ -475,9 +475,7 @@ export async function changeRate(
       return {
         status: false,
         cause: "Database Error",
-        message: `Database operation failed: ${
-          (error as any).code || "Unknown error"
-        }`,
+        message: `Database operation failed: ${error.code || "Unknown error"}`,
       };
     }
 
