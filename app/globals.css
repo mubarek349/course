@@ -8,12 +8,24 @@
     --radius: 0.5rem;
     --shadow-color: 0 0 0;
     --shadow-elevation-low: 0 1px 2px 0 rgba(var(--shadow-color), 0.05);
-    --shadow-elevation-medium: 0 4px 6px -1px rgba(var(--shadow-color), 0.1), 0 2px 4px -1px rgba(var(--shadow-color), 0.06);
-    --shadow-elevation-high: 0 10px 15px -3px rgba(var(--shadow-color), 0.1), 0 4px 6px -2px rgba(var(--shadow-color), 0.05);
+    --shadow-elevation-medium: 0 4px 6px -1px rgba(var(--shadow-color), 0.1),
+      0 2px 4px -1px rgba(var(--shadow-color), 0.06);
+    --shadow-elevation-high: 0 10px 15px -3px rgba(var(--shadow-color), 0.1),
+      0 4px 6px -2px rgba(var(--shadow-color), 0.05);
   }
 
   .dark {
     --shadow-color: 255 255 255;
+  }
+
+  /* Spinner animation for video loader */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* Modern scrollbar styling */
@@ -58,7 +70,7 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -90,22 +102,31 @@
   /* Modern card component */
   .card {
     @apply bg-white/95 dark:bg-gray-900/95 border border-gray-200/60 dark:border-gray-700/60 rounded-xl shadow-lg dark:shadow-xl backdrop-blur-sm relative overflow-hidden;
-    background-image: 
-      radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.1) 1px, transparent 0),
+    background-image: radial-gradient(
+        circle at 1px 1px,
+        rgba(59, 130, 246, 0.1) 1px,
+        transparent 0
+      ),
       linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
     background-size: 20px 20px, 100% 100%;
   }
-  
+
   .dark .card {
-    background-image: 
-      radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.05) 1px, transparent 0),
+    background-image: radial-gradient(
+        circle at 1px 1px,
+        rgba(59, 130, 246, 0.05) 1px,
+        transparent 0
+      ),
       linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
-      linear-gradient(45deg, rgba(30, 58, 138, 0.03) 0%, rgba(67, 56, 202, 0.02) 50%, rgba(30, 58, 138, 0.03) 100%);
+      linear-gradient(
+        45deg,
+        rgba(30, 58, 138, 0.03) 0%,
+        rgba(67, 56, 202, 0.02) 50%,
+        rgba(30, 58, 138, 0.03) 100%
+      );
     background-size: 20px 20px, 100% 100%, 200% 200%;
-    box-shadow: 
-      0 10px 25px -3px rgba(0, 0, 0, 0.3),
-      0 4px 6px -2px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.3),
+      0 4px 6px -2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
   .card-hover {
@@ -128,10 +149,21 @@
 
   /* Professional dark mode enhancements */
   .dark {
-    background-image: 
-      radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.02) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(30, 58, 138, 0.01) 0%, transparent 50%);
+    background-image: radial-gradient(
+        circle at 20% 80%,
+        rgba(59, 130, 246, 0.02) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(99, 102, 241, 0.02) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 40% 40%,
+        rgba(30, 58, 138, 0.01) 0%,
+        transparent 50%
+      );
     background-size: 100% 100%, 100% 100%, 100% 100%;
   }
 
@@ -335,13 +367,13 @@
     min-width: 1200px !important;
     flex-shrink: 0 !important;
   }
-  
+
   .certificate-scroll-wrapper {
     overflow-x: auto !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  
+
   .certificate-scroll-wrapper::-webkit-scrollbar {
     height: 10px !important;
     display: block !important;
@@ -376,21 +408,23 @@
   .mobile-scroll-fix {
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Fix for bottom padding on mobile to account for browser UI */
   .mobile-bottom-fix {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   /* Ensure all pages scroll properly on mobile */
-  html, body {
+  html,
+  body {
     overflow-y: auto !important;
     height: auto !important;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Remove fixed heights that prevent scrolling */
-  .h-screen, .min-h-screen {
+  .h-screen,
+  .min-h-screen {
     min-height: 100vh !important;
     height: auto !important;
   }
