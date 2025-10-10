@@ -28,6 +28,31 @@
     }
   }
 
+  /* Fullscreen mobile landscape optimization */
+  .video-player:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: black;
+  }
+
+  .video-player:-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: black;
+  }
+
+  .video-player:-moz-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: black;
+  }
+
+  .video-player:-ms-fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    background: black;
+  }
+
   /* Modern scrollbar styling */
   * {
     scrollbar-width: thin;
