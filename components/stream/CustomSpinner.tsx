@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Loader2 } from "lucide-react";
 
 interface CustomSpinnerProps {
   size?: number;
@@ -12,38 +13,38 @@ export default function CustomSpinner({
   color = "#fff",
   className = "",
 }: CustomSpinnerProps) {
-  const segments = 8;
-  const segmentAngle = 360 / segments;
-
   return (
     <div
       className={`relative ${className}`}
       style={{
         width: size,
         height: size,
-        animation: "spin 1s linear infinite",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      {Array.from({ length: segments }, (_, index) => (
-        <div
-          key={index}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: `${size * 0.08}px`,
-            height: `${size * 0.25}px`,
-            backgroundColor: color,
-            borderRadius: `${size * 0.04}px`,
-            transformOrigin: "0 0",
-            transform: `
-              translate(-50%, -50%) 
-              rotate(${index * segmentAngle}deg) 
-              translateY(-${size * 0.375}px)
-            `,
-          }}
-        />
-      ))}
+      {/* Spinning ring */}
+      <div
+        style={{
+          position: "absolute",
+          width: size,
+          height: size,
+          border: `${size * 0.08}px solid rgba(255, 255, 255, 0.2)`,
+          borderTop: `${size * 0.08}px solid ${color}`,
+          borderRadius: "50%",
+          animation: "spin 0.8s linear infinite",
+        }}
+      />
+      {/* Static icon in center */}
+      <Loader2
+        size={size * 0.5}
+        color={color}
+        style={{
+          position: "relative",
+          zIndex: 1,
+        }}
+      />
     </div>
   );
 }

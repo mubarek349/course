@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause, ChevronRight, ChevronLeft } from "lucide-react";
+import { Play, Pause,SkipBack, SkipForward } from "lucide-react";
 import Controls from "./Controls";
 import Playlist from "./Playlist";
 import ProgressBar from "./ProgressBar";
@@ -391,10 +391,14 @@ PlayerProps) {
                   width: 48,
                   height: 48,
                   marginRight: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 aria-label="Skip Backward"
               >
-                <ChevronLeft />
+                <SkipBack />
               </button>
               <button
                 onClick={(e) => {
@@ -411,6 +415,10 @@ PlayerProps) {
                   width: 56,
                   height: 56,
                   margin: "0 8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 aria-label={playing ? "Pause" : "Play"}
               >
@@ -431,10 +439,14 @@ PlayerProps) {
                   width: 48,
                   height: 48,
                   marginLeft: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 aria-label="Skip Forward"
               >
-                <ChevronRight />
+                <SkipForward />
               </button>
             </div>
             {/* Volume at upper center right */}
