@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 import { Play, Pause,SkipBack, SkipForward } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Controls from "./Controls";
 import Playlist from "./Playlist";
 import ProgressBar from "./ProgressBar";
