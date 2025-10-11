@@ -1,7 +1,7 @@
 "use client";
 
 import useAction from "@/hooks/useAction";
-import { redirectToBot } from "@/lib/action";
+// import { redirectToBot } from "@/lib/action";
 import { verifyPayment } from "@/lib/action/chapa";
 import { Button, Spinner } from "@heroui/react";
 import Link from "next/link";
@@ -18,10 +18,10 @@ export default function Page() {
       console.log(state);
     },
   });
-  const { action: redirectAction, isPending: redirectPending } = useAction(
-    redirectToBot,
-    undefined
-  );
+  // const { action: redirectAction, isPending: redirectPending } = useAction(
+  //   redirectToBot,
+  //   undefined
+  // );
 
   useEffect(() => {
     if (tx_ref) {
@@ -66,8 +66,7 @@ export default function Page() {
             <Button
               variant="flat"
               color="primary"
-              onPress={() => redirectAction()}
-              isLoading={redirectPending}
+              onPress={() => router.push(`/${lang}/mycourse`)}
             >
               {lang == "en" ? "Continue Learning" : "መማርዎን ይቀጥሉ"}
             </Button>

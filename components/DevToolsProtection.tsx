@@ -18,49 +18,55 @@ export default function DevToolsProtection() {
       router.push(`/${lang}/notfound`);
     };
 
-    // Import and initialize disable-devtool
-    import("disable-devtool").then((module) => {
-      const disableDevtool = module.default;
-      disableDevtool({
-        ondevtoolopen: () => {
-          redirectToNotFound();
-        },
-        ondevtoolclose: () => {
-          // DevTools closed, but we already redirected
-        },
-        interval: 200, // Check every 200ms
-        disableMenu: true, // Disable right-click
-        clearIntervalWhenDevOpenTrigger: true,
-        detectors: [0, 1, 2, 3, 4, 5, 6, 7], // Enable all detectors
-        clearLog: true,
-        disableSelect: true, // Disable text selection
-        disableCopy: true, // Disable copy
-        disableCut: true, // Disable cut
-        disablePaste: true, // Disable paste
-      });
-    });
+    let devtoolsOpen = false;
 
-    // Additional devtools-detect for backup
-    import("devtools-detect").then((module) => {
-      const devtools = module.default;
+    // Comprehensive DevTools Detection
+    const detectDevTools = () => {
+      const threshold = 160;
+      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
       
-      // Check if DevTools is already open
-      if (devtools.isOpen) {
+      // Check for common DevTools properties
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const devtoolsCheck = (window as any).devtools?.isOpen || 
+                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                           !!(window as any).Firebug || 
+                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                           ((window as any).console?.firebug);
+      
+      // Performance timing check
+      const start = performance.now();
+      // eslint-disable-next-line no-debugger
+      debugger;
+      const end = performance.now();
+      const timingCheck = end - start > 100;
+
+      if ((widthThreshold || heightThreshold || devtoolsCheck || timingCheck) && !devtoolsOpen) {
+        devtoolsOpen = true;
         redirectToNotFound();
       }
+    };
 
-      // Listen for DevTools open/close events
-      const handleDevToolsChange = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        if (customEvent.detail.isOpen) {
+    // Console detection trick
+    const consoleDetect = () => {
+      const element = document.createElement('div');
+      Object.defineProperty(element, 'id', {
+        get: function() {
           redirectToNotFound();
+          return '';
         }
-      };
+      });
+      // This will trigger the getter if console is open
+      console.log('%c', element);
+    };
 
-      window.addEventListener("devtoolschange", handleDevToolsChange);
-    });
+    // Disable right-click
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      return false;
+    };
 
-    // Disable specific keyboard shortcuts
+    // Disable keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       // F12
       if (e.keyCode === 123 || e.key === "F12") {
@@ -104,18 +110,60 @@ export default function DevToolsProtection() {
         redirectToNotFound();
         return false;
       }
-      // F11 (Fullscreen - sometimes used with DevTools)
-      if (e.keyCode === 122 || e.key === "F11") {
-        e.preventDefault();
-        return false;
-      }
     };
 
+    // Disable text selection, copy, paste
+    const handleSelectStart = (e: Event) => e.preventDefault();
+    const handleCopy = (e: ClipboardEvent) => {
+      e.preventDefault();
+      return false;
+    };
+    const handleCut = (e: ClipboardEvent) => {
+      e.preventDefault();
+      return false;
+    };
+    const handlePaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Monitor window resize (DevTools opening/closing)
+    const handleResize = () => {
+      detectDevTools();
+    };
+
+    // Add event listeners
+    document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("selectstart", handleSelectStart);
+    document.addEventListener("copy", handleCopy);
+    document.addEventListener("cut", handleCut);
+    document.addEventListener("paste", handlePaste);
+    window.addEventListener("resize", handleResize);
+
+    // Run detection checks
+    const interval = setInterval(() => {
+      detectDevTools();
+      try {
+        consoleDetect();
+      } catch {
+        // Console detection triggered
+      }
+    }, 500);
+
+    // Initial check
+    detectDevTools();
 
     // Cleanup
     return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("selectstart", handleSelectStart);
+      document.removeEventListener("copy", handleCopy);
+      document.removeEventListener("cut", handleCut);
+      document.removeEventListener("paste", handlePaste);
+      window.removeEventListener("resize", handleResize);
+      clearInterval(interval);
     };
   }, [router, pathname]);
 
