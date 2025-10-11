@@ -39,10 +39,10 @@ export default function NotFound() {
               <span className="font-semibold text-brand-600 dark:text-brand-400">Darul Kubra LMS System</span>
             </p>
             <p className="text-base text-neutral-600 dark:text-neutral-400">
-              You are trying to access a page that is not found or not allowed. This could be because the page doesn't exist, has been moved, or you don't have permission to view it.
+              You are trying to access a page that is not found or not allowed. This could be because the page doesn&apos;t exist, has been moved, or you don&apos;t have permission to view it.
             </p>
             <p className="text-base text-neutral-700 dark:text-neutral-300 font-medium">
-              Please go to home or use the navigation to find what you're looking for.
+              Please go to home or use the navigation to find what you&apos;re looking for.
             </p>
           </div>
         </div>

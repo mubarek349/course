@@ -121,7 +121,7 @@ export default function DevToolsProtection() {
     // Initial console detection
     try {
       detectConsole();
-    } catch (e) {
+    } catch {
       // DevTools detected
     }
 
