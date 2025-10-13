@@ -57,7 +57,7 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange={false}
             >
-              {/* <DevToolsProtection /> */}
+              <DevToolsProtection />
               <div className="relative min-h-screen bg-gradient-to-br from-neutral-50 via-brand-50/30 to-neutral-100 dark:from-neutral-950 dark:via-brand-950/50 dark:to-neutral-900">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-30">
