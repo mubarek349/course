@@ -11,7 +11,6 @@ export default async function Layout({
   Instructor,
   student,
   children,
-  params,
 }: {
   pending: React.ReactNode;
   inactive: React.ReactNode;
@@ -21,7 +20,7 @@ export default async function Layout({
   Instructor: React.ReactNode;
   student: React.ReactNode;
   children: React.ReactNode;
-  params: { lang: string };
+  params: Promise<{ lang: string }>;
 }) {
   const session = await auth();
   if (!session) return children;
