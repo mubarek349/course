@@ -83,12 +83,7 @@ export default function Page() {
             key={i + ""}
             {...{ ...value, id }}
             btn={
-              <Button
-                color="primary"
-                as={Link}
-                href={`/${lang}/course/${id}`}
-                className=""
-              >
+              <Button color="primary" as={Link} href={`/${id}`} className="">
                 {lang == "en" ? "Enroll" : "ይመዝገቡ"}
               </Button>
             }
