@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { UseFormRegister } from "react-hook-form";
 import { TCourse } from "@/lib/definations";
@@ -7,6 +8,7 @@ import { CInput, CSelect, CSelectItem } from "../heroui";
 interface CourseSettingsProps {
   lang: string;
   register: UseFormRegister<TCourse>;
+  watch: (key: string) => any;
   channels: { id: string; title: string }[];
   instructors: { id: string; firstName: string; fatherName: string }[];
 }
@@ -14,6 +16,7 @@ interface CourseSettingsProps {
 export default function CourseSettings({ 
   lang, 
   register, 
+  watch,
   channels, 
   instructors 
 }: CourseSettingsProps) {
@@ -55,6 +58,7 @@ export default function CourseSettings({
           color="primary"
           {...register("channelId")}
           label={lang === "en" ? "Channel" : "ቻናል"}
+          selectedKeys={watch("channelId") ? [watch("channelId")] : []}
         >
           {channels.map((v) => (
             <CSelectItem key={v.id} textValue={v.title}>{v.title}</CSelectItem>
@@ -64,6 +68,7 @@ export default function CourseSettings({
           color="primary"
           {...register("instructorId")}
           label={lang === "en" ? "Instructor" : "መምህር"}
+          selectedKeys={watch("instructorId") ? [watch("instructorId")] : []}
         >
           {instructors.map((v) => (
             <CSelectItem key={v.id} textValue={`${v.firstName} ${v.fatherName}`}>
