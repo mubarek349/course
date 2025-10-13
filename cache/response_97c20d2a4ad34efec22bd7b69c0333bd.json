@@ -1,0 +1,5 @@
+{
+  "data": "Based on the provided PDF document, the frontend technical requirements for the Melaverse Intern task are as follows:\n\n*   **Responsive User Interface:** The application must \"Build a responsive user interface using Next.js.\"\n*   **Video Embedding:** Educational videos need to be \"Embed[ded] ... securely from YouTube.\"\n*   **Interactive Quizzes:** The frontend must \"Include interactive quizzes with immediate feedback after each completion.\"\n*   **Lesson Progression Restriction:** Students should be restricted from moving forward, as the system must \"Restrict progression to the next lesson until the current quiz is passed.\"\n\nThese requirements are detailed under the \"Technical Requirements: Frontend\" section of the document.",
+  "timestamp": 1760378652543,
+  "hash": "97c20d2a4ad34efec22bd7b69c0333bd"
+}

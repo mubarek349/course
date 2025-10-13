@@ -19,14 +19,14 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split(".").pop() || "unknown";
     const filename = `${timestamp}-${randomNum}.${fileExtension}`;
 
-    const uploadDir = join(process.cwd(), "public", "uploads", "materials");
+    const uploadDir = join(process.cwd(), "docs", "materials");
     await mkdir(uploadDir, { recursive: true });
     const filePath = join(uploadDir, filename);
     await writeFile(filePath, buffer);
 
     return NextResponse.json({
       success: true,
-      url: `/uploads/materials/${filename}`,
+      url: `/api/files/materials/${filename}`,
       name: file.name,
       type: fileExtension,
     });

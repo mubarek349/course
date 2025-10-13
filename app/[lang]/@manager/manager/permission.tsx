@@ -62,6 +62,7 @@ export function Permission({
                 "message",
                 "feedback",
                 "student",
+                "courseMaterials",
               ].map((v, i) => {
                 console.log(input.includes(v));
                 return (

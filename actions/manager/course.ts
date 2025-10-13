@@ -1,8 +1,10 @@
 "use server";
 
+import { AIProvider } from "@/lib/ask";
 import prisma from "@/lib/db";
 import { StateType, TTableData } from "@/lib/definations";
 import { Selection } from "@heroui/react";
+
 
 export async function toggleCourseStatus(
   prevState: StateType,
@@ -28,6 +30,7 @@ type TOverviewData = {
   3: { label: string; value: number }[];
   4: { label: string; seller: number; affiliate: number; own: number }[];
 };
+
 export async function getOverviewData(
   date: {
     start: Date;
@@ -417,7 +420,19 @@ export async function getCourse(id: string) {
     );
   return course;
 }
+export async function updateAiProvider(packageId: string, aiProvider: string) {
+  try {
+    await prisma.course.update({
+      where: { id: packageId },
+      data: { aiProvider: aiProvider as AIProvider },
+    });
+  } catch (error) {
+    console.error("Error updating AI provider:", error);
+    return { success: false, message: "Failed to update AI provider" };
+  }
 
+  return { success: true, message: "AI provider updated successfully" };
+}
 export async function removeCourse(
   prevState: StateType,
   id: string | undefined

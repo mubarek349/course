@@ -6,6 +6,7 @@ import UserLayout from "@/components/userLayout";
 import {
   BadgeDollarSign,
   Book,
+  BookOpen,
   Gauge,
   Megaphone,
   MessageCircle,
@@ -73,6 +74,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           label: "Feedback",
           url: "feedback",
           icon: <MessageSquare className="size-5" />,
+        },
+        {
+          label: "Course Materials",
+          url: "courseMaterials",
+          icon: <BookOpen className="size-5" />,
         },
         // { label: "Student", url: "student" },
         // { label: "Ustaz", url: "ustaz" },

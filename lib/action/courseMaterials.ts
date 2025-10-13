@@ -88,6 +88,17 @@ export async function getCourseMaterials(
   }
 }
 
+export async function getAIPdfMaterial(id: string) {
+  const pdfDataWithItsAIProvider = await prisma.course.findUnique({ where: { id } });
+  if (!pdfDataWithItsAIProvider) throw new Error("Document not found");
+  return {
+    id: pdfDataWithItsAIProvider.id,
+    aiProvider: pdfDataWithItsAIProvider.aiProvider,
+    pdfData: pdfDataWithItsAIProvider.pdfData,
+  };
+}
+
+
 // ---------------- Announcements ----------------
 export async function addAnnouncement(courseId: string, description: string) {
   try {

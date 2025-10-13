@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Only PDF files are allowed" }, { status: 400 });
     }
 
-    const uploadsDir = path.join(process.cwd(), "public", "pdfs");
+    const uploadsDir = path.join(process.cwd(), "docs", "pdfs");
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true });
     }
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       filename,
-      pdfUrl: `/pdfs/${filename}`,
+      pdfUrl: `/api/files/pdfs/${filename}`,
       message: "PDF uploaded successfully" 
     });
 
