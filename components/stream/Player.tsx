@@ -1,11 +1,12 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause, ChevronRight, ChevronLeft } from "lucide-react";
+import { Play, Pause,SkipBack, SkipForward } from "lucide-react";
 import Controls from "./Controls";
 import Playlist from "./Playlist";
 import ProgressBar from "./ProgressBar";
 import VolumeControl from "./VolumeControl";
 import FullscreenButton from "./FullScreen";
+import CustomSpinner from "./CustomSpinner";
 import { VideoItem } from "../../types";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,9 @@ PlayerProps) {
   const [buffered, setBuffered] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(true);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   // Compute the video source based on type
   let videoSrc = src;
@@ -62,6 +66,55 @@ PlayerProps) {
     return () => clearTimeout(timeout);
   }, [showControls, isMobile]);
 
+  // Network status detection
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Orientation detection for mobile fullscreen
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      // Add a small delay to ensure the orientation change is complete
+      setTimeout(() => {
+        if (isMobile) {
+          const isCurrentlyLandscape = window.innerWidth > window.innerHeight;
+          setIsLandscape(isCurrentlyLandscape);
+          // Debug log
+          console.log("Mobile orientation changed:", {
+            isMobile,
+            isFullscreen,
+            isLandscape: isCurrentlyLandscape,
+            width: window.innerWidth,
+            height: window.innerHeight,
+          });
+        }
+      }, 100);
+    };
+
+    // Initial check
+    if (isMobile) {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    }
+
+    // Listen for orientation changes
+    window.addEventListener("orientationchange", handleOrientationChange);
+    window.addEventListener("resize", handleOrientationChange);
+
+    return () => {
+      window.removeEventListener("orientationchange", handleOrientationChange);
+      window.removeEventListener("resize", handleOrientationChange);
+    };
+  }, [isMobile, isFullscreen]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -74,18 +127,32 @@ PlayerProps) {
       }
     };
 
+    const handleLoadStart = () => setIsLoading(true);
+    const handleCanPlay = () => setIsLoading(false);
+    const handleWaiting = () => setIsLoading(true);
+    const handlePlaying = () => setIsLoading(false);
+    const handleError = () => setIsLoading(false);
+
     video.addEventListener("timeupdate", updateTime);
     video.addEventListener("loadedmetadata", updateDuration);
     video.addEventListener("progress", updateBuffered);
+    video.addEventListener("loadstart", handleLoadStart);
+    video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("waiting", handleWaiting);
+    video.addEventListener("playing", handlePlaying);
+    video.addEventListener("error", handleError);
 
     return () => {
       video.removeEventListener("timeupdate", updateTime);
       video.removeEventListener("loadedmetadata", updateDuration);
       video.removeEventListener("progress", updateBuffered);
+      video.removeEventListener("loadstart", handleLoadStart);
+      video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("waiting", handleWaiting);
+      video.removeEventListener("playing", handlePlaying);
+      video.removeEventListener("error", handleError);
     };
   }, [currentSrc]);
-
-
 
   useEffect(() => {
     const video = videoRef.current;
@@ -104,23 +171,65 @@ PlayerProps) {
   const handleFullscreen = () => {
     if (!containerRef.current) return;
     if (!isFullscreen) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen();
+      // Try different fullscreen methods for cross-browser support
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const element = containerRef.current as any;
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
       }
     } else {
+      // Exit fullscreen
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc = document as any;
       if (document.exitFullscreen) {
         document.exitFullscreen();
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.mozCancelFullScreen) {
+        doc.mozCancelFullScreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
       }
     }
   };
 
   useEffect(() => {
     const handleChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc = document as any;
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement
+      );
+      setIsFullscreen(isCurrentlyFullscreen);
+      // Debug log
+      console.log("Fullscreen changed:", {
+        isFullscreen: isCurrentlyFullscreen,
+        isMobile,
+        isLandscape,
+      });
     };
+
     document.addEventListener("fullscreenchange", handleChange);
-    return () => document.removeEventListener("fullscreenchange", handleChange);
-  }, []);
+    document.addEventListener("webkitfullscreenchange", handleChange);
+    document.addEventListener("mozfullscreenchange", handleChange);
+    document.addEventListener("MSFullscreenChange", handleChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleChange);
+      document.removeEventListener("webkitfullscreenchange", handleChange);
+      document.removeEventListener("mozfullscreenchange", handleChange);
+      document.removeEventListener("MSFullscreenChange", handleChange);
+    };
+  }, [isMobile, isLandscape]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -159,7 +268,14 @@ PlayerProps) {
   };
 
   return (
-    <div ref={containerRef} className="video-player">
+    <div
+      ref={containerRef}
+      className="video-player"
+      style={{
+        height: isFullscreen && isMobile && isLandscape ? "100vh" : "auto",
+        width: isFullscreen && isMobile && isLandscape ? "100vw" : "100%",
+      }}
+    >
       <div
         onMouseEnter={() => !isMobile && setShowControls(true)}
         onMouseLeave={() => !isMobile && setShowControls(false)}
@@ -167,6 +283,10 @@ PlayerProps) {
           "relative max-md:w-full",
           isFullscreen ? "md:w-full" : "md:w-[70%]"
         )}
+        style={{
+          height: isFullscreen && isMobile && isLandscape ? "100vh" : "auto",
+          width: isFullscreen && isMobile && isLandscape ? "100vw" : "100%",
+        }}
       >
         <video
           ref={videoRef}
@@ -174,10 +294,17 @@ PlayerProps) {
           width="100%"
           height="auto"
           style={{
-            borderRadius: 8,
+            borderRadius: isFullscreen && isMobile && isLandscape ? 0 : 8,
             width: "100%",
-            // maxWidth: 640,
+            height: isFullscreen && isMobile && isLandscape ? "100vh" : "auto",
+            objectFit:
+              isFullscreen && isMobile && isLandscape ? "cover" : "contain",
             display: "block",
+            position:
+              isFullscreen && isMobile && isLandscape ? "absolute" : "relative",
+            top: isFullscreen && isMobile && isLandscape ? 0 : "auto",
+            left: isFullscreen && isMobile && isLandscape ? 0 : "auto",
+            zIndex: isFullscreen && isMobile && isLandscape ? 1 : "auto",
           }}
           onPlay={(e) => {
             e.stopPropagation();
@@ -194,6 +321,42 @@ PlayerProps) {
             if (isMobile) setShowControls((v) => !v);
           }}
         />
+
+        {/* Loading Spinner Overlay */}
+        {(isLoading || !isOnline) && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 10,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              borderRadius: "50%",
+              width: "80px",
+              height: "80px",
+              pointerEvents: "none",
+            }}
+          >
+            <CustomSpinner size={32} color="#fff" />
+            {!isOnline && (
+              <span
+                style={{
+                  color: "#fff",
+                  fontSize: "12px",
+                  marginTop: "8px",
+                  textAlign: "center",
+                }}
+              >
+                No Network
+              </span>
+            )}
+          </div>
+        )}
 
         {/* --- MOBILE CONTROLS --- */}
         {isMobile && showControls && (
@@ -228,10 +391,14 @@ PlayerProps) {
                   width: 48,
                   height: 48,
                   marginRight: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 aria-label="Skip Backward"
               >
-                <ChevronLeft />
+                <SkipBack />
               </button>
               <button
                 onClick={(e) => {
@@ -248,6 +415,10 @@ PlayerProps) {
                   width: 56,
                   height: 56,
                   margin: "0 8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 aria-label={playing ? "Pause" : "Play"}
               >
@@ -268,10 +439,14 @@ PlayerProps) {
                   width: 48,
                   height: 48,
                   marginLeft: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 aria-label="Skip Forward"
               >
-                <ChevronRight />
+                <SkipForward />
               </button>
             </div>
             {/* Volume at upper center right */}

@@ -24,8 +24,13 @@ export default function Header({
     ...pathSegments
       .slice(1)
       .map((segment, index) => {
-        // Skip course IDs (numeric segments) in breadcrumbs
-        if (/^\d+$/.test(segment)) {
+        // Skip course IDs (UUIDs or numeric segments) in breadcrumbs
+        if (
+          /^\d+$/.test(segment) ||
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            segment
+          )
+        ) {
           return null;
         }
 
