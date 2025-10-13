@@ -1,7 +1,7 @@
 "use client";
 
 import useData from "@/hooks/useData";
-import { getCoursesForCustomer } from "@/lib/data/course";
+import { getCoursesForLoginCustomer } from "@/lib/data/course";
 import React from "react";
 import CourseCard from "@/components/courseCard";
 import { useParams } from "next/navigation";
@@ -15,7 +15,7 @@ export default function Page() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang ?? "en";
   const { data, loading } = useData({
-    func: getCoursesForCustomer,
+    func: getCoursesForLoginCustomer,
     args: [],
   });
 
@@ -24,7 +24,11 @@ export default function Page() {
       <ScrollablePageWrapper>
         <PageHeader
           title={lang === "en" ? "Available Courses" : "ያሉ ኮርሶች"}
-          subtitle={lang === "en" ? "Loading available courses..." : "ያሉ ኮርሶች በመጫን ላይ..."}
+          subtitle={
+            lang === "en"
+              ? "Loading available courses..."
+              : "ያሉ ኮርሶች በመጫን ላይ..."
+          }
         />
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -44,12 +48,20 @@ export default function Page() {
       <ScrollablePageWrapper>
         <PageHeader
           title={lang === "en" ? "Available Courses" : "ያሉ ኮርሶች"}
-          subtitle={lang === "en" ? "Browse and enroll in available courses." : "ያሉ ኮርሶችን ይመልከቱ እና ይመዝገቡ።"}
+          subtitle={
+            lang === "en"
+              ? "Browse and enroll in available courses."
+              : "ያሉ ኮርሶችን ይመልከቱ እና ይመዝገቡ።"
+          }
         />
         <EmptyState
           icon={<BookOpen className="size-16" />}
           title={lang === "en" ? "No Courses Available" : "ኮርስ የለም"}
-          description={lang === "en" ? "There are currently no courses available for enrollment." : "በአሁኑ ጊዜ ለምዝገባ የሚገኝ ኮርስ የለም።"}
+          description={
+            lang === "en"
+              ? "There are currently no courses available for enrollment."
+              : "በአሁኑ ጊዜ ለምዝገባ የሚገኝ ኮርስ የለም።"
+          }
         />
       </ScrollablePageWrapper>
     );
@@ -59,7 +71,11 @@ export default function Page() {
     <ScrollablePageWrapper>
       <PageHeader
         title={lang === "en" ? "Available Courses" : "ያሉ ኮርሶች"}
-        subtitle={lang === "en" ? "Browse and enroll in available courses." : "ያሉ ኮርሶችን ይመልከቱ እና ይመዝገቡ።"}
+        subtitle={
+          lang === "en"
+            ? "Browse and enroll in available courses."
+            : "ያሉ ኮርሶችን ይመልከቱ እና ይመዝገቡ።"
+        }
       />
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {data.map(({ id, ...value }, i) => (
