@@ -84,6 +84,68 @@ export async function getCoursesForCustomer() {
   }
 }
 
+export async function getCoursesForLoginCustomer() {
+  try {
+    // Get the current user session
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    // Get all course IDs that the user has already ordered/enrolled in
+    const userOrders = await prisma.order.findMany({
+      where: { userId: session.user.id },
+      select: { courseId: true },
+    });
+
+    const enrolledCourseIds = userOrders.map((order) => order.courseId);
+
+    // Fetch courses excluding the ones user is already enrolled in
+    const data = await prisma.course
+      .findMany({
+        where: {
+          id: {
+            notIn: enrolledCourseIds,
+          },
+        },
+        include: {
+          activity: { select: { _count: { select: { subActivity: true } } } },
+          instructor: {
+            select: { id: true, firstName: true, fatherName: true },
+          },
+        },
+      })
+      .then((res) =>
+        res.map(
+          ({
+            id,
+            price,
+            instructorRate,
+            sellerRate,
+            affiliateRate,
+            activity,
+            ...rest
+          }) => ({
+            id,
+            ...rest,
+            price: Number(price),
+            instructorRate: Number(instructorRate),
+            sellerRate: Number(sellerRate),
+            affiliateRate: Number(affiliateRate),
+            _count: {
+              activity: activity.reduce((a, c) => a + c._count.subActivity, 0),
+            },
+          })
+        )
+      );
+    return data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
 // ----------------------------------------------------------
 
 export async function getCourseForManager(id: string) {
