@@ -90,11 +90,11 @@ export default function CourseBasicInfo({
           {...register("level")}
           label={lang === "en" ? "Level" : "ደረጃ"}
           color="primary"
-          selectedKeys={watch ? [watch("level")] : []}
+          selectedKeys={watch("level") ? [watch("level")] : []}
           className="w-full"
         >
           {["beginner", "intermediate", "advanced"].map((v) => (
-            <CSelectItem key={v}>
+            <CSelectItem key={v} textValue={v.charAt(0).toUpperCase() + v.slice(1)}>
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </CSelectItem>
           ))}
@@ -104,7 +104,7 @@ export default function CourseBasicInfo({
           label={lang === "en" ? "Duration" : "ቆይታ"}
           color="primary"
           value={watch ? watch("duration") : ""}
-          placeholder={lang === "en" ? "e.g., 2 hours" : "ለምሳሌ፣ 2 ሰዓት"}
+          placeholder={lang === "en" ? "e.g., 01:09:09" : "ለምሳሌ፣ 01:09:09"}
           className="w-full"
         />
         <CInput

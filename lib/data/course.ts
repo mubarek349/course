@@ -152,6 +152,8 @@ export async function getCourseForManager(id: string) {
           },
         },
         price: true,
+        dolarPrice: true,
+        birrPrice: true,
         instructorRate: true,
         sellerRate: true,
         affiliateRate: true,
@@ -162,6 +164,7 @@ export async function getCourseForManager(id: string) {
         accessEn: true,
         thumbnail: true,
         video: true,
+        courseMaterials: true,
       },
     });
 

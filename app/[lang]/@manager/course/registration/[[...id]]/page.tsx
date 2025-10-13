@@ -51,6 +51,8 @@ export default function Page() {
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
   const [isPdfUploading, setIsPdfUploading] = useState(false);
   const [isMaterialsUploading, setIsMaterialsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentUploadingFile, setCurrentUploadingFile] = useState<string>("");
 
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
   const [pdfUrl, setPdfUrl] = useState<string>("");
@@ -80,9 +82,8 @@ export default function Page() {
         price: 0,
         dolarPrice: 0,
         birrPrice: 0,
-        currency: "ETB",
         level: "beginner",
-        duration: "01:09:09",
+        duration: "01:09",
         language: "Amharic",
         certificate: false,
         requirement: [],
@@ -100,7 +101,7 @@ export default function Page() {
 
   const isEditing = id && id !== "unknown";
 
-  const { action } = useAction(courseRegistration, undefined, {
+  const { action, reset } = useAction(courseRegistration, { status: false, cause: "", message: "" }, {
     loading:
       lang === "en"
         ? isEditing
@@ -125,8 +126,31 @@ export default function Page() {
         : isEditing
         ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
         : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+    onError({ cause, message }: { cause: string; message: string }) {
+      console.log("❌ useAction onError called", { cause, message });
+      // Reset form state on error to allow retry
+      setIsUploading(false);
+      setIsThumbnailUploading(false);
+      setIsMaterialsUploading(false);
+      // Reset the action state
+      setTimeout(() => reset(), 100);
+    },
     onSuccess({ status }: { status: boolean }) {
+      console.log("🎯 useAction onSuccess called", { status });
       if (status) {
+        console.log("✅ Success! Redirecting...");
+        // Reset form state to allow for future submissions
+        setIsUploading(false);
+        setIsThumbnailUploading(false);
+        setIsMaterialsUploading(false);
+        setSelectedVideoFile(null);
+        setSelectedMaterials(null);
+        setUploadProgress(0);
+        setCurrentUploadingFile("");
+        
+        // Reset the action state
+        setTimeout(() => reset(), 100);
+        
         setTimeout(() => {
           router.push(
             `/${pathname
@@ -138,6 +162,10 @@ export default function Page() {
               .join("/")}`
           );
         }, 1500);
+      } else {
+        console.log("❌ Success callback called but status is false");
+        // Reset the action state even on false status
+        setTimeout(() => reset(), 100);
       }
     },
   });
@@ -199,10 +227,45 @@ export default function Page() {
         }
 
         if (data.pdfData) {
+          console.log("✅ Setting PDF data from main data:", data.pdfData);
           setPdfUrl(data.pdfData);
+          setValue("pdf", data.pdfData, { shouldValidate: false });
+        } else {
+          console.log("ℹ️ No PDF data found in main data");
         }
 
-        // Materials will be fetched in useEffect below
+        // Handle course materials from the main data fetch
+        if (data.courseMaterials && typeof data.courseMaterials === 'string' && data.courseMaterials.trim() !== '') {
+          try {
+            // Parse comma-separated string format: "name1,url1,type1,name2,url2,type2"
+            const parts = data.courseMaterials.split(',');
+            const materials = [];
+
+            // Process in groups of 3 (name, url, type)
+            for (let i = 0; i < parts.length; i += 3) {
+              if (i + 2 < parts.length) {
+                const name = parts[i]?.trim() || "material";
+                const url = parts[i + 1]?.trim() || "";
+                const type = parts[i + 2]?.trim() || "file";
+                
+                if (url) {
+                  materials.push({ name, url, type: type.toLowerCase() });
+                }
+              }
+            }
+
+            if (materials.length > 0) {
+              console.log("✅ Setting course materials from main data:", materials);
+              setCourseMaterials(materials);
+            } else {
+              console.log("ℹ️ No course materials found in main data");
+            }
+          } catch (error) {
+            console.error("Error parsing course materials from main data:", error);
+          }
+        }
+
+        // Materials will also be fetched in useEffect below as backup
 
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
           setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
@@ -219,10 +282,10 @@ export default function Page() {
     },
   });
 
-  // Fetch course materials when editing
+  // Fetch course materials when editing (only if not already loaded from main data)
   React.useEffect(() => {
     const fetchMaterials = async () => {
-      if (isEditing && id && id !== "unknown" && isDataLoaded) {
+      if (isEditing && id && id !== "unknown" && isDataLoaded && courseMaterials.length === 0) {
         try {
           console.log("Fetching materials for course:", id);
           const materials = await getCourseMaterials(id);
@@ -248,7 +311,7 @@ export default function Page() {
       }
     };
     fetchMaterials();
-  }, [isEditing, id, isDataLoaded]);
+  }, [isEditing, id, isDataLoaded, courseMaterials.length]);
 
   const handleVideoSelect = (file: File) => {
     setSelectedVideoFile(file);
@@ -260,6 +323,7 @@ export default function Page() {
   };
 
   const handlePdfSelect = async (file: File) => {
+    console.log("📄 Starting PDF upload:", file.name);
     setIsPdfUploading(true);
     try {
       const formData = new FormData();
@@ -270,12 +334,16 @@ export default function Page() {
       });
       if (response.ok) {
         const result = await response.json();
+        console.log("✅ PDF upload successful:", result);
         setValue("pdf", result.pdfUrl);
         setPdfUrl(result.pdfUrl);
+        console.log("📄 PDF URL set:", result.pdfUrl);
       } else {
+        console.error("❌ PDF upload failed:", response.status);
         alert(lang === "en" ? "PDF upload failed" : "የፒዲኤፍ መስቀል አልተሳካም");
       }
-    } catch {
+    } catch (error) {
+      console.error("❌ PDF upload error:", error);
       alert(lang === "en" ? "PDF upload error" : "የፒዲኤፍ የመስቀል ስህተት");
     } finally {
       setIsPdfUploading(false);
@@ -298,13 +366,19 @@ export default function Page() {
     if (!selectedMaterials) return;
 
     setIsMaterialsUploading(true);
+    setUploadProgress(0);
+    setCurrentUploadingFile("");
+    
     try {
       const uploadedMaterials: { name: string; url: string; type: string }[] =
         [];
+      const totalFiles = selectedMaterials.length;
 
       // Process each selected file
       for (let i = 0; i < selectedMaterials.length; i++) {
         const file = selectedMaterials[i];
+        setCurrentUploadingFile(file.name);
+        
         const formData = new FormData();
         formData.append("file", file);
 
@@ -328,12 +402,18 @@ export default function Page() {
           url: fileUrl,
           type: fileType,
         });
+        
+        // Update progress
+        const progress = Math.round(((i + 1) / totalFiles) * 100);
+        setUploadProgress(progress);
+        
         console.log("Uploaded material:", file.name, fileUrl);
       }
 
       // Update local state with all uploaded files
       setCourseMaterials((prev) => [...prev, ...uploadedMaterials]);
       setSelectedMaterials(null);
+      setCurrentUploadingFile("");
 
       // Show success message
       alert(
@@ -346,13 +426,28 @@ export default function Page() {
       alert(lang === "en" ? "File upload failed" : "የፋይል መስቀል አልተሳካም");
     } finally {
       setIsMaterialsUploading(false);
+      setUploadProgress(0);
+      setCurrentUploadingFile("");
     }
   };
 
   const handleFormSubmit = async (data: TCourse) => {
+    console.log("🚀 Form submission started", { 
+      isEditing, 
+      data: { 
+        ...data, 
+        courseMaterials: courseMaterials.length 
+      },
+      formState: {
+        isValid: formState.isValid,
+        isDirty: formState.isDirty,
+        errors: formState.errors
+      }
+    });
     setIsUploading(true);
     try {
       if (selectedVideoFile) {
+        console.log("📹 Processing new video file:", selectedVideoFile.name);
         const ext = selectedVideoFile.name.split(".").pop() || "mp4";
         const uuidName = `${Date.now()}-${Math.floor(
           Math.random() * 100000
@@ -378,6 +473,9 @@ export default function Page() {
           });
         }
         data.video = uuidName.replace(/\.[^/.]+$/, "") + ".mp4";
+        console.log("✅ Video processed:", data.video);
+      } else {
+        console.log("📹 No new video file selected, keeping existing video");
       }
 
       data.finalExamQuestions = finalExamQuestions;
@@ -387,13 +485,38 @@ export default function Page() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (data as any).courseMaterials = courseMaterials;
 
+      // Ensure PDF data is included in the submission
+      if (pdfUrl) {
+        data.pdf = pdfUrl;
+        console.log("📄 Including PDF data in submission:", pdfUrl);
+      } else {
+        console.log("ℹ️ No PDF data to include in submission");
+      }
+
+      console.log("📤 Calling server action with data:", { 
+        id: data.id, 
+        titleEn: data.titleEn, 
+        titleAm: data.titleAm,
+        instructorId: data.instructorId,
+        channelId: data.channelId,
+        dolarPrice: data.dolarPrice,
+        birrPrice: data.birrPrice,
+        courseMaterialsCount: courseMaterials.length,
+        finalExamQuestionsCount: finalExamQuestions.length
+      });
+
       // First, register/update the course
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result: any = await action(data);
+      
+      console.log("📥 Server action result:", result);
 
       // Materials are included in the server action payload and persisted there.
 
       return result;
+    } catch (error) {
+      console.error("❌ Form submission error:", error);
+      throw error;
     } finally {
       setIsUploading(false);
     }
@@ -733,17 +856,8 @@ export default function Page() {
                             ? "Upload additional course materials (PDF, PPT, DOC, etc.)"
                             : "ተጨማሪ የኮርስ ቅረጾችን ይስቀሉ (ፒዲኤፍ፣ ፒፒቲ፣ ዶክ፣ ወዘተ)"}
                         </p>
-                        <label className="inline-block px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer font-medium">
-                          {isMaterialsUploading ? (
-                            <span className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              {lang === "en" ? "Uploading..." : "በመስቀል ላይ..."}
-                            </span>
-                          ) : lang === "en" ? (
-                            "Select Files"
-                          ) : (
-                            "ፋይሎችን ይምረጡ"
-                          )}
+                        <label className="inline-block px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                          {lang === "en" ? "Select Files" : "ፋይሎችን ይምረጡ"}
                           <input
                             type="file"
                             multiple
@@ -783,23 +897,37 @@ export default function Page() {
                                 )
                               )}
                             </ul>
+                            
+                            {/* Upload Progress */}
+                            {isMaterialsUploading && (
+                              <div className="mt-3 space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span className="text-blue-800 font-medium">
+                                    {currentUploadingFile && (
+                                      <>
+                                        {lang === "en" ? "Uploading:" : "በመስቀል ላይ:"} {currentUploadingFile}
+                                      </>
+                                    )}
+                                  </span>
+                                  <span className="text-blue-600 font-bold">
+                                    {uploadProgress}%
+                                  </span>
+                                </div>
+                                <div className="w-full bg-blue-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+                                    style={{ width: `${uploadProgress}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            )}
+                            
                             <button
                               onClick={handleMaterialsUpload}
                               disabled={isMaterialsUploading}
-                              className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50"
+                              className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {isMaterialsUploading ? (
-                                <span className="flex items-center gap-2">
-                                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                  {lang === "en"
-                                    ? "Uploading..."
-                                    : "በመስቀል ላይ..."}
-                                </span>
-                              ) : lang === "en" ? (
-                                "Upload Files"
-                              ) : (
-                                "ፋይሎችን ይስቀሉ"
-                              )}
+                              {lang === "en" ? "Upload Files" : "ፋይሎችን ይስቀሉ"}
                             </button>
                           </div>
                         )}
@@ -816,18 +944,18 @@ export default function Page() {
               </CardBody>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
               <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="p-6 bg-gradient-to-r from-emerald-50 to-teal-50">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md">
-                      <Users className="size-5 text-white" />
+                <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-emerald-50 to-teal-50">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md">
+                      <Users className="size-4 sm:size-5 text-white" />
                     </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">
                         {lang === "en" ? "Target Audience" : "ዒላማ ተመልካቾች"}
                       </h2>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
                         {lang === "en"
                           ? "Define your ideal students"
                           : "ተስማሚ ተማሪዎችዎን ይግለጹ"}
@@ -836,7 +964,7 @@ export default function Page() {
                   </div>
                 </CardHeader>
                 <Divider className="bg-gradient-to-r from-emerald-200 to-teal-200" />
-                <CardBody className="p-6">
+                <CardBody className="p-4 sm:p-6">
                   <CourseFor
                     list={watch("courseFor")}
                     addValue={({ en, am }) =>
@@ -879,16 +1007,16 @@ export default function Page() {
               </Card>
 
               <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="p-6 bg-gradient-to-r from-amber-50 to-orange-50">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-md">
-                      <CheckSquare className="size-5 text-white" />
+                <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-md">
+                      <CheckSquare className="size-4 sm:size-5 text-white" />
                     </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">
                         {lang === "en" ? "Prerequisites" : "ቅድመ ሁኔታዎች"}
                       </h2>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
                         {lang === "en"
                           ? "Required knowledge and skills"
                           : "የሚያስፈልግ እውቀት እና ክህሎት"}
@@ -897,7 +1025,7 @@ export default function Page() {
                   </div>
                 </CardHeader>
                 <Divider className="bg-gradient-to-r from-amber-200 to-orange-200" />
-                <CardBody className="p-6">
+                <CardBody className="p-4 sm:p-6">
                   <CourseFor
                     list={watch("requirement")}
                     addValue={({ en, am }) =>
@@ -1156,6 +1284,7 @@ export default function Page() {
                 <CourseSettings
                   lang={lang}
                   register={register}
+                  watch={watch}
                   channels={channels}
                   instructors={instructors}
                 />
@@ -1232,35 +1361,121 @@ export default function Page() {
 
             {/* Action Buttons */}
             <Card className="shadow-lg border-0 bg-gradient-to-r from-gray-50 to-slate-50">
-              <CardBody className="p-6 lg:p-8">
-                <div className="flex flex-col sm:flex-row gap-4 justify-end">
-                  <Button
-                    variant="bordered"
-                    as={Link}
-                    href={`/${lang}/course`}
-                    startContent={<ArrowLeft className="size-4" />}
-                    className="min-w-36 h-12 border-2 border-gray-300 hover:border-gray-400 transition-colors"
-                    size="lg"
-                  >
-                    {lang === "en" ? "Cancel" : "ሰርዝ"}
-                  </Button>
-                  <Button
-                    color="primary"
-                    startContent={<Save className="size-4" />}
-                    className="min-w-36 h-12 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                    size="lg"
-                    isLoading={formState.isSubmitting || isUploading}
-                    isDisabled={isUploading || isThumbnailUploading}
-                    onPress={() => handleSubmit(handleFormSubmit)()}
-                  >
-                    {isEditing
-                      ? lang === "en"
-                        ? "Update Course"
-                        : "ኮርስ አዘምን"
-                      : lang === "en"
-                      ? "Create Course"
-                      : "κርስ ፍጠር"}
-                  </Button>
+              <CardBody className="p-4 sm:p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between sm:justify-end">
+                  {/* Progress Summary */}
+                  <div className="flex items-center gap-3 text-sm text-gray-600 order-2 sm:order-1">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${watch("titleEn") && watch("titleAm") ? "bg-green-500" : "bg-gray-300"}`}></div>
+                      <span className="text-xs sm:text-sm">{lang === "en" ? "Basic Info" : "መሰረታዊ መረጃ"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${watch("thumbnail") && watch("video") ? "bg-green-500" : "bg-gray-300"}`}></div>
+                      <span className="text-xs sm:text-sm">{lang === "en" ? "Media" : "ሚዲያ"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${watch("courseFor").length && watch("requirement").length ? "bg-green-500" : "bg-gray-300"}`}></div>
+                      <span className="text-xs sm:text-sm">{lang === "en" ? "Details" : "ዝርዝሮች"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${watch("activity").length ? "bg-green-500" : "bg-gray-300"}`}></div>
+                      <span className="text-xs sm:text-sm">{lang === "en" ? "Activities" : "እንቅስቃሴዎች"}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 order-1 sm:order-2">
+                    <Button
+                      variant="bordered"
+                      as={Link}
+                      href={`/${lang}/course`}
+                      startContent={<ArrowLeft className="size-4" />}
+                      className="w-full sm:min-w-32 h-11 sm:h-12 border-2 border-gray-300 hover:border-gray-400 transition-colors text-sm sm:text-base"
+                      size="lg"
+                      isDisabled={formState.isSubmitting || isUploading || isThumbnailUploading || isMaterialsUploading}
+                    >
+                      {lang === "en" ? "Cancel" : "ሰርዝ"}
+                    </Button>
+                    <Button
+                      color="primary"
+                      startContent={!formState.isSubmitting && !isUploading ? <Save className="size-4" /> : undefined}
+                      className="w-full sm:min-w-40 h-11 sm:h-12 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base font-semibold relative overflow-hidden"
+                      size="lg"
+                      isLoading={false}
+                      isDisabled={
+                        isUploading || 
+                        isThumbnailUploading || 
+                        isMaterialsUploading ||
+                        !watch("titleEn") || 
+                        !watch("titleAm") ||
+                        !watch("instructorId") ||
+                        !watch("channelId") ||
+                        !watch("dolarPrice") ||
+                        !watch("birrPrice") ||
+                        !watch("duration")
+                      }
+                      onPress={() => {
+                        console.log("🔘 Submit button pressed", {
+                          isSubmitting: formState.isSubmitting,
+                          isUploading,
+                          formErrors: formState.errors,
+                          formValid: formState.isValid,
+                          formDirty: formState.isDirty,
+                          formValues: {
+                            titleEn: watch("titleEn"),
+                            titleAm: watch("titleAm"),
+                            instructorId: watch("instructorId"),
+                            channelId: watch("channelId"),
+                            dolarPrice: watch("dolarPrice"),
+                            birrPrice: watch("birrPrice"),
+                            duration: watch("duration")
+                          }
+                        });
+                        if (!formState.isSubmitting && !isUploading) {
+                          handleSubmit(handleFormSubmit)();
+                        }
+                      }}
+                    >
+                      {/* Loading Overlay */}
+                      {(formState.isSubmitting || isUploading) && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 flex flex-col items-center justify-center">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="relative">
+                              <div className="w-5 h-5 border-2 border-white/30 rounded-full"></div>
+                              <div className="absolute top-0 left-0 w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                            <span className="text-white font-semibold text-sm">
+                              {isEditing 
+                                ? (lang === "en" ? "Updating Course..." : "ኮርስ በማዘመን ላይ...")
+                                : (lang === "en" ? "Creating Course..." : "ኮርስ በመፍጠር ላይ...")
+                              }
+                            </span>
+                          </div>
+                          
+                          {/* Progress Steps */}
+                          <div className="flex items-center gap-2 text-xs text-white/80">
+                            <div className={`w-2 h-2 rounded-full ${formState.isSubmitting ? 'bg-white' : 'bg-white/40'}`}></div>
+                            <span>{lang === "en" ? "Processing" : "በማስተካከል ላይ"}</span>
+                            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+                            <div className={`w-2 h-2 rounded-full ${isUploading ? 'bg-white' : 'bg-white/40'}`}></div>
+                            <span>{lang === "en" ? "Uploading" : "በመስቀል ላይ"}</span>
+                            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+                            <div className={`w-2 h-2 rounded-full ${formState.isSubmitting && !isUploading ? 'bg-white' : 'bg-white/40'}`}></div>
+                            <span>{lang === "en" ? "Saving" : "በማስቀመጥ ላይ"}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Button Content */}
+                      <span className={`transition-opacity duration-200 ${(formState.isSubmitting || isUploading) ? 'opacity-0' : 'opacity-100'}`}>
+                        {isEditing ? (
+                          lang === "en" ? "Update Course" : "ኮርስ አዘምን"
+                        ) : (
+                          lang === "en" ? "Create Course" : "ኮርስ ፍጠር"
+                        )}
+                      </span>
+                    </Button>
+                  </div>
                 </div>
               </CardBody>
             </Card>

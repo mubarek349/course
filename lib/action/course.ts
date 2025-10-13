@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import prisma from "../db";
@@ -9,8 +10,14 @@ export async function courseRegistration(
   data: TCourse | undefined | null
 ): Promise<StateType> {
   try {
+    console.log("🔧 Server action started", { 
+      hasData: !!data, 
+      isUpdate: !!(data?.id),
+      dataKeys: data ? Object.keys(data) : []
+    });
+
     if (!data || data === null) {
-      console.log("No data provided to courseRegistration");
+      console.log("❌ No data provided to courseRegistration");
       return {
         status: false,
         cause: "No data provided",
@@ -18,14 +25,19 @@ export async function courseRegistration(
       };
     }
 
-    console.log("Course registration data received:", {
+    console.log("📋 Course registration data received:", {
+      id: data.id,
       titleEn: data.titleEn,
       titleAm: data.titleAm,
       instructorId: data.instructorId,
       channelId: data.channelId,
+      price: data.price,
       dolarPrice: data.dolarPrice,
       birrPrice: data.birrPrice,
-      price: data.price,
+      pdf: data.pdf,
+      courseMaterialsCount: (data as any).courseMaterials?.length || 0,
+      finalExamQuestionsCount: data.finalExamQuestions?.length || 0,
+      activityCount: data.activity?.length || 0
     });
 
     // Validate required fields
@@ -61,6 +73,8 @@ export async function courseRegistration(
       finalExamQuestions,
       pdf, // Extract PDF field
       courseMaterials, // Optional client-provided materials
+      birrPrice,
+      dolarPrice,
       ...rest
     } = data;
 
@@ -73,9 +87,12 @@ export async function courseRegistration(
       : undefined;
 
     // Add pdfData and optionally courseMaterials to the rest data (mapping pdf to pdfData)
+    console.log("📄 Processing PDF data:", { pdf, pdfData: pdf || null });
     const courseData = {
       ...rest,
       pdfData: pdf || null, // Map pdf to pdfData for the database
+      birrPrice,
+      dolarPrice,
       ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
     } as const;
 
@@ -88,6 +105,8 @@ export async function courseRegistration(
     // });
 
     if (id) {
+      console.log("🔄 Starting course update process for ID:", id);
+      
       await prisma.courseFor.deleteMany({ where: { courseId: id } });
       await prisma.requirement.deleteMany({ where: { courseId: id } });
 
@@ -95,6 +114,8 @@ export async function courseRegistration(
       const activities = await prisma.activity.findMany({
         where: { courseId: id },
       });
+      console.log("🗑️ Found activities to delete:", activities.length);
+      
       for (const activity of activities) {
         await prisma.questionAnswer.deleteMany({
           where: { question: { activityId: activity.id } },
@@ -124,6 +145,14 @@ export async function courseRegistration(
       const { instructorId, channelId, ...courseDataWithoutRelations } =
         courseData;
 
+      console.log("💾 Updating course with data:", {
+        instructorId,
+        channelId,
+        courseForCount: courseFor.length,
+        requirementCount: requirement.length,
+        activityCount: activity.length
+      });
+
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
@@ -151,6 +180,8 @@ export async function courseRegistration(
         },
         include: { activity: { orderBy: { order: "asc" } } },
       });
+
+      console.log("✅ Course updated successfully:", updatedCourse.id);
 
       // Create questions for each activity
       for (let i = 0; i < activity.length; i++) {
@@ -415,8 +446,10 @@ export async function courseRegistration(
       }
     }
 
+    console.log("🎉 Course registration completed successfully");
     return { status: true } as const;
-  } catch {
+  } catch (error) {
+    console.error("💥 Course registration error:", error);
     return {
       status: false,
       cause: "Unknown Error",

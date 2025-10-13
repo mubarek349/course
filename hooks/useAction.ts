@@ -26,6 +26,7 @@ export default function useAction<State extends StateType, Payload>(
   isPending: boolean;
   action: (payload?: Payload) => void;
   refresh: () => void;
+  reset: () => void;
 } {
   const [state, action, isPending] = useActionState(func, initData),
     [toastId, setToastId] = useState<string | number>();
@@ -81,7 +82,7 @@ export default function useAction<State extends StateType, Payload>(
           message: state.message,
         });
       }
-      // refresh();
+      // Don't automatically refresh - let the component handle state reset
     }
   }, [state]);
 
@@ -91,10 +92,18 @@ export default function useAction<State extends StateType, Payload>(
     };
   }, []);
 
+  const reset = useCallback(() => {
+    // Reset the action state to initial state
+    startTransition(() => {
+      action(undefined);
+    });
+  }, [action]);
+
   return {
     state,
     isPending,
     action: handleAction,
     refresh,
+    reset,
   };
 }
