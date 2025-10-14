@@ -249,7 +249,7 @@ function HomeSample() {
 
       {/* Fixed WhatsApp Button - Bottom Right */}
       <motion.a
-        href="https://wa.me/251945467896?text=Hello%2C%20I%20want%20to%20learn%20Quran"
+        href="https://wa.me/251933807447?text=Hello%2C%20I%20want%20to%20learn%20Quran"
         target="_blank"
         rel="noopener noreferrer"
         initial={{ opacity: 0, scale: 0 }}
