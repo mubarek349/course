@@ -111,7 +111,8 @@ Your one-time OTP code is: ${otp.code}
 
 Thank you for choosing Darulkubra!`
     );
-
+    console.log("OTP sent to", otp.phoneNumber);
+    console.log("OTP", otp.code);
     return { status: true };
   } catch {
     return { status: false, cause: "", message: "" };

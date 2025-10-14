@@ -37,8 +37,8 @@ export default function CourseCardAffiliate({
   btn: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
-    const params = useParams<{ lang: string }>();
-    const lang = params?.lang || "en";
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang || "en";
 
   return (
     <div className="h-fit relative bg-background rounded-xl overflow-hidden  ">
@@ -58,7 +58,9 @@ export default function CourseCardAffiliate({
       <div className="px-5 divide-y divide-primary-600/20">
         <div className="py-2 grid gap-2 grid-rows-[auto_auto_1fr]  ">
           <Link
-            href={`${lang}/course/${id}?code=${searchParams?.get("code") || ""}`}
+            href={`/${lang}/course/${id}?code=${
+              searchParams?.get("code") || ""
+            }`}
             className="text-lg font-semibold "
           >
             {lang == "en" ? titleEn : titleAm}
