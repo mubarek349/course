@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import CourseSample from "./course/page";
 // import Link from "next/link";
 import React, { useEffect } from "react";
 import { motion } from "motion/react";
@@ -14,6 +15,8 @@ import { Button, Form, Input, Link, Textarea } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { CButton } from "@/components/heroui";
 import useAction from "@/hooks/useAction";
+import { getCoursesForCustomer } from "@/lib/data/course";
+import { PlayCircle } from "lucide-react";
 
 export default function Page() {
   useEffect(() => {
@@ -21,624 +24,463 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="h-full w- overflow-x-hidden overflow-y-scroll scroll-smooth snap-y snap-mandatory">
-      <HeroPage />
-      <About />
-      <Service />
-      <About2 />
-      <Information />
-      <Service2 />
-      {/* <Testimonial /> */}
-      <Contact />
-      {/* <Footer /> */}
+    <div className="w-full">
+      <HomeSample />
+      <CourseSample />
+      <Footer />
     </div>
   );
 }
-
-function HeroPage() {
+function HomeSample() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
+
   return (
-    <div className="relative h-dvh md:p-48 grid snap-start ">
-      <motion.div
-        initial={{ opacity: 0, y: "-100%" }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.5, type: "tween" },
-        }}
-        className="grid place-content-center "
-      >
-        <div className="text-center bg-gradient-to-l from-primary-600 via-40%5 via-secondary-600 to-primary-600 bg-clip-text text-transparent">
-          <p className="text-4xl md:text-6xl font-[900] [text-shadow:0_0_10px_rgba(232,121,249-)]">
-            {lang == "en"
-              ? "The best among you is he who learns the Quran and teaches it."
-              : "ከእናንተ ውስጥ በላጩ ቁርአንን ተምሮ ያስተማረ ነው"}
-          </p>
-          <p className="pl-5 text-xl text-fuchsia-600 italic before:content-['~'] before:pr-2 ">
-            {lang == "en" ? "The Messenger" : "ረሱል"} ﷺ
-          </p>
-        </div>
-        <div className="size-fit place-self-center pt-20 flex max-md:flex-col gap-5 ">
-          {/* <Button
-            as={Link}
-            href="/"
-            color="primary"
-            variant="flat"
-            className="w-60"
-            >
-            {lang == "en" ? "Online Education" : "ኦንላይን ትምህርት"}
-            </Button> */}
-          <CButton
-            as={Link}
-            href={`/${lang}/#about`}
-            color="primary"
-            variant="flat"
-            className="w-60"
+    <div className="relative w-full min-h-screen bg-white overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-20 right-20 w-32 h-32 bg-blue-100/30 rounded-full blur-2xl hidden md:block"></div>
+      <div className="absolute bottom-20 left-20 w-40 h-40 bg-green-100/30 rounded-full blur-2xl hidden md:block"></div>
+
+      <div className="relative z-10 w-full px-4 md:px-10 py-12 md:py-20">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center min-h-screen">
+          {/* Left Side - Content */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
           >
-            {lang == "en" ? "Learn More" : "የበለጠ ለማወቅ"}
-          </CButton>
-          <CButton
-            as={Link}
-            href={`/${lang}/course`}
-            color="primary"
-            variant="shadow"
-            className="w-60"
-          >
-            {lang == "en" ? "Education" : "ትምህርት"}
-          </CButton>
-        </div>
-      </motion.div>
-
-      <motion.div
-        initial={{ y: "-100%" }}
-        whileInView={{
-          y: 0,
-          transition: { delay: 0.3, duration: 3, type: "spring", bounce: 0.4 },
-        }}
-        className="absolute top-0 left-0 md:left-10 h-64 md:h-[29rem] grid grid-rows-[1fr_auto] [&>*:last-child]:size-20"
-      >
-        <div className="h-full w-[0.5px] place-self-center bg-secondary-600" />
-        <Image
-          src={"/bulb1.png"}
-          alt=""
-          width={1000}
-          height={1000}
-          className=""
-        />
-      </motion.div>
-      <motion.div
-        initial={{ y: "-100%" }}
-        whileInView={{
-          y: 0,
-          transition: { duration: 3, type: "spring", bounce: 0.4 },
-        }}
-        className="absolute top-0 left-12 md:left-40 h-40 md:h-[25rem] grid grid-rows-[1fr_auto] [&>*:last-child]:size-20"
-      >
-        <div className="h-full w-[0.5px] place-self-center bg-secondary-600" />
-        <Image
-          src={"/bulb1.png"}
-          alt=""
-          width={1000}
-          height={1000}
-          className=""
-        />
-      </motion.div>
-      <motion.div
-        initial={{ y: "-100%" }}
-        whileInView={{
-          y: 0,
-          transition: { delay: 0.5, duration: 3, type: "spring", bounce: 0.4 },
-        }}
-        className="absolute top-0 left-20 md:left-20 h-56 md:h-[20rem] grid grid-rows-[1fr_auto] [&>*:last-child]:size-20"
-      >
-        <div className="h-full w-[0.5px] place-self-center bg-secondary-600" />
-        <Image
-          src={"/bulb1.png"}
-          alt=""
-          width={1000}
-          height={1000}
-          className=""
-        />
-      </motion.div>
-
-      <motion.div
-        initial={{ scale: 0 }}
-        exit={{ scale: 0 }}
-        whileInView={{
-          scale: 1,
-          transition: {
-            delay: 0.5,
-            duration: 1.5,
-            type: "spring",
-            bounce: 0.4,
-          },
-        }}
-        className="absolute bottom-5 md:bottom-10 -right-5 md:right-20  "
-      >
-        <Image
-          src={"/bulb2.png"}
-          alt=""
-          width={1000}
-          height={1000}
-          className="size-40 md:size-60"
-        />
-      </motion.div>
-    </div>
-  );
-}
-
-function About() {
-  const params = useParams<{ lang: string }>();
-  const lang = params?.lang || "en";
-  return (
-    <div
-      id="about"
-      className="relative p-4 md:p-10 flex max-md:flex-col-reverse gap-4 md:gap-10 snap-start "
-    >
-      <div className="flex-1 p-2 md:p-10 grid place-content-center autoShow-bottom">
-        <Image
-          src={"/quran2.png"}
-          alt=""
-          height={1000}
-          width={1000}
-          className="w-96 aspect-square  "
-        />
-      </div>
-      <div className="flex-1 h-fit place-self-center p-10 bg-background/50 backdrop-blur-3xl rounded-xl shadow-[0_0_10px_-5px_#0ea5e9] grid gap-5 place-content-center autoShow-bottom">
-        <p className="content-center text-center text-xl  ">
-          {lang == "en"
-            ? "Darul Kubra Quran Center has appointed qualified Hafizul Quran teachers and invites you to come and learn the Quran with us from anywhere. The way you learn is very easy and convenient for beginners, including Tajweed and Hifz. Learn your Quran with the help of various video files and by interacting directly with the teacher. We will provide you with a certificate of proficiency upon completion."
-            : "ዳሩል ኩብራ የቁርአን ማእከል ብቁ የሆኑ ሃፊዘል ቁርአን ኡስታዞችን መድቦ በማንኛውም ቦታ ሆነው ኑ ቁርአንን ከኛ ጋር ይማሩ ይላል። የሚቀሩበት መንገድ ከጀማሪ እሰከ ተጅዊድ እና ሂፍዝን ጨምሮ ለሚማሩ በጣም ቀላል እና  ምቹ ነው። በተለያዩ ቪድዮ ፋይሎች በመታገዘ እና በቀጥታ ከ ኡስታዙ ጋር በመገናኘት ቁርአንዎን ይማሩ። ሲጨርሱ የብቃት ማረጋገጫ ሰርትፍኬት እንሰጣለን።"}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Service() {
-  const params = useParams<{ lang: string }>();
-  const lang = params?.lang || "en";
-  return (
-    <div className="py-40 px-4 md:px-40 md:h-dvh flex max-md:flex-col gap-10 snap-start">
-      <motion.div
-        initial={{ scale: 0 }}
-        whileInView={{
-          scale: 1,
-          transition: { delay: 0.3, duration: 1, type: "spring", bounce: 0.3 },
-        }}
-        whileHover={{
-          scale: 1.02,
-          boxShadow: "0 0 5px #0ea5e9",
-          transition: { duration: 1, type: "spring", bounce: 0.3 },
-        }}
-        className="max-md:h-[50dvh] md:flex-1 rounded-xl overflow-hidden bg-[url('/graduation.png')] bg-no-repeat bg-contain bg-center grid justify-center items-end  "
-      >
-        <div className="pt-20 px-5 bg-gradient-to-t from-primary via-primary/80 to-transparent text-center text-background ">
-          <p className="text-xl font-extrabold">
-            {lang == "en"
-              ? "You will receive a certificate of competency."
-              : "የብቃት ማረጋገጫ ሰርተፍኬት ያገኛሉ"}
-          </p>
-          <p className="py-5">
-            {lang == "en"
-              ? "We will provide you with a certificate of proficiency upon completion of your Quran lessons."
-              : "የቁርዐን ትምህርቶን ሲጨርሱ የብቃት ማረጋገጫ ሰርትፍኬት እንሰጣለን"}
-          </p>
-        </div>
-      </motion.div>
-      <motion.div
-        initial={{ scale: 0 }}
-        whileInView={{
-          scale: 1,
-          transition: { delay: 0.3, duration: 1, type: "spring", bounce: 0.3 },
-        }}
-        whileHover={{
-          scale: 1.02,
-          boxShadow: "0 0 5px #0ea5e9",
-          transition: { duration: 1, type: "spring", bounce: 0.3 },
-        }}
-        className="max-md:h-[50dvh] md:flex-1 rounded-xl overflow-hidden bg-[url('/star.png')] bg-no-repeat bg-contain bg-center grid justify-center items-end  "
-      >
-        <div className="pt-20 px-5 bg-gradient-to-t from-primary via-primary/80 to-transparent text-center text-background ">
-          <p className="text-xl font-extrabold">
-            {lang == "en"
-              ? "Qualified Quran Hafiz Teachers"
-              : "ብቁ ቁርዐን ሀፊዝ ዑስታዞች"}
-          </p>
-          <p className="py-5">
-            {lang == "en"
-              ? "Darul Kubra Quran Center has appointed qualified Hafizul Quran teachers and invites you to come and learn the Quran with us from anywhere"
-              : "ዳሩል ኩብራ የቁርአን ማእከል ብቁ የሆኑ ሃፊዘል ቁርአን ኡስታዞችን መድቦ በማንኛውም ቦታ ሆነው ኑ ቁርአንን ከኛ ጋር ይማሩ ይላል"}
-          </p>
-        </div>
-      </motion.div>
-      <motion.div
-        initial={{ scale: 0 }}
-        whileInView={{
-          scale: 1,
-          transition: { delay: 0.3, duration: 1, type: "spring", bounce: 0.3 },
-        }}
-        whileHover={{
-          scale: 1.02,
-          boxShadow: "0 0 5px #0ea5e9",
-          transition: { duration: 1, type: "spring", bounce: 0.3 },
-        }}
-        className="max-md:h-[50dvh] md:flex-1 rounded-xl overflow-hidden bg-[url('/operator.png')] bg-no-repeat bg-contain bg-center grid justify-center items-end  "
-      >
-        <div className="pt-20 px-5 bg-gradient-to-t from-primary via-primary/80 to-transparent text-center text-background ">
-          <p className="text-xl font-extrabold">
-            {lang == "en"
-              ? "One-to-one educational service"
-              : "አንድ ለ አንድ የትምህርት አገልግሎት"}
-          </p>
-          <p className="py-5">
-            {lang == "en"
-              ? "Learn your Quran with the help of various video files and by interacting directly with the teacher"
-              : "በተለያዩ ቪድዮ ፋይሎች በመታገዘ እና በቀጥታ ከ ኡስታዙ ጋር በመገናኘት ቁርአንዎን ይማሩ"}
-          </p>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-function About2() {
-  const params = useParams<{ lang: string }>();
-  const lang = params?.lang || "en";
-  return (
-    <div className="relative h-dvh p-4 md:p-10 md:pt-32 bg-[url('/who-reads-quran.png')] bg-no-repeat bg-[65%_10%] bg-cover border-b-4 border-primary grid snap-start ">
-      <div className="md:w-1/2 h-fit py-4 md:p-10 bg-background/50 backdrop-blur rounded-xl border border-background shadow-[0_0_10px_-5px_#0ea5e9] grid place-content-center autoShow-bottom">
-        <p className="pb-2 md:pb-10 font-[900] md:text-3xl text-center">
-          {lang == "en"
-            ? "Now is the time to learn the Quran"
-            : "ቁርዓንን መማሪያ ግዜዎ አሁን ነው"}
-          !
-        </p>
-        <p className="pb-2 md:pb-10 text-center">
-          {lang == "en"
-            ? 'Under the motto "Success Village", qualified teachers have been assigned to introduce you to the recitation of the Quran without taking up time from your work or studies. They have provided a way for you to read the Quran online in a short time with various options, just using the phone in your hand.'
-            : 'ከስራዎትም ሆነ ከትምህርቶ ጊዜ በማይሻማ መልኩ "የስኬት መንደር" በሚል መሪ ቃል እርሶዎን ከቁርአን ንባብ ጋር ለማስተዋወቅ ብቁ የሆኑ ኡስታዞች ተመድቦልዎ በእጆዎ ያለውን ስልክ በመጠቀም ብቻ በተለያዩ አማራጮች ቁርአንን በአጭር ጊዜ ዉስጥ ማንበብ እንዲችሉ ኦንላይን መቅራት የሚችሉበትን መንገድ አመቻችቷል'}
-        </p>
-        <p className="pb-2 md:pb-10 font-extrabold italic text-center">
-          {lang == "en" ? "This is not only" : "ይሄ ብቻ አይደለም"}
-        </p>
-        <p className="pb-2 md:pb-10 text-center">
-          {lang == "en"
-            ? "We also provide various basic deen lessons."
-            : "የተለያዩ መሰረታዊ የዲን ትምህርቶችንም ጎን ሉጎን እንሰጣለን"}
-        </p>
-      </div>
-      <motion.div className="absolute -bottom-[5rem] md:-bottom-[10rem] inset-x-0 mx-auto size-40 md:size-80 grid place-content-center ">
-        <div className="size-20 md:size-40 bg-background/80 backdrop-blur rounded-full grid place-content-center ">
-          <Image
-            src={"/darulkubra.png"}
-            alt=""
-            height={1000}
-            width={1000}
-            className="size-14 md:size-28 rounded-full"
-          />
-        </div>
-        <Image
-          src={"/quran-folder.png"}
-          alt=""
-          height={1000}
-          width={1000}
-          className="absolute inset-0 size-full animate-rotate "
-        />
-      </motion.div>
-    </div>
-  );
-}
-
-function Information() {
-  const params = useParams<{ lang: string }>();
-  const lang = params?.lang || "en";
-  return (
-    <div className="p-4 md:p-10 pt-32 md:pt-96 snap-start">
-      <p className="font-[900] text-2xl text-center">
-        {lang == "en" ? "Things needed" : "የሚያስፈልጉ ነገሮች"}
-      </p>
-      <div className="flex max-md:flex-col gap-10">
-        <div className="flex-1 h-fit p-2 md:p-10 place-self-center rounded-xl grid grid-rows-[1fr_auto] autoShow-bottom ">
-          <div className="relative w-fit p-[20px] place-self-center ">
-            <div className="relative w-[300px] h-[200px]  ">
-              <Image
-                src={"/laptop.png"}
-                alt=""
-                height={1000}
-                width={1000}
-                className="relative z-10 size-full  "
-              />
-              <Image
-                src={"/quran.jpg"}
-                alt=""
-                height={1000}
-                width={1000}
-                className="z-0 absolute top-[11px] left-[31px] w-[238px] h-[130px] "
-              />
+            {/* Main Title */}
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight">
+                {lang === "en"
+                  ? "The Leading Islamic Education Platform in Ethiopia"
+                  : "በኢትዮጵያ ውስጥ ዋናው የኢስላማዊ ትምህርት መድረክ"}
+              </h1>
+              <div className="w-20 md:w-24 h-1 bg-gradient-to-r from-blue-500 to-green-500 rounded-full"></div>
             </div>
-            <Image
-              src={"/phone.png"}
-              alt=""
-              height={1000}
-              width={1000}
-              className="z-10 absolute bottom-0 right-0 w-20 md:w-24 bg-[url('/quran.jpg')] rounded-xl md:rounded-2xl "
-            />
-          </div>
-          <p className="mt-5 p-2 text-xl text-center bg-primary-100 border border-primary-300 rounded-full">
-            {lang == "en" ? "Smartphone or computer" : "ስማርት ስልክ ወይም ኮምፒውተር"}
-          </p>
-        </div>
-        <div className="flex-1 h-fit p-2 md:p-10 place-self-center rounded-xl autoShow-bottom ">
-          <Image
-            src={"/network.png"}
-            alt=""
-            height={1000}
-            width={1000}
-            className="w-[340px] h-[240px] place-self-center "
-          />
-          <p className="mt-5 p-2 text-xl text-center bg-primary-100 border border-primary-300 rounded-full">
-            {lang == "en" ? "Good internet / network" : "ጥሩ ኢንተርኔት / ኔትዎክ"}
-          </p>
+
+            {/* Features List */}
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+                className="flex items-start gap-4"
+              >
+                <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                    {lang === "en"
+                      ? "Expert Quran Teachers:"
+                      : "ባለሙያ የቁርአን አስተማሪዎች:"}
+                  </h3>
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-medium">
+                    {lang === "en"
+                      ? "Learn from certified Hafizul Quran instructors with years of experience, ensuring authentic and accurate Islamic education."
+                      : "ዓመታት የሚሆኑ ልምድ ያላቸው የሰርተፍኬት ያላቸው ሃፊዘል ቁርአን አስተማሪዎች ይማሩ፣ እውነተኛ እና ትክክለኛ የኢስላማዊ ትምህርት ዋስትና።"}
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="flex items-start gap-4"
+              >
+                <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                    {lang === "en"
+                      ? "Interactive Learning Experience:"
+                      : "የመስተጋብር የመማሪያ ልምድ:"}
+                  </h3>
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-medium">
+                    {lang === "en"
+                      ? "Engage with modern technology and traditional teaching methods. Track your progress with AI-powered tools and personalized learning paths."
+                      : "ዘመናዊ ቴክኖሎጂ እና ባህላዊ የመማሪያ ዘዴዎች ይስተጋብሩ። በAI የተመሰረተ መሳሪያዎች እና የተበጀ የመማሪያ መንገዶች እድገትዎን ይከታተሉ።"}
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+                className="flex items-start gap-4"
+              >
+                <div className="flex-shrink-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                    {lang === "en"
+                      ? "Certificates & Spiritual Growth:"
+                      : "ሰርተፍኬቶች እና መንፈሳዊ እድገት:"}
+                  </h3>
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-medium">
+                    {lang === "en"
+                      ? "Earn recognized certificates that demonstrate your Quranic knowledge and skills. Join a community committed to spiritual development and Islamic learning."
+                      : "የቁርአን እውቀትን እና ክህሎቶችን የሚያሳዩ የታወቁ ሰርተፍኬቶች ያግኙ። ለመንፈሳዊ እድገት እና የኢስላማዊ መማሪያ የተዋደደ ማህበረሰብ ይቀላቀሉ።"}
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Call to Action Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.6 }}
+              className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4"
+            >
+              <CButton
+                as={Link}
+                href={`/${lang}/course`}
+                color="primary"
+                variant="shadow"
+                size="lg"
+                className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold bg-gradient-to-r from-blue-500 to-green-500 w-full sm:w-auto"
+              >
+                {lang === "en" ? "Start Learning Now" : "አሁን መማር ጀምር"}
+              </CButton>
+              <CButton
+                as={Link}
+                href={`/${lang}/#about`}
+                color="default"
+                variant="bordered"
+                size="lg"
+                className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold border-2 border-gray-300 hover:border-blue-500 w-full sm:w-auto"
+              >
+                {lang === "en" ? "Learn More" : "የበለጠ ለማወቅ"}
+              </CButton>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Side - Tutor Image with Decorative Elements */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative flex justify-center items-center mt-12 lg:mt-0"
+          >
+            {/* Large Blue Circle Background with Image Inside */}
+            <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[450px] md:h-[450px] lg:w-[550px] lg:h-[550px]">
+              {/* Main blue circle */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-green-500 rounded-full shadow-2xl overflow-hidden">
+                {/* Tutor Image - top 65% of circle */}
+                <div className="absolute top-0 left-0 right-0 h-[65%] flex items-start justify-center overflow-hidden">
+                  <Image
+                    src={"/tutor2.png"}
+                    alt={
+                      lang === "en"
+                        ? "Expert Quran Teacher"
+                        : "ባለሙያ የቁርአን አስተማሪ"
+                    }
+                    width={400}
+                    height={500}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+
+                {/* Text overlay at the bottom of the circle with padding from border */}
+                <div className="absolute bottom-0 left-0 right-0 text-center text-white px-4 sm:px-6 md:px-8 pb-6 sm:pb-8 md:pb-10 z-10 bg-gradient-to-t from-blue-900/90 via-blue-800/70 to-transparent pt-12 sm:pt-16 md:pt-20">
+                  <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black mb-1 sm:mb-2 drop-shadow-2xl">
+                    {lang === "en"
+                      ? "Learn Quran is Knowledge"
+                      : "ቁርአንን መማር እውቀት ነው"}
+                  </h3>
+                  <p className="text-xs sm:text-sm md:text-base font-bold opacity-90 drop-shadow-2xl">
+                    {lang === "en" ? "Knowledge is Power" : "እውቀት ኃይል ነው"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Decorative star badge */}
+              <div className="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 md:-top-4 md:-left-4 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg z-20">
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+
+              {/* Expert badge */}
+              <div className="absolute top-1/2 -right-3 sm:-right-4 md:-right-6 bg-green-500 text-white px-3 sm:px-4 md:px-5 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-bold shadow-xl z-20 transform -rotate-12">
+                {lang === "en" ? "Expert" : "ባለሙያ"}
+              </div>
+            </div>
+
+            {/* Background decorative elements - hidden on mobile */}
+            <div className="absolute top-10 left-10 w-24 h-24 bg-blue-200/50 rounded-full blur-xl hidden md:block"></div>
+            <div className="absolute bottom-20 left-20 w-20 h-20 bg-green-200/50 rounded-full blur-xl hidden md:block"></div>
+            <div className="absolute top-1/2 -right-10 w-16 h-16 bg-purple-200/50 rounded-full blur-xl hidden md:block"></div>
+          </motion.div>
         </div>
       </div>
+
+      {/* Fixed WhatsApp Button - Bottom Right */}
+      <motion.a
+        href="https://wa.me/251945467896?text=Hello%2C%20I%20want%20to%20learn%20Quran"
+        target="_blank"
+        rel="noopener noreferrer"
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          y: [0, -10, 0],
+        }}
+        transition={{
+          opacity: { duration: 0.5, delay: 1 },
+          scale: { duration: 0.5, delay: 1 },
+          y: {
+            duration: 2,
+            repeat: Infinity,
+            repeatType: "loop",
+            ease: "easeInOut",
+          },
+        }}
+        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 md:p-5 shadow-2xl cursor-pointer group"
+      >
+        {/* WhatsApp Icon */}
+        <svg
+          className="w-7 h-7 md:w-8 md:h-8"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
+
+        {/* Tooltip */}
+        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          {lang === "en" ? "Chat with us on WhatsApp!" : "በWhatsApp ያነጋግሩን!"}
+        </span>
+
+        {/* Notification Badge */}
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold animate-pulse">
+          1
+        </span>
+      </motion.a>
     </div>
   );
 }
 
-function Service2() {
+function Footer() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
+
   return (
-    <div className="md: pt-40 snap-start ">
-      <p className="font-[900] text-xl md:text-2xl text-center">
-        {lang == "en" ? (
-          <>
-            You can read the Quran
-            <span className="text-secondary-600"> fluently </span>
-          </>
-        ) : (
-          <>
-            ቁርአንን <span className="text-secondary-600"> በልህቀት </span> ማንበብ ይቻሉ
-          </>
-        )}{" "}
-        !
-      </p>
-      <div className="p-4 space-y-10">
-        {[
-          {
-            title:
-              lang == "en" ? "Simple and convenient method" : "ቀላል እና ምቹ ዘዴ",
-            description:
-              lang == "en"
-                ? "The method of recitation is very simple and suitable for those who are learning Tajweed including Hifz from beginners."
-                : "የሚቀሩበት መንገድ በጣም ቀላል እና ከጀማሪ እሰከ ተጅዊድ ሂፍዝን ጨምሮ ለሚማሩ ምቹ ነው",
-            img: "/bulb-gear.png",
-          },
-          {
-            title: lang == "en" ? "Video help" : "የቪዲዮ እገዛ",
-            description:
-              lang == "en"
-                ? "Learn your Quran with the help of various video files and by connecting directly with the teacher"
-                : "በተለያዩ ቪድዮ ፋይሎች በመታገዘ እና በቀጥታ ከ ኡስታዙ ጋር በመገናኘት ቁርአንዎን ይማሩ",
-            img: "/video.png",
-          },
-          {
-            title:
-              lang == "en"
-                ? "Learn online wherever you are."
-                : "ባሉበት ቦታ ኦንላይን ይማራሉ",
-            description:
-              lang == "en"
-                ? "Learn the Quran easily from your phone, wherever you are, whenever you want"
-                : "በየትኛውም ቦታ ሆነው በተመችዎት ጊዜ በቀላሉ በእጅዎ በያዙት ስልክ ቁርአንን ይማሩ",
-            img: "/glob.png",
-          },
-          {
-            title:
-              lang == "en"
-                ? "Sufficient attention and time every day"
-                : "በየቀኑ በቂ ትኩረት እና ሰዓት",
-            description:
-              lang == "en"
-                ? "You will get enough attention and time every day. We are using various resources to help you monitor"
-                : "በየቀኑ በቂ ትኩረት እና ሰዓት ያገኛሉ ። ለክትትል የሚረዱ የተለያዩ ግብአቶችንን በመጠቀም ላይ እንገኛለን",
-            img: "/schedule.png",
-          },
-        ].map(({ title, description, img }, i) => (
-          <div
-            key={i + ""}
-            className={cn(
-              "md:h-96 p-1 flex gap-1 justify-evenly max-md:flex-col-reverse ",
-              i % 2 == 0 ? " md:flex-row-reverse" : " "
-            )}
-          >
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{
-                opacity: 1,
-                transition: { delay: 0.5, duration: 1 },
-              }}
-              className="md:w-[700px] hfit place-self-center md:p-10 grid gap-5 md:place-content-center  "
-            >
-              <p className="text-3xl font-bold text-center">{title}</p>
-              <p className="md:px-20 text-xl text-center">{description}</p>
-            </motion.div>
-            <motion.div
-              initial={{ x: `${i % 2 == 0 ? "-" : ""}100%` }}
-              whileInView={{ x: 0, transition: { delay: 0.5, duration: 1 } }}
-              className="md:w-[500px] grid place-content-center "
-            >
-              <Image
-                src={img}
-                alt=""
-                height={1000}
-                width={1000}
-                className="size-60"
-              />
-            </motion.div>
+    <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          {/* Company Info */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold">
+                {lang === "en" ? "Darul Kubra" : "ዳሩል ኩብራ"}
+              </h3>
+            </div>
+            <p className="text-gray-300 text-sm">
+              {lang === "en"
+                ? "Leading Islamic education platform in Ethiopia."
+                : "በኢትዮጵያ ውስጥ ዋናው የኢስላማዊ ትምህርት መድረክ።"}
+            </p>
+
+            {/* Social Media Links */}
+            <div className="flex gap-3">
+              <a
+                href="#"
+                className="w-8 h-8 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                </svg>
+              </a>
+              <a
+                href="#"
+                className="w-8 h-8 bg-blue-700 hover:bg-blue-800 rounded-full flex items-center justify-center transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+                </svg>
+              </a>
+              <a
+                href="#"
+                className="w-8 h-8 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+              </a>
+            </div>
           </div>
-        ))}
+
+          {/* Quick Links */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-bold">
+              {lang === "en" ? "Quick Links" : "የፈጣን አገናኞች"}
+            </h4>
+            <ul className="space-y-2">
+              <li>
+                <a
+                  href={`/${lang}/course`}
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                >
+                  {lang === "en" ? "Our Courses" : "ኮርሶቻችን"}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`/${lang}/#about`}
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                >
+                  {lang === "en" ? "About Us" : "ስለ እኛ"}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`/${lang}/contact`}
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                >
+                  {lang === "en" ? "Contact" : "አግኙን"}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Info */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-bold">
+              {lang === "en" ? "Contact" : "አግኙን"}
+            </h4>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                </div>
+                <span className="text-gray-300 text-sm">
+                  info@darulkubra.com
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                </div>
+                <span className="text-gray-300 text-sm">+251 945 467 896</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Email Subscription Section */}
+        <div className="border-t border-gray-700 pt-8">
+          <div className="max-w-md mx-auto text-center">
+            <h3 className="text-xl font-bold mb-3">
+              {lang === "en" ? "Stay Updated" : "ዝመናዎት ያላችሁ"}
+            </h3>
+            <div className="flex gap-3">
+              <input
+                type="email"
+                placeholder={lang === "en" ? "Enter email" : "ኢሜይል ያስገቡ"}
+                className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 rounded-lg font-semibold transition-all duration-300 text-sm">
+                {lang === "en" ? "Subscribe" : "ይመዝገቡ"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-700 mt-8 pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+            <div>
+              © 2024 Darul Kubra.{" "}
+              {lang === "en" ? "All rights reserved." : "ሁሉም መብቶች የተጠበቁ ናቸው።"}
+            </div>
+            <div className="flex gap-4">
+              <a href="#" className="hover:text-white transition-colors">
+                {lang === "en" ? "Privacy" : "ግላዊነት"}
+              </a>
+              <a href="#" className="hover:text-white transition-colors">
+                {lang === "en" ? "Terms" : "ውሎች"}
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </footer>
   );
 }
-
-// function Testimonial() {
-//   return (
-//     <div className="h-dvh grid place-content-center bg-amber-200 snap-start"></div>
-//   );
-// }
-
-function Contact() {
-  const params = useParams<{ lang: string }>();
-  const lang = params?.lang || "en",
-    formSchema = z.object({
-      name: z.string({ message: "" }).nonempty("Full Name is required"),
-      phoneNumber: z
-        .string({ message: "" })
-        .length(10, "Must be 10 digits")
-        .regex(/^\d+$/, "Must contain only digits")
-        .startsWith("0", "Must start with 0"),
-      message: z.string({ message: "" }).nonempty("Message is required"),
-    }),
-    { handleSubmit, register } = useForm<z.infer<typeof formSchema>>({
-      resolver: zodResolver(formSchema),
-      defaultValues: { name: "", phoneNumber: "", message: "" },
-    }),
-    { action, isPending } = useAction(sendMessage, undefined, {
-      error: lang == "en" ? "Sending message failed" : "መልእክት መላክ አልተሳካም",
-      success:
-        lang == "en" ? "Message sent successfully" : "መልእክት በተሳካ ሁኔታ ተልኳል",
-    });
-
-  return (
-    <div className="relative h-dvh p-4 grid content-center md:justify-center snap-start">
-      <div className="z-0 absolute inset-0 size-80 place-self-center bg-secondary/50 rounded-full blur-3xl"></div>
-      <p className="pb-10 font-[900] text-xl md:text-2xl text-center">
-        {lang == "en" ? "Contact Us" : "ያግኙን"}
-      </p>
-      <Form
-        onSubmit={handleSubmit(action)}
-        className="z-10 p-4 md:p-20 bg-background/50 backdrop-blur border border-background rounded-xl grid gap-5 [&>*]:w-full md:[&>*]:w-96"
-      >
-        <Input
-          color="primary"
-          {...register("name")}
-          placeholder={lang == "en" ? "Full Name" : "ሙሉ ስም"}
-        />
-        <Input
-          color="primary"
-          {...register("phoneNumber")}
-          placeholder={lang == "en" ? "Phone Number" : "ስልክ ቁጥር"}
-        />
-        <Textarea
-          color="primary"
-          {...register("message")}
-          placeholder={lang == "en" ? "Message" : "መልእክት"}
-          rows={5}
-        />
-        <Button color="primary" isLoading={isPending}>
-          {lang == "en" ? "Send" : "ላክ"}
-        </Button>
-      </Form>
-    </div>
-  );
-}
-
-// function Footer() {
-//  const params = useParams<{ lang: string }>();
-//  const lang = params?.lang || "en",
-//   return (
-//     <div className=" bg-foreground/20 primary-500/80 backdrop-blur-3xl text-background ">
-//       <div className="p-4 md:py-10 flex items-center max-md:flex-col max-md:divide-y md:divide-x-2 divide-background">
-//         <div className="flex-1 p-2 flex gap-4 justify-center items-center">
-//           <p className="">+251945467896</p>
-//           <p className="">/</p>
-//           <p className="">+251945467896</p>
-//         </div>
-//         <div className="flex-1 p-2 flex gap-10 justify-center">
-//           <Link
-//             href={
-//               "https://www.facebook.com/profile.php?id=100083374747385&mibextid=LQQJ4d"
-//             }
-//             className="p-2 bg-blue-500 rounded-md shadow shadow-foreground/30 flex gap-2"
-//           >
-//             <svg
-//               fill="currentColor"
-//               width="800px"
-//               height="800px"
-//               viewBox="0 0 24 24"
-//               xmlns="http://www.w3.org/2000/svg"
-//               className="size-6 "
-//             >
-//               <path d="M13.397 20.997v-8.196h2.765l.411-3.209h-3.176V7.548c0-.926.258-1.56 1.587-1.56h1.684V3.127A22.336 22.336 0 0 0 14.201 3c-2.444 0-4.122 1.492-4.122 4.231v2.355H7.332v3.209h2.753v8.202h3.312z" />
-//             </svg>
-
-//             <span className="max-md:hidden">Facebook</span>
-//           </Link>
-//           <Link
-//             href={
-//               "https://www.instagram.com/p/CmHetwItVW8/?igshid=YmMyMTA2M2Y="
-//             }
-//             className="p-2 shadow shadow-foreground/30 bg-gradient-to-b from-indigo-500 via-fuchsia-500 to-amber-500 rounded-md flex gap-2"
-//           >
-//             <svg
-//               fill="currentColor"
-//               width="800px"
-//               height="800px"
-//               viewBox="0 0 24 24"
-//               xmlns="http://www.w3.org/2000/svg"
-//               className="size-6 "
-//             >
-//               <path d="M20.947 8.305a6.53 6.53 0 0 0-.419-2.216 4.61 4.61 0 0 0-2.633-2.633 6.606 6.606 0 0 0-2.186-.42c-.962-.043-1.267-.055-3.709-.055s-2.755 0-3.71.055a6.606 6.606 0 0 0-2.185.42 4.607 4.607 0 0 0-2.633 2.633 6.554 6.554 0 0 0-.419 2.185c-.043.963-.056 1.268-.056 3.71s0 2.754.056 3.71c.015.748.156 1.486.419 2.187a4.61 4.61 0 0 0 2.634 2.632 6.584 6.584 0 0 0 2.185.45c.963.043 1.268.056 3.71.056s2.755 0 3.71-.056a6.59 6.59 0 0 0 2.186-.419 4.615 4.615 0 0 0 2.633-2.633c.263-.7.404-1.438.419-2.187.043-.962.056-1.267.056-3.71-.002-2.442-.002-2.752-.058-3.709zm-8.953 8.297c-2.554 0-4.623-2.069-4.623-4.623s2.069-4.623 4.623-4.623a4.623 4.623 0 0 1 0 9.246zm4.807-8.339a1.077 1.077 0 0 1-1.078-1.078 1.077 1.077 0 1 1 2.155 0c0 .596-.482 1.078-1.077 1.078z" />
-//               <circle cx="11.994" cy="11.979" r="3.003" />
-//             </svg>
-
-//             <span className="max-md:hidden">Instagram</span>
-//           </Link>
-//           <Link
-//             href={"https://youtube.com/@user-ie5gs2xr4s"}
-//             className="p-2 shadow shadow-foreground/30 bg-red-500 rounded-md flex gap-2"
-//           >
-//             <svg
-//               fill="currentColor"
-//               width="800px"
-//               height="800px"
-//               viewBox="0 0 24 24"
-//               xmlns="http://www.w3.org/2000/svg"
-//               className="size-6 "
-//             >
-//               <path d="M21.593 7.203a2.506 2.506 0 0 0-1.762-1.766C18.265 5.007 12 5 12 5s-6.264-.007-7.831.404a2.56 2.56 0 0 0-1.766 1.778c-.413 1.566-.417 4.814-.417 4.814s-.004 3.264.406 4.814c.23.857.905 1.534 1.763 1.765 1.582.43 7.83.437 7.83.437s6.265.007 7.831-.403a2.515 2.515 0 0 0 1.767-1.763c.414-1.565.417-4.812.417-4.812s.02-3.265-.407-4.831zM9.996 15.005l.005-6 5.207 3.005-5.212 2.995z" />
-//             </svg>
-
-//             <span className="max-md:hidden">Youtube</span>
-//           </Link>
-//           <Link
-//             href={"https://www.tiktok.com/@darelkubra?_t=8Y9PCJHgHOI&_r=1"}
-//             className="p-2 shadow shadow-foreground/30 bg-gradient-to-r from-sky-500 via-gray-700 to-red-500 rounded-md flex gap-2"
-//           >
-//             <svg
-//               fill="currentColor"
-//               width="800px"
-//               height="800px"
-//               viewBox="0 0 24 24"
-//               xmlns="http://www.w3.org/2000/svg"
-//               className="size-6 "
-//             >
-//               <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.183-4.51v-3.5a6.329 6.329 0 0 0-5.394 10.692 6.33 6.33 0 0 0 10.857-4.424V8.687a8.182 8.182 0 0 0 4.773 1.526V6.79a4.831 4.831 0 0 1-1.003-.104z" />
-//             </svg>
-
-//             <span className="max-md:hidden">Tiktok</span>
-//           </Link>
-//         </div>
-//       </div>
-//       <p className="p-4 flex gap-4 justify-center items-center ">
-//         <span className="">2024</span>
-//         <Copyright className="size-5" />
-//         <span className="">{lang=='en' ? "Darulkubra Academy" : "ዳሩልኩብራ አካዳሚ"}</span>
-//       </p>
-//     </div>
-//   );
-// }
