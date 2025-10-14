@@ -2,21 +2,12 @@
 
 import Image from "next/image";
 import CourseSample from "./course/page";
-// import Link from "next/link";
 import React, { useEffect } from "react";
 import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { sendMessage } from "@/lib/action/message";
-import { Button, Form, Input, Link, Textarea } from "@heroui/react";
+import { Link } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { CButton } from "@/components/heroui";
-import useAction from "@/hooks/useAction";
-import { getCoursesForCustomer } from "@/lib/data/course";
-import { PlayCircle } from "lucide-react";
 
 export default function Page() {
   useEffect(() => {
