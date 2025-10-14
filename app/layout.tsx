@@ -26,6 +26,12 @@ export const metadata: Metadata = {
   keywords:
     "Islamic education, online courses, Islamic studies, certification, learning platform",
   authors: [{ name: "Darul Kubra Team" }],
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export const viewport = {
