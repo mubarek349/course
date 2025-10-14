@@ -555,27 +555,31 @@ export default function Page() {
               </CardBody>
             </Card>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-              <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-emerald-50 to-teal-50">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="p-2 sm:p-2.5 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-md">
-                      <Users className="size-4 sm:size-5 text-white" />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Target Audience Card */}
+              <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-md hover:shadow-2xl transition-all duration-300 group">
+                <CardHeader className="p-5 sm:p-7 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border-b border-emerald-100/50">
+                  <div className="flex items-start sm:items-center gap-4">
+                    <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                      <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
                         {lang === "en" ? "Target Audience" : "ዒላማ ተመልካቾች"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {watch("courseFor").length}
+                        </span>
                       </h2>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         {lang === "en"
-                          ? "Define your ideal students"
-                          : "ተስማሚ ተማሪዎችዎን ይግለጹ"}
+                          ? "Define who will benefit most from this course"
+                          : "ከዚህ ኮርስ በጣም የሚጠቀሙ ሰዎችን ይግለጹ"}
                       </p>
                     </div>
                   </div>
                 </CardHeader>
-                <Divider className="bg-gradient-to-r from-emerald-200 to-teal-200" />
-                <CardBody className="p-4 sm:p-6">
+                <Divider className="bg-gradient-to-r from-emerald-200 via-teal-200 to-cyan-200" />
+                <CardBody className="p-5 sm:p-7">
                   <CourseFor
                     list={watch("courseFor")}
                     addValue={({ en, am }) =>
@@ -605,38 +609,42 @@ export default function Page() {
                     }
                     placeHolderAm={
                       lang === "en"
-                        ? "Target audience in Amharic"
-                        : "ዒላማ ተመልካች በአማርኛ"
+                        ? "e.g., Beginners in programming"
+                        : "ለምሳሌ፣ በፕሮግራሚንግ ጀማሪዎች"
                     }
                     placeHolderEn={
                       lang === "en"
-                        ? "Target audience in English"
-                        : "ዒላማ ተመልካች በእንግሊዝኛ"
+                        ? "e.g., Beginners in programming"
+                        : "ለምሳሌ፣ በፕሮግራሚንግ ጀማሪዎች"
                     }
                   />
                 </CardBody>
               </Card>
 
-              <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
-                <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="p-2 sm:p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 shadow-md">
-                      <CheckSquare className="size-4 sm:size-5 text-white" />
+              {/* Prerequisites Card */}
+              <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-md hover:shadow-2xl transition-all duration-300 group">
+                <CardHeader className="p-5 sm:p-7 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-b border-amber-100/50">
+                  <div className="flex items-start sm:items-center gap-4">
+                    <div className="flex-shrink-0 p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                      <CheckSquare className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
                         {lang === "en" ? "Prerequisites" : "ቅድመ ሁኔታዎች"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                          {watch("requirement").length}
+                        </span>
                       </h2>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                         {lang === "en"
-                          ? "Required knowledge and skills"
-                          : "የሚያስፈልግ እውቀት እና ክህሎት"}
+                          ? "What students should know before starting"
+                          : "ተማሪዎች ከመጀመራቸው በፊት ማወቅ ያለባቸው"}
                       </p>
                     </div>
                   </div>
                 </CardHeader>
-                <Divider className="bg-gradient-to-r from-amber-200 to-orange-200" />
-                <CardBody className="p-4 sm:p-6">
+                <Divider className="bg-gradient-to-r from-amber-200 via-orange-200 to-yellow-200" />
+                <CardBody className="p-5 sm:p-7">
                   <CourseFor
                     list={watch("requirement")}
                     addValue={({ en, am }) =>
@@ -663,10 +671,14 @@ export default function Page() {
                     }
                     label={lang === "en" ? "Add Requirement" : "መስፈርት ጨምር"}
                     placeHolderAm={
-                      lang === "en" ? "Requirement in Amharic" : "መስፈርት በአማርኛ"
+                      lang === "en" 
+                        ? "e.g., Basic computer skills" 
+                        : "ለምሳሌ፣ መሰረታዊ የኮምፒተር ክህሎቶች"
                     }
                     placeHolderEn={
-                      lang === "en" ? "Requirement in English" : "መስፈርት በእንግሊዝኛ"
+                      lang === "en" 
+                        ? "e.g., Basic computer skills" 
+                        : "ለምሳሌ፣ መሰረታዊ የኮምፒተር ክህሎቶች"
                     }
                   />
                 </CardBody>
