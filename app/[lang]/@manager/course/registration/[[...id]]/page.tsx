@@ -1058,12 +1058,7 @@ export default function Page() {
                     </Button>
                     <Button
                       color="primary"
-                      startContent={
-                        !formState.isSubmitting && !isUploading ? (
-                          <Save className="size-4" />
-                        ) : undefined
-                      }
-                      className="w-full sm:min-w-40 h-11 sm:h-12 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base font-semibold relative overflow-hidden"
+                      className="w-full sm:min-w-48 h-12 sm:h-14 bg-gradient-to-r from-primary-500 via-primary-600 to-indigo-600 hover:from-primary-600 hover:via-primary-700 hover:to-indigo-700 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 text-sm sm:text-base font-bold relative overflow-hidden group"
                       size="lg"
                       isLoading={false}
                       isDisabled={
@@ -1113,75 +1108,116 @@ export default function Page() {
                     >
                       {/* Loading Overlay */}
                       {(formState.isSubmitting || isUploading) && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 flex flex-col items-center justify-center">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="relative">
-                              <div className="w-5 h-5 border-2 border-white/30 rounded-full"></div>
-                              <div className="absolute top-0 left-0 w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                            <span className="text-white font-semibold text-sm">
-                              {isEditing
-                                ? lang === "en"
-                                  ? "Updating Course..."
-                                  : "ኮርስ በማዘመን ላይ..."
-                                : lang === "en"
-                                ? "Creating Course..."
-                                : "ኮርስ በመፍጠር ላይ..."}
-                            </span>
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-500 to-indigo-600 flex items-center justify-center backdrop-blur-sm">
+                          {/* Animated Background Pattern */}
+                          <div className="absolute inset-0 opacity-10">
+                            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(255,255,255,0.3)_0%,_transparent_50%)] animate-pulse"></div>
                           </div>
+                          
+                          {/* Loading Content */}
+                          <div className="relative z-10 flex flex-col items-center gap-6 px-4">
+                            {/* Spinner */}
+                            <div className="relative">
+                              {/* Outer ring */}
+                              <div className="w-16 h-16 rounded-full border-4 border-white/20"></div>
+                              {/* Spinning ring */}
+                              <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-white border-t-transparent border-r-transparent animate-spin"></div>
+                              {/* Inner dot */}
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white animate-pulse"></div>
+                            </div>
+                            
+                            {/* Status Text */}
+                            <div className="text-center">
+                              <h3 className="text-white font-bold text-lg mb-2">
+                                {isEditing
+                                  ? lang === "en"
+                                    ? "Updating Course..."
+                                    : "ኮርስ በማዘመን ላይ..."
+                                  : lang === "en"
+                                  ? "Creating Course..."
+                                  : "ኮርስ በመፍጠር ላይ..."}
+                              </h3>
+                              <p className="text-white/80 text-sm">
+                                {lang === "en"
+                                  ? "Please wait while we save your changes"
+                                  : "ለውጦችዎን እስክናስቀምጥ ድረስ እባክዎ ይጠብቁ"}
+                              </p>
+                            </div>
 
-                          {/* Progress Steps */}
-                          <div className="flex items-center gap-2 text-xs text-white/80">
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                formState.isSubmitting
-                                  ? "bg-white"
-                                  : "bg-white/40"
-                              }`}
-                            ></div>
-                            <span>
-                              {lang === "en" ? "Processing" : "በማስተካከል ላይ"}
-                            </span>
-                            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                isUploading ? "bg-white" : "bg-white/40"
-                              }`}
-                            ></div>
-                            <span>
-                              {lang === "en" ? "Uploading" : "በመስቀል ላይ"}
-                            </span>
-                            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                formState.isSubmitting && !isUploading
-                                  ? "bg-white"
-                                  : "bg-white/40"
-                              }`}
-                            ></div>
-                            <span>
-                              {lang === "en" ? "Saving" : "በማስቀመጥ ላይ"}
-                            </span>
+                            {/* Progress Steps */}
+                            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    formState.isSubmitting
+                                      ? "bg-white shadow-lg shadow-white/50 scale-125"
+                                      : "bg-white/40"
+                                  }`}
+                                ></div>
+                                <span className={`text-xs font-medium transition-all ${
+                                  formState.isSubmitting ? "text-white" : "text-white/60"
+                                }`}>
+                                  {lang === "en" ? "Processing" : "በማስተካከል"}
+                                </span>
+                              </div>
+                              
+                              <div className="w-8 h-px bg-white/30"></div>
+                              
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    isUploading 
+                                      ? "bg-white shadow-lg shadow-white/50 scale-125" 
+                                      : "bg-white/40"
+                                  }`}
+                                ></div>
+                                <span className={`text-xs font-medium transition-all ${
+                                  isUploading ? "text-white" : "text-white/60"
+                                }`}>
+                                  {lang === "en" ? "Uploading" : "በመስቀል"}
+                                </span>
+                              </div>
+                              
+                              <div className="w-8 h-px bg-white/30"></div>
+                              
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    formState.isSubmitting && !isUploading
+                                      ? "bg-white shadow-lg shadow-white/50 scale-125"
+                                      : "bg-white/40"
+                                  }`}
+                                ></div>
+                                <span className={`text-xs font-medium transition-all ${
+                                  formState.isSubmitting && !isUploading ? "text-white" : "text-white/60"
+                                }`}>
+                                  {lang === "en" ? "Saving" : "በማስቀመጥ"}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
 
                       {/* Button Content */}
-                      <span
-                        className={`transition-opacity duration-200 ${
+                      <div
+                        className={`flex items-center justify-center gap-2 transition-opacity duration-200 ${
                           formState.isSubmitting || isUploading
                             ? "opacity-0"
                             : "opacity-100"
                         }`}
                       >
-                        {isEditing
-                          ? lang === "en"
-                            ? "Update Course"
-                            : "ኮርስ አዘምን"
-                          : lang === "en"
-                          ? "Create Course"
-                          : "ኮርስ ፍጠር"}
-                      </span>
+                        <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="font-bold">
+                          {isEditing
+                            ? lang === "en"
+                              ? "Update Course"
+                              : "ኮርስ አዘምን"
+                            : lang === "en"
+                            ? "Create Course"
+                            : "ኮርስ ፍጠር"}
+                        </span>
+                      </div>
                     </Button>
                   </div>
                 </div>
