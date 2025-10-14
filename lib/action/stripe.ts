@@ -1,5 +1,6 @@
 import prisma from "@/lib/db";
 import { randomUUID } from "crypto";
+import { auth } from "@/lib/auth";
 
 type TPayState =
   | { status: true; cause?: undefined; message?: undefined; url: string }
@@ -19,21 +20,31 @@ export async function payWithStripe(
 ): Promise<TPayState> {
   try {
     if (!data) return undefined;
+
+    // Check if user is authenticated
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        status: false,
+        cause: "unauthorized",
+        message: "Please login to purchase courses",
+      };
+    }
+
     const { id, phoneNumber, affiliateCode, lang = "en" } = data,
       course = await prisma.course.findFirst({ where: { id: id } });
 
     if (!course) throw new Error();
 
     const user = await prisma.user.findFirst({
-      where: { role: "student", phoneNumber },
+      where: { role: "student", phoneNumber, id: session.user.id },
     });
 
     if (!user) {
       return {
         status: false,
         cause: "user_not_found",
-        message:
-          "Please register with this phone number before ordering the course",
+        message: "Please login to purchase courses",
       };
     }
 
@@ -138,12 +149,12 @@ export async function payWithStripe(
       }
     );
 
-    const session = await response.json();
+    const checkoutSession = await response.json();
 
-    if (session.url) {
+    if (checkoutSession.url) {
       return {
         status: true,
-        url: session.url,
+        url: checkoutSession.url,
       };
     }
     throw new Error();

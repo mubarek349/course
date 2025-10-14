@@ -2,6 +2,7 @@
 
 import { pay } from "@/lib/action/chapa";
 import { payWithStripe } from "@/lib/action/stripe";
+import { getCurrentUserPhoneNumber } from "@/lib/action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -48,17 +49,21 @@ export default function Payment({
   const [selectedMethod, setSelectedMethod] = useState<
     "chapa" | "stripe" | null
   >(null);
+  const [userPhoneNumber, setUserPhoneNumber] = useState<string>("");
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [authError, setAuthError] = useState<string>("");
+
   const formSchema = z.object({
     id: z.string({ message: "" }).nonempty("ID is required"),
     phoneNumber: z
       .string({ message: "" })
-      .length(10, "Must be 10 digits")
-      .regex(/^\d+$/, "Must contain only digits")
-      .startsWith("0", "Must start with 0"),
+      .min(9, "Must be at least 9 digits")
+      .max(20, "Must be at most 20 digits")
+      .regex(/^\+?\d+$/, "Must contain only digits with optional + prefix"),
     affiliateCode: z.string({ message: "" }).optional(),
   });
 
-  const { handleSubmit, register, reset, formState } = useForm<
+  const { handleSubmit, register, reset, formState, setValue } = useForm<
     z.infer<typeof formSchema>
   >({
     resolver: zodResolver(formSchema),
@@ -105,8 +110,10 @@ export default function Payment({
 
   const router = useRouter();
 
+  // Fetch user phone number when modal opens
   useEffect(() => {
     if (isOpen) {
+      fetchUserPhoneNumber();
       reset();
       setShowMethodSelector(true);
       setShowPaymentForm(false);
@@ -115,13 +122,56 @@ export default function Payment({
     }
   }, [isOpen, reset]);
 
+  const fetchUserPhoneNumber = async () => {
+    setIsLoadingUser(true);
+    setAuthError("");
+    try {
+      const result = await getCurrentUserPhoneNumber();
+      if (result.status && result.phoneNumber) {
+        setUserPhoneNumber(result.phoneNumber);
+        setValue("phoneNumber", result.phoneNumber);
+      } else {
+        setAuthError(
+          lang === "en"
+            ? "Please login to purchase courses"
+            : "እባክዎ ኮርሶችን ለመግዛት ይግቡ"
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching user phone number:", error);
+      setAuthError(
+        lang === "en"
+          ? "Failed to get user information"
+          : "የተጠቃሚ መረጃ ማግኘት አልተሳካም"
+      );
+    } finally {
+      setIsLoadingUser(false);
+    }
+  };
+
   const handleChapaSelect = () => {
+    if (!userPhoneNumber) {
+      setAuthError(
+        lang === "en"
+          ? "Please login to purchase courses"
+          : "እባክዎ ኮርሶችን ለመግዛት ይግቡ"
+      );
+      return;
+    }
     setSelectedMethod("chapa");
     setShowMethodSelector(false);
     setShowPaymentForm(true);
   };
 
   const handleStripeSelect = () => {
+    if (!userPhoneNumber) {
+      setAuthError(
+        lang === "en"
+          ? "Please login to purchase courses"
+          : "እባክዎ ኮርሶችን ለመግዛት ይግቡ"
+      );
+      return;
+    }
     setSelectedMethod("stripe");
     setShowMethodSelector(false);
     setShowStripeCheckout(true);
@@ -153,6 +203,35 @@ export default function Payment({
         birrPrice={birrPrice}
         dolarPrice={dolarPrice}
       />
+
+      {/* Auth Error Message */}
+      {authError && (
+        <Modal
+          isOpen={!!authError}
+          onClose={() => setAuthError("")}
+          placement="top-center"
+        >
+          <ModalContent>
+            <ModalHeader>
+              {lang === "en" ? "Authentication Required" : "ማረጋገጥ ያስፈልጋል"}
+            </ModalHeader>
+            <ModalBody>
+              <p className="text-red-600">{authError}</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                color="primary"
+                onPress={() => {
+                  setAuthError("");
+                  router.push(`/${lang}/login`);
+                }}
+              >
+                {lang === "en" ? "Go to Login" : "ወደ መግቢያ ይሂዱ"}
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      )}
 
       {/* Payment Form */}
       <Modal
@@ -188,10 +267,19 @@ export default function Payment({
                   </p>
                 </div>
                 <ModalBody>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">
+                      {lang === "en" ? "Phone Number" : "የስልክ ቁጥር"}
+                    </p>
+                    <p className="text-lg font-semibold">{userPhoneNumber}</p>
+                  </div>
                   <Input
                     {...register("phoneNumber")}
                     color="primary"
                     placeholder={lang == "en" ? "Phone Number" : "የስልክ ቁጥር"}
+                    value={userPhoneNumber}
+                    isReadOnly
+                    isDisabled
                   />
                 </ModalBody>
                 <ModalFooter>
@@ -234,6 +322,7 @@ export default function Payment({
         birrPrice={birrPrice}
         dolarPrice={dolarPrice}
         lang={lang}
+        userPhoneNumber={userPhoneNumber}
       />
     </>
   );
