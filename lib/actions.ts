@@ -261,15 +261,7 @@ export async function uploadFile(formData: FormData) {
       
       console.log(`✅ Base64 conversion complete (${base64.length} chars)`)
       
-      // Store PDF metadata for processing
-      const pdfMetadata = {
-        fileName: file.name,
-        mimeType: file.type,
-        base64Data: base64,
-        aiProvider: aiProvider,
-        uploadedAt: new Date().toISOString()
-      }
-      
+     
       // If courseId is provided, save file and store filename in database
       console.log('💾 Saving file and storing filename in database for course:', courseId)
       
@@ -279,6 +271,7 @@ export async function uploadFile(formData: FormData) {
       
       try {
         await mkdir(uploadsDir, { recursive: true })
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         // Directory might already exist
       }

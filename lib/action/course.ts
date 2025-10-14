@@ -34,8 +34,6 @@ export async function courseRegistration(
       price: data.price,
       dolarPrice: data.dolarPrice,
       birrPrice: data.birrPrice,
-      pdf: data.pdf,
-      courseMaterialsCount: (data as any).courseMaterials?.length || 0,
       finalExamQuestionsCount: data.finalExamQuestions?.length || 0,
       activityCount: data.activity?.length || 0
     });
@@ -71,29 +69,16 @@ export async function courseRegistration(
       requirement,
       activity,
       finalExamQuestions,
-      pdf, // Extract PDF field
-      courseMaterials, // Optional client-provided materials
       birrPrice,
       dolarPrice,
       ...rest
     } = data;
 
     // Prepare courseMaterials for DB (comma-separated URLs only)
-    const serializedMaterials: string | undefined = courseMaterials
-      ? courseMaterials
-          .filter((m) => m && m.url)
-          .map((m) => m.url)
-          .join(",")
-      : undefined;
-
-    // Add pdfData and optionally courseMaterials to the rest data (mapping pdf to pdfData)
-    console.log("📄 Processing PDF data:", { pdf, pdfData: pdf || null });
     const courseData = {
       ...rest,
-      pdfData: pdf || null, // Map pdf to pdfData for the database
       birrPrice,
       dolarPrice,
-      ...(serializedMaterials ? { courseMaterials: serializedMaterials } : {}),
     } as const;
 
     await prisma.course.updateMany({
@@ -142,7 +127,7 @@ export async function courseRegistration(
       await prisma.activity.deleteMany({ where: { courseId: id } });
 
       // Extract relation fields from courseData
-      const { instructorId, channelId, ...courseDataWithoutRelations } =
+      const { instructorId, channelId } =
         courseData;
 
       console.log("💾 Updating course with data:", {
@@ -156,7 +141,6 @@ export async function courseRegistration(
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
-          ...courseDataWithoutRelations, // Use courseData without relation fields (includes pdfData and courseMaterials)
           instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
           channel: { connect: { id: channelId } }, // Fix: Use relation syntax
           courseFor: { create: courseFor },
@@ -300,11 +284,7 @@ export async function courseRegistration(
         .create({
           data: {
             ...restWithoutRelations,
-            pdfData: pdf || null,
             // For create, courseMaterials is a scalar field and accepts string[] directly
-            ...(serializedMaterials
-              ? { courseMaterials: serializedMaterials }
-              : {}),
             instructor: { connect: { id: createInstructorId as string } },
             channel: { connect: { id: createChannelId as string } },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

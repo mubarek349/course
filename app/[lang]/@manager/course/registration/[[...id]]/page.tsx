@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import CourseFor from "./courseFor";
 import useAction from "@/hooks/useAction";
 import useData from "@/hooks/useData";
 import { courseRegistration } from "@/lib/action/course";
-import { getCourseMaterials } from "@/lib/action/courseMaterials";
 import { getChannels, getCourseForManager } from "@/lib/data/course";
 import { TCourse } from "@/lib/definations";
 import { getEntries } from "@/lib/utils";
@@ -47,17 +47,9 @@ export default function Page() {
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-  const [isMaterialsUploading, setIsMaterialsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [currentUploadingFile, setCurrentUploadingFile] = useState<string>("");
-
+  
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
-  const [courseMaterials, setCourseMaterials] = useState<
-    { name: string; url: string; type: string }[]
-  >([]);
-  const [selectedMaterials, setSelectedMaterials] = useState<FileList | null>(
-    null
-  );
+ 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
 
@@ -74,7 +66,6 @@ export default function Page() {
         instructorId: "",
         thumbnail: "",
         video: "",
-        aiProvider: "gemini",
         price: 0,
         dolarPrice: 0,
         birrPrice: 0,
@@ -130,7 +121,6 @@ export default function Page() {
         // Reset form state on error to allow retry
         setIsUploading(false);
         setIsThumbnailUploading(false);
-        setIsMaterialsUploading(false);
         // Reset the action state
         setTimeout(() => reset(), 100);
       },
@@ -141,11 +131,8 @@ export default function Page() {
           // Reset form state to allow for future submissions
           setIsUploading(false);
           setIsThumbnailUploading(false);
-          setIsMaterialsUploading(false);
           setSelectedVideoFile(null);
-          setSelectedMaterials(null);
-          setUploadProgress(0);
-          setCurrentUploadingFile("");
+          
 
           // Reset the action state
           setTimeout(() => reset(), 100);
@@ -205,13 +192,11 @@ export default function Page() {
 
         // Handle activity data separately since it requires proper type alignment
         if (data.activity) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const transformedActivity = data.activity.map((activity: any) => ({
             titleEn: activity.titleEn,
             titleAm: activity.titleAm,
             subActivity: activity.subActivity,
             questions:
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               activity.questions?.map((q: any) => ({
                 question: q.question,
                 options: q.options,
@@ -226,48 +211,7 @@ export default function Page() {
           setVideoPreviewUrl(data.video);
         }
 
-        // Handle course materials from the main data fetch
-        if (
-          data.courseMaterials &&
-          typeof data.courseMaterials === "string" &&
-          data.courseMaterials.trim() !== ""
-        ) {
-          try {
-            // Parse comma-separated string format: "name1,url1,type1,name2,url2,type2"
-            const parts = data.courseMaterials.split(",");
-            const materials = [];
-
-            // Process in groups of 3 (name, url, type)
-            for (let i = 0; i < parts.length; i += 3) {
-              if (i + 2 < parts.length) {
-                const name = parts[i]?.trim() || "material";
-                const url = parts[i + 1]?.trim() || "";
-                const type = parts[i + 2]?.trim() || "file";
-
-                if (url) {
-                  materials.push({ name, url, type: type.toLowerCase() });
-                }
-              }
-            }
-
-            if (materials.length > 0) {
-              console.log(
-                "✅ Setting course materials from main data:",
-                materials
-              );
-              setCourseMaterials(materials);
-            } else {
-              console.log("ℹ️ No course materials found in main data");
-            }
-          } catch (error) {
-            console.error(
-              "Error parsing course materials from main data:",
-              error
-            );
-          }
-        }
-
-        // Materials will also be fetched in useEffect below as backup
+     
 
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
           setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
@@ -284,43 +228,6 @@ export default function Page() {
     },
   });
 
-  // Fetch course materials when editing (only if not already loaded from main data)
-  React.useEffect(() => {
-    const fetchMaterials = async () => {
-      if (
-        isEditing &&
-        id &&
-        id !== "unknown" &&
-        isDataLoaded &&
-        courseMaterials.length === 0
-      ) {
-        try {
-          console.log("Fetching materials for course:", id);
-          const materials = await getCourseMaterials(id);
-          console.log("Fetched materials:", materials);
-          if (materials && materials.length > 0) {
-            const formattedMaterials = materials.map(
-              (m: { name: string; url: string; type: string }) => ({
-                name: m.name,
-                url: m.url,
-                type: m.type,
-              })
-            );
-            console.log("Setting formatted materials:", formattedMaterials);
-            setCourseMaterials(formattedMaterials);
-          } else {
-            console.log("No materials found for course:", id);
-            setCourseMaterials([]);
-          }
-        } catch (error) {
-          console.error("Error fetching course materials:", error);
-          setCourseMaterials([]);
-        }
-      }
-    };
-    fetchMaterials();
-  }, [isEditing, id, isDataLoaded, courseMaterials.length]);
-
   const handleVideoSelect = (file: File) => {
     setSelectedVideoFile(file);
     setVideoPreviewUrl(URL.createObjectURL(file));
@@ -330,81 +237,13 @@ export default function Page() {
     }
   };
 
-  const handleMaterialsUpload = async () => {
-    if (!selectedMaterials) return;
-
-    setIsMaterialsUploading(true);
-    setUploadProgress(0);
-    setCurrentUploadingFile("");
-
-    try {
-      const uploadedMaterials: { name: string; url: string; type: string }[] =
-        [];
-      const totalFiles = selectedMaterials.length;
-
-      // Process each selected file
-      for (let i = 0; i < selectedMaterials.length; i++) {
-        const file = selectedMaterials[i];
-        setCurrentUploadingFile(file.name);
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        // Upload file to server and get the URL
-        const response = await fetch("/api/upload-materials", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
-        }
-
-        const result = await response.json();
-        const fileUrl = result.url;
-        const fileType =
-          file.type.split("/")[1] || file.name.split(".").pop() || "unknown";
-
-        uploadedMaterials.push({
-          name: file.name,
-          url: fileUrl,
-          type: fileType,
-        });
-
-        // Update progress
-        const progress = Math.round(((i + 1) / totalFiles) * 100);
-        setUploadProgress(progress);
-
-        console.log("Uploaded material:", file.name, fileUrl);
-      }
-
-      // Update local state with all uploaded files
-      setCourseMaterials((prev) => [...prev, ...uploadedMaterials]);
-      setSelectedMaterials(null);
-      setCurrentUploadingFile("");
-
-      // Show success message
-      alert(
-        lang === "en"
-          ? `Successfully uploaded ${uploadedMaterials.length} file(s)!`
-          : `${uploadedMaterials.length} ፋይሎች በተሳካ ሁኔታ ተሰቅለዋል!`
-      );
-    } catch (error) {
-      console.error("Error uploading materials:", error);
-      alert(lang === "en" ? "File upload failed" : "የፋይል መስቀል አልተሳካም");
-    } finally {
-      setIsMaterialsUploading(false);
-      setUploadProgress(0);
-      setCurrentUploadingFile("");
-    }
-  };
+ 
 
   const handleFormSubmit = async (data: TCourse) => {
     console.log("🚀 Form submission started", {
       isEditing,
       data: {
         ...data,
-        courseMaterials: courseMaterials.length,
       },
       formState: {
         isValid: formState.isValid,
@@ -447,11 +286,7 @@ export default function Page() {
       }
 
       data.finalExamQuestions = finalExamQuestions;
-      // Include course materials in the course registration payload
-      // so they are persisted during both create and update flows
-      // (server action serializes and stores them into Course.courseMaterials)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (data as any).courseMaterials = courseMaterials;
+      
 
       console.log("📤 Calling server action with data:", {
         id: data.id,
@@ -461,8 +296,6 @@ export default function Page() {
         channelId: data.channelId,
         dolarPrice: data.dolarPrice,
         birrPrice: data.birrPrice,
-        aiProvider: data.aiProvider,
-        courseMaterialsCount: courseMaterials.length,
         finalExamQuestionsCount: finalExamQuestions.length,
       });
 
@@ -472,7 +305,6 @@ export default function Page() {
 
       console.log("📥 Server action result:", result);
 
-      // Materials are included in the server action payload and persisted there.
 
       return result;
     } catch (error) {
@@ -667,158 +499,7 @@ export default function Page() {
                   hasVideoError={!!formState.errors.video}
                 />
 
-                {/* Course Materials Upload Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-purple-500" />
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {lang === "en"
-                        ? "Additional Course Materials"
-                        : "ተጨማሪ የኮርስ ቅረጾች"}
-                    </h3>
-                  </div>
-
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all hover:border-primary-400 hover:bg-primary-50/50">
-                    {courseMaterials.length > 0 ? (
-                      <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            <FileText className="w-8 h-8 text-purple-500" />
-                            <div>
-                              <p className="font-medium text-gray-800">
-                                {lang === "en"
-                                  ? "Uploaded Materials"
-                                  : "የተሰቀሉ ቅረጾች"}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {courseMaterials.length}{" "}
-                                {lang === "en" ? "files" : "ፋይሎች"}
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            color="danger"
-                            onPress={() => setCourseMaterials([])}
-                            isDisabled={isMaterialsUploading}
-                          >
-                            {lang === "en" ? "Clear All" : "ሁሉንም አጥፋ"}
-                          </Button>
-                        </div>
-
-                        <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
-                          <ul className="space-y-2">
-                            {courseMaterials.map((material, index) => (
-                              <li
-                                key={index}
-                                className="flex items-center justify-between p-2 hover:bg-gray-50 rounded"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <File className="w-4 h-4 text-gray-500" />
-                                  <span className="text-sm truncate max-w-xs">
-                                    {material.name}
-                                  </span>
-                                </div>
-                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                  {material.type}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-600 mb-4">
-                          {lang === "en"
-                            ? "Upload additional course materials (PDF, PPT, DOC, etc.)"
-                            : "ተጨማሪ የኮርስ ቅረጾችን ይስቀሉ (ፒዲኤፍ፣ ፒፒቲ፣ ዶክ፣ ወዘተ)"}
-                        </p>
-                        <label className="inline-block px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors cursor-pointer font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-                          {lang === "en" ? "Select Files" : "ፋይሎችን ይምረጡ"}
-                          <input
-                            type="file"
-                            multiple
-                            accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.txt,.zip"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files.length > 0) {
-                                setSelectedMaterials(e.target.files);
-                              }
-                            }}
-                            disabled={isMaterialsUploading}
-                          />
-                        </label>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {lang === "en"
-                            ? "PDF, PPT, DOC, XLS, TXT, ZIP files supported"
-                            : "ፒዲኤፍ፣ ፒፒቲ፣ ዶክ፣ የኤክስኤልኤስ፣ የኤክስኤልኤስ፣ ቲክስት፣ ዚፕ ፋይሎች ይደገፋሉ"}
-                        </p>
-
-                        {selectedMaterials && (
-                          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                            <p className="text-sm font-medium text-blue-800 mb-2">
-                              {lang === "en"
-                                ? "Selected Files:"
-                                : "የተመረጡ ፋይሎች:"}
-                            </p>
-                            <ul className="text-xs text-blue-700 space-y-1">
-                              {Array.from(selectedMaterials).map(
-                                (file, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <File className="w-3 h-3" />
-                                    {file.name}
-                                  </li>
-                                )
-                              )}
-                            </ul>
-
-                            {/* Upload Progress */}
-                            {isMaterialsUploading && (
-                              <div className="mt-3 space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                  <span className="text-blue-800 font-medium">
-                                    {currentUploadingFile && (
-                                      <>
-                                        {lang === "en"
-                                          ? "Uploading:"
-                                          : "በመስቀል ላይ:"}{" "}
-                                        {currentUploadingFile}
-                                      </>
-                                    )}
-                                  </span>
-                                  <span className="text-blue-600 font-bold">
-                                    {uploadProgress}%
-                                  </span>
-                                </div>
-                                <div className="w-full bg-blue-200 rounded-full h-2">
-                                  <div
-                                    className="bg-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-                                    style={{ width: `${uploadProgress}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            )}
-
-                            <Button
-                              size="sm"
-                              color="primary"
-                              onPress={handleMaterialsUpload}
-                              isDisabled={isMaterialsUploading}
-                              className="mt-3"
-                            >
-                              {lang === "en" ? "Upload Files" : "ፋይሎችን ይስቀሉ"}
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+               
 
                 <CourseBasicInfo
                   lang={lang}
@@ -1312,8 +993,7 @@ export default function Page() {
                       isDisabled={
                         formState.isSubmitting ||
                         isUploading ||
-                        isThumbnailUploading ||
-                        isMaterialsUploading
+                        isThumbnailUploading
                       }
                     >
                       {lang === "en" ? "Cancel" : "ሰርዝ"}
@@ -1331,7 +1011,6 @@ export default function Page() {
                       isDisabled={
                         isUploading ||
                         isThumbnailUploading ||
-                        isMaterialsUploading ||
                         !watch("titleEn") ||
                         !watch("titleAm") ||
                         !watch("instructorId") ||
