@@ -25,6 +25,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { askCourseQuestion } from "@/lib/actions";
 import { 
   submitVideoQuestion, 
   getVideoQuestions, 
@@ -135,35 +136,30 @@ export default function VideoQA({ courseId, subActivityId, lang, currentTime }: 
   };
 
   const handleAIQuestion = async () => {
+    if (!newQuestion.trim()) return;
+    
     setAiLoading(true);
     setAiResponse("");
     
     try {
-      const response = await fetch("/api/ai-assistant", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          courseId,
-          question: newQuestion.trim(),
-          lang,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setAiResponse(result.response);
-        } else {
-          throw new Error(result.error);
-        }
+      // Use the server action to ask the question
+      const result = await askCourseQuestion(courseId, newQuestion.trim());
+      
+      if (result.success) {
+        setAiResponse(result.answer || "No answer received");
+        setNewQuestion("");
+        onClose();
       } else {
-        throw new Error("Failed to get AI response");
+        throw new Error(result.error || "Failed to get AI response");
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
-      setAiResponse(lang === "en" ? "Sorry, I couldn't process your question right now. Please try again." : "ይቅርታ፣ ጥያቄዎን አሁን ማስኬድ አልቻልኩም። እባክዎ እንደገና ይሞክሩ።");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setAiResponse(
+        lang === "en" 
+          ? `Sorry, I couldn't process your question: ${errorMessage}` 
+          : `ይቅርታ፣ ጥያቄዎን ማስኬድ አልቻልኩም: ${errorMessage}`
+      );
     } finally {
       setAiLoading(false);
     }

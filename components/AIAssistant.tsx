@@ -12,8 +12,10 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  Progress,
 } from "@heroui/react";
-import { Bot} from "lucide-react";
+import { Bot } from "lucide-react";
+import { askCourseQuestion } from "@/lib/actions";
 
 interface AIAssistantProps {
   courseId: string;
@@ -25,41 +27,59 @@ export default function AIAssistant({ courseId, lang }: AIAssistantProps) {
   const [newQuestion, setNewQuestion] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [currentAiProvider, setCurrentAiProvider] = useState<string>("");
+  const [progress, setProgress] = useState(0);
 
   const handleAIQuestion = async () => {
+    if (!newQuestion.trim()) return;
+    
     setAiLoading(true);
     setAiResponse("");
+    setProgress(0);
     
     try {
-      const response = await fetch("/api/ai-assistant", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          courseId,
-          question: newQuestion.trim(),
-          lang,
-        }),
-      });
+      // Simulate progress steps for AI processing
+      const progressSteps = [
+        { step: 15, delay: 150 },
+        { step: 30, delay: 150 },
+        { step: 50, delay: 150 },
+        { step: 75, delay: 150 },
+        { step: 90, delay: 150 },
+      ];
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setAiResponse(result.response);
-          setNewQuestion("");
-          onClose();
-        } else {
-          throw new Error(result.error);
-        }
+      // Start progress animation
+      for (const { step, delay } of progressSteps) {
+        setProgress(step);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+
+      // Use the server action to ask the question
+      const result = await askCourseQuestion(courseId, newQuestion.trim());
+      
+      setProgress(100);
+      
+      if (result.success) {
+        setAiResponse(result.answer || "No answer received");
+        setCurrentAiProvider(
+          result.aiProvider === "openai" ? "OpenAI GPT-4" : "Gemini AI"
+        );
+        setNewQuestion("");
+        onClose();
       } else {
-        throw new Error("Failed to get AI response");
+        throw new Error(result.error || "Failed to get AI response");
       }
     } catch (error) {
       console.error("Error getting AI response:", error);
-      setAiResponse(lang === "en" ? "Sorry, I couldn't process your question right now. Please try again." : "ይቅርታ፣ ጥያቄዎን አሁን ማስኬድ አልቻልኩም። እባክዎ እንደገና ይሞክሩ።");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      setAiResponse(
+        lang === "en" 
+          ? `Sorry, I couldn't process your question: ${errorMessage}` 
+          : `ይቅርታ፣ ጥያቄዎን ማስኬድ አልቻልኩም: ${errorMessage}`
+      );
     } finally {
       setAiLoading(false);
+      // Clear progress after a short delay
+      setTimeout(() => setProgress(0), 1000);
     }
   };
 
@@ -100,9 +120,11 @@ export default function AIAssistant({ courseId, lang }: AIAssistantProps) {
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-xs sm:text-sm flex items-center gap-1 sm:gap-2">
                     <span className="truncate">AI Assistant</span>
-                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded-full flex-shrink-0">
-                      AI
-                    </span>
+                    {currentAiProvider && (
+                      <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded-full flex-shrink-0">
+                        {currentAiProvider}
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-gray-500">
                     {lang === "en" ? "Just now" : "አሁን"}
@@ -151,7 +173,7 @@ export default function AIAssistant({ courseId, lang }: AIAssistantProps) {
                     : "ስለ ኮርሱ ይዘት ፈጣን AI-ተኮር መልሶችን ያግኙ"}
                 </p>
               </ModalHeader>
-              <ModalBody>
+              <ModalBody className="space-y-4">
                 <Textarea
                   value={newQuestion}
                   onValueChange={setNewQuestion}
@@ -162,13 +184,38 @@ export default function AIAssistant({ courseId, lang }: AIAssistantProps) {
                   }
                   minRows={3}
                   maxRows={6}
+                  isDisabled={aiLoading}
                 />
+                
                 {aiLoading && (
-                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-                    <Bot className="w-4 h-4 animate-pulse" />
-                    <span className="text-sm">
-                      {lang === "en" ? "AI is thinking..." : "AI እያሰበ ነው..."}
-                    </span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
+                        <Bot className="w-4 h-4 animate-pulse" />
+                        <span className="text-sm font-medium">
+                          {lang === "en" ? "AI is processing..." : "AI በማስኬድ ላይ..."}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-purple-600">
+                        {progress}%
+                      </span>
+                    </div>
+                    <Progress 
+                      value={progress} 
+                      size="sm"
+                      classNames={{
+                        indicator: "bg-gradient-to-r from-purple-500 to-blue-500"
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 text-center">
+                      {progress < 15 && (lang === "en" ? "Analyzing question..." : "ጥያቄን በመመርመር ላይ...")}
+                      {progress >= 15 && progress < 30 && (lang === "en" ? "Searching content..." : "ይዘት በመፈለግ ላይ...")}
+                      {progress >= 30 && progress < 50 && (lang === "en" ? "Processing with AI..." : "በ AI በማስኬድ ላይ...")}
+                      {progress >= 50 && progress < 75 && (lang === "en" ? "Generating response..." : "ምላሽ በማመንጨት ላይ...")}
+                      {progress >= 75 && progress < 90 && (lang === "en" ? "Finalizing answer..." : "መልስ በማጠናቀቅ ላይ...")}
+                      {progress >= 90 && progress < 100 && (lang === "en" ? "Almost done..." : "ለመጨረስ ቀርቷል...")}
+                      {progress === 100 && (lang === "en" ? "Complete!" : "ተጠናቅቋል!")}
+                    </p>
                   </div>
                 )}
               </ModalBody>

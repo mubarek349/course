@@ -48,6 +48,7 @@ export const courseSchema = z.object({
   thumbnail: z.string({ message: "" }).nonempty("thumbnail is required"),
   video: z.string({ message: "" }).nonempty("video is required"),
   pdf: z.string({ message: "" }).optional(), // Optional PDF field
+  aiProvider: z.string().optional(), // Optional AI provider field (gemini or openai)
   courseMaterials: z
     .array(
       z.object({

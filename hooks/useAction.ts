@@ -75,7 +75,8 @@ export default function useAction<State extends StateType, Payload>(
       if (state.status) {
         if (other?.success) showToast("success", other.success);
         other?.onSuccess?.(state);
-      } else {
+      } else if (state.cause || state.message) {
+        // Only show error toast if there's actual error data (not initial state)
         if (other?.error) showToast("error", other.error);
         other?.onError?.({
           cause: state.cause,

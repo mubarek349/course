@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No image file provided" }, { status: 400 });
     }
 
-    const uploadsDir = path.join(process.cwd(), "public", "thumbnails");
+    const uploadsDir = path.join(process.cwd(), "docs", "thumbnails");
     if (!existsSync(uploadsDir)) {
       await mkdir(uploadsDir, { recursive: true });
     }
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       filename,
-      thumbnailUrl: `/thumbnails/${filename}`,
+      thumbnailUrl: `/api/files/thumbnails/${filename}`,
       message: "Thumbnail uploaded successfully" 
     });
 

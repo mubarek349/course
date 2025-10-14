@@ -13,10 +13,11 @@
 # testing
 /coverage
 /file
-/fuad
-/public/thumbnails
-/public/pdfs
-/public/materials
+/cache
+/docs/ai-pdfs
+/docs/pdfs
+/docs/thumbnails
+/docs/materials
 /fuad
 /fuad/course
 

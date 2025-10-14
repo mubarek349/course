@@ -227,6 +227,7 @@ export async function getCourseForManager(id: string) {
         thumbnail: true,
         video: true,
         courseMaterials: true,
+        aiProvider: true,
       },
     });
 
