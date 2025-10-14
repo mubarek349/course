@@ -127,7 +127,7 @@ export async function courseRegistration(
       await prisma.activity.deleteMany({ where: { courseId: id } });
 
       // Extract relation fields from courseData
-      const { instructorId, channelId } =
+      const { instructorId, channelId, ...restWithoutRelations } =
         courseData;
 
       console.log("💾 Updating course with data:", {
@@ -141,6 +141,7 @@ export async function courseRegistration(
       const updatedCourse = await prisma.course.update({
         where: { id },
         data: {
+          ...restWithoutRelations, // Update all scalar fields
           instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
           channel: { connect: { id: channelId } }, // Fix: Use relation syntax
           courseFor: { create: courseFor },
@@ -161,7 +162,8 @@ export async function courseRegistration(
               })
             ),
           },
-        },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any,
         include: { activity: { orderBy: { order: "asc" } } },
       });
 
@@ -279,7 +281,7 @@ export async function courseRegistration(
         instructorId: createInstructorId,
         channelId: createChannelId,
         ...restWithoutRelations
-      } = rest as unknown as { [k: string]: unknown };
+      } = courseData as unknown as { [k: string]: unknown };
       const courseId = await prisma.course
         .create({
           data: {

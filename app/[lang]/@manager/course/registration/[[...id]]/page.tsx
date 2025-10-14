@@ -2,7 +2,6 @@
 "use client";
 
 import CourseFor from "./courseFor";
-import useAction from "@/hooks/useAction";
 import useData from "@/hooks/useData";
 import { courseRegistration } from "@/lib/action/course";
 import { getChannels, getCourseForManager } from "@/lib/data/course";
@@ -10,7 +9,7 @@ import { TCourse } from "@/lib/definations";
 import { getEntries } from "@/lib/utils";
 import { courseSchema } from "@/lib/zodSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 import ActivityManager, { TQuestion } from "@/components/ActivityManager";
@@ -40,6 +39,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import FinalExamManager from "@/components/FinalExamManager";
+import { toast } from "sonner";
 
 export default function Page() {
   const params = useParams<{ lang: string; id: string }>();
@@ -53,10 +53,9 @@ export default function Page() {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
 
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "",
-    pathname = usePathname(),
-    router = useRouter(),
-    { handleSubmit, register, setValue, formState, watch } = useForm<TCourse>({
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "";
+  const router = useRouter();
+  const { handleSubmit, register, setValue, formState, watch } = useForm<TCourse>({
       resolver: zodResolver(courseSchema),
       defaultValues: {
         titleEn: "",
@@ -76,6 +75,7 @@ export default function Page() {
         requirement: [],
         courseFor: [],
         activity: [],
+        courseMaterials: [], // Ensure courseMaterials is an array
         accessAm: "በሞባይል ፣ በኮምፒተር ላይ መጠቀም",
         accessEn: "Access on mobile, computer",
         instructorRate: 0,
@@ -88,76 +88,7 @@ export default function Page() {
 
   const isEditing = id && id !== "unknown";
 
-  const { action, reset } = useAction(
-    courseRegistration,
-    { status: false, cause: "", message: "" },
-    {
-      loading:
-        lang === "en"
-          ? isEditing
-            ? "Updating course..."
-            : "Creating course..."
-          : isEditing
-          ? "ኮርስ በማዘመን ላይ..."
-          : "ኮርስ በመፍጠር ላይ...",
-      success:
-        lang === "en"
-          ? isEditing
-            ? "Course updated successfully!"
-            : "Course created successfully!"
-          : isEditing
-          ? "ኮርስ በተሳካ ሁኔታ ተዘምኗል!"
-          : "ኮርስ በተሳካ ሁኔታ ተፈጠረ!",
-      error:
-        lang === "en"
-          ? isEditing
-            ? "Failed to update course. Please try again."
-            : "Failed to create course. Please try again."
-          : isEditing
-          ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
-          : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
-      onError({ cause, message }: { cause: string; message: string }) {
-        console.log("❌ useAction onError called", { cause, message });
-        // Reset form state on error to allow retry
-        setIsUploading(false);
-        setIsThumbnailUploading(false);
-        // Reset the action state
-        setTimeout(() => reset(), 100);
-      },
-      onSuccess({ status }: { status: boolean }) {
-        console.log("🎯 useAction onSuccess called", { status });
-        if (status) {
-          console.log("✅ Success! Redirecting...");
-          // Reset form state to allow for future submissions
-          setIsUploading(false);
-          setIsThumbnailUploading(false);
-          setSelectedVideoFile(null);
-          
-
-          // Reset the action state
-          setTimeout(() => reset(), 100);
-
-          setTimeout(() => {
-            router.push(
-              `/${pathname
-                ?.split("/")
-                .slice(1)
-                .reverse()
-                .slice(1)
-                .reverse()
-                .join("/")}`
-            );
-          }, 1500);
-        } else {
-          console.log("❌ Success callback called but status is false");
-          // Reset the action state even on false status
-          setTimeout(() => reset(), 100);
-        }
-      },
-    }
-  );
-
-  const { data: channels, loading: channelsLoading } = useData({
+  const { data: channels, loading: channelsLoading, } = useData({
     func: getChannels,
     args: [],
   });
@@ -178,7 +109,8 @@ export default function Page() {
             value !== undefined &&
             name !== "id" &&
             name !== "finalExamQuestions" &&
-            name !== "activity"
+            name !== "activity" &&
+            name !== "courseMaterials" // Skip courseMaterials, we'll handle it separately
           ) {
             if (value && typeof value === "object" && "toNumber" in value) {
               setValue(name as keyof TCourse, Number(value), {
@@ -189,6 +121,49 @@ export default function Page() {
             }
           }
         });
+
+        // Handle courseMaterials - convert string to array if needed
+        if (data.courseMaterials !== null && data.courseMaterials !== undefined) {
+          if (typeof data.courseMaterials === 'string') {
+            // It's a comma-separated string, parse it to array of objects
+            const urls = data.courseMaterials
+              .split(',')
+              .map(url => url.trim())
+              .filter(url => url.length > 0);
+            
+            const materialsArray = urls.map(url => {
+              // Extract filename from URL
+              const filename = url.split('/').pop() || 'file';
+              // Determine type from extension
+              const extension = filename.split('.').pop()?.toLowerCase() || '';
+              let type = 'file';
+              if (['pdf'].includes(extension)) type = 'pdf';
+              else if (['doc', 'docx'].includes(extension)) type = 'document';
+              else if (['ppt', 'pptx'].includes(extension)) type = 'presentation';
+              else if (['xls', 'xlsx'].includes(extension)) type = 'spreadsheet';
+              else if (['mp4', 'avi', 'mov'].includes(extension)) type = 'video';
+              else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) type = 'image';
+              else if (['zip', 'rar'].includes(extension)) type = 'archive';
+              
+              return {
+                name: filename,
+                url: url,
+                type: type
+              };
+            });
+            
+            setValue("courseMaterials", materialsArray, { shouldValidate: false });
+          } else if (Array.isArray(data.courseMaterials)) {
+            // It's already an array
+            setValue("courseMaterials", data.courseMaterials, { shouldValidate: false });
+          } else {
+            // Unknown type, set to empty array
+            setValue("courseMaterials", [], { shouldValidate: false });
+          }
+        } else {
+          // Null or undefined, set to empty array
+          setValue("courseMaterials", [], { shouldValidate: false });
+        }
 
         // Handle activity data separately since it requires proper type alignment
         if (data.activity) {
@@ -251,6 +226,17 @@ export default function Page() {
         errors: formState.errors,
       },
     });
+    
+    const loadingToast = toast.loading(
+      lang === "en"
+        ? isEditing
+          ? "Updating course..."
+          : "Creating course..."
+        : isEditing
+        ? "ኮርስ በማዘመን ላይ..."
+        : "ኮርስ በመፍጠር ላይ..."
+    );
+    
     setIsUploading(true);
     try {
       if (selectedVideoFile) {
@@ -287,9 +273,25 @@ export default function Page() {
 
       data.finalExamQuestions = finalExamQuestions;
       
+      // Convert courseMaterials array back to comma-separated string for database
+      if (data.courseMaterials && Array.isArray(data.courseMaterials)) {
+        // Extract URLs and join with commas
+        const materialsString = data.courseMaterials
+          .map(material => material.url)
+          .filter(url => url && url.length > 0)
+          .join(',');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (data as any).courseMaterials = materialsString;
+      }
+      
+      // Ensure ID is set for updates
+      if (isEditing && id) {
+        data.id = id;
+      }
 
       console.log("📤 Calling server action with data:", {
         id: data.id,
+        isEditing,
         titleEn: data.titleEn,
         titleAm: data.titleAm,
         instructorId: data.instructorId,
@@ -301,14 +303,58 @@ export default function Page() {
 
       // First, register/update the course
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result: any = await action(data);
+      console.log("📤 About to call action with data:", data);
+      const result: any = await courseRegistration({ status: false, cause: "", message: "" }, data);
 
       console.log("📥 Server action result:", result);
 
+      toast.dismiss(loadingToast);
+
+      if (result.status) {
+        // Success
+        toast.success(
+          lang === "en"
+            ? isEditing
+              ? "Course updated successfully!"
+              : "Course created successfully!"
+            : isEditing
+            ? "ኮርስ በተሳካ ሁኔታ ተዘምኗል!"
+            : "ኮርስ በተሳካ ሁኔታ ተፈጠረ!"
+        );
+        
+        // Reset form state
+        setSelectedVideoFile(null);
+        setVideoPreviewUrl("");
+        
+        // Navigate to course list
+        setTimeout(() => {
+          router.push(`/${lang}/course`);
+        }, 500);
+      } else {
+        // Error
+        toast.error(
+          lang === "en"
+            ? isEditing
+              ? "Failed to update course. Please try again."
+              : "Failed to create course. Please try again."
+            : isEditing
+            ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+            : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+          {
+            description: result.message || result.cause
+          }
+        );
+      }
 
       return result;
     } catch (error) {
       console.error("❌ Form submission error:", error);
+      toast.dismiss(loadingToast);
+      toast.error(
+        lang === "en"
+          ? "An unexpected error occurred"
+          : "ያልተጠበቀ ስህተት ተፈጥሯል"
+      );
       throw error;
     } finally {
       setIsUploading(false);
@@ -1020,24 +1066,36 @@ export default function Page() {
                         !watch("duration")
                       }
                       onPress={() => {
-                        console.log("🔘 Submit button pressed", {
+                        console.log("🔘 =================================");
+                        console.log("🔘 BUTTON CLICKED!", { isEditing, id });
+                        console.log("🔘 Form State:", {
                           isSubmitting: formState.isSubmitting,
                           isUploading,
-                          formErrors: formState.errors,
+                          isThumbnailUploading,
                           formValid: formState.isValid,
                           formDirty: formState.isDirty,
-                          formValues: {
-                            titleEn: watch("titleEn"),
-                            titleAm: watch("titleAm"),
-                            instructorId: watch("instructorId"),
-                            channelId: watch("channelId"),
-                            dolarPrice: watch("dolarPrice"),
-                            birrPrice: watch("birrPrice"),
-                            duration: watch("duration"),
-                          },
+                        });
+                        console.log("❌ Form Errors (detailed):", JSON.stringify(formState.errors, null, 2));
+                        console.log("📋 Form Values:", {
+                          id: watch("id"),
+                          titleEn: watch("titleEn"),
+                          titleAm: watch("titleAm"),
+                          instructorId: watch("instructorId"),
+                          channelId: watch("channelId"),
+                          dolarPrice: watch("dolarPrice"),
+                          birrPrice: watch("birrPrice"),
+                          duration: watch("duration"),
+                          video: watch("video"),
+                          thumbnail: watch("thumbnail"),
                         });
                         if (!formState.isSubmitting && !isUploading) {
+                          console.log("✅ Calling handleSubmit...");
                           handleSubmit(handleFormSubmit)();
+                        } else {
+                          console.log("⚠️ Form submission blocked:", {
+                            isSubmitting: formState.isSubmitting,
+                            isUploading,
+                          });
                         }
                       }}
                     >
