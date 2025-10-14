@@ -50,7 +50,7 @@ export default function Payment({
     "chapa" | "stripe" | null
   >(null);
   const [userPhoneNumber, setUserPhoneNumber] = useState<string>("");
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [, setIsLoadingUser] = useState(false);
   const [authError, setAuthError] = useState<string>("");
 
   const formSchema = z.object({
