@@ -7,15 +7,18 @@ import { join } from "path";
 
 export async function updateCourseMaterials(courseId: string, materials: string) {
   try {
+    console.log("💾 Updating course materials:", { courseId, materialsLength: materials.length });
+    
     await prisma.course.update({
       where: { id: courseId },
-      data: { courseMaterials: materials },
+      data: { courseMaterials: materials || null },
     });
 
+    console.log("✅ Course materials updated successfully");
     revalidatePath("/en/admin/courseMaterials");
     return { success: true, message: "Course materials updated successfully" };
   } catch (error) {
-    console.error("Error updating course materials:", error);
+    console.error("❌ Error updating course materials:", error);
     return { success: false, message: "Failed to update course materials" };
   }
 }
@@ -68,14 +71,35 @@ export async function deleteCourseMaterial(courseId: string, filename: string) {
       return { success: false, message: "Course not found" };
     }
 
-    // Remove filename from materials list
-    const currentMaterials = course.courseMaterials?.split(',').filter(Boolean) || [];
-    const updatedMaterials = currentMaterials.filter(m => m !== filename);
+    // Parse materials from triplet format
+    const currentMaterials = course.courseMaterials || "";
+    const materials: Array<{name: string, url: string, type: string}> = [];
+    
+    if (currentMaterials.trim()) {
+      const parts = currentMaterials.split(',');
+      for (let i = 0; i < parts.length; i += 3) {
+        if (i + 2 < parts.length) {
+          materials.push({
+            name: parts[i].trim(),
+            url: parts[i + 1].trim(),
+            type: parts[i + 2].trim()
+          });
+        }
+      }
+    }
+
+    // Filter out the material with matching URL
+    const updatedMaterials = materials.filter(m => !m.url.includes(filename));
+
+    // Convert back to triplet format
+    const materialsString = updatedMaterials
+      .map(m => `${m.name},${m.url},${m.type}`)
+      .join(',');
 
     // Update database
     await prisma.course.update({
       where: { id: courseId },
-      data: { courseMaterials: updatedMaterials.join(',') },
+      data: { courseMaterials: materialsString },
     });
 
     revalidatePath("/en/admin/courseMaterials");

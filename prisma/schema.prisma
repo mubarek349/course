@@ -113,7 +113,7 @@ model Course {
   video           String
   pdfData         String?         @db.Text
   aiProvider      String?         @default("gemini")
-  courseMaterials String          @default("")
+  courseMaterials String?         @db.Text
   price           Decimal
   dolarPrice      Int
   birrPrice       Int

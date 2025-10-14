@@ -13,7 +13,7 @@ interface CoursePackage {
   titleAm: string;
   aboutEn: string;
   aboutAm: string;
-  courseMaterials: string;
+  courseMaterials: string | null;
   pdfData?: string | null;
   aiProvider: string | null;
   status: boolean;

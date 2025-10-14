@@ -16,24 +16,50 @@ export async function addCourseMaterials(
       return { success: false, error: "Invalid courseId" };
     }
 
-    // Sanitize and normalize input
+    // Get current materials
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { courseMaterials: true },
+    });
+
+    // Parse existing materials from triplet format
+    const currentMaterials = course?.courseMaterials || "";
+    const existingMaterials: CourseMaterial[] = [];
+    
+    if (currentMaterials.trim()) {
+      const parts = currentMaterials.split(',');
+      for (let i = 0; i < parts.length; i += 3) {
+        if (i + 2 < parts.length) {
+          existingMaterials.push({
+            name: parts[i].trim(),
+            url: parts[i + 1].trim(),
+            type: parts[i + 2].trim()
+          });
+        }
+      }
+    }
+
+    // Sanitize new materials
     const sanitized = (materials || [])
       .filter((m) => m && m.url)
       .map((m) => ({
         name: m.name?.trim() || m.url.split("/").pop() || "material",
-        url: m.url,
-        type: (m.type || m.url.split(".").pop() || "file").toLowerCase(),
+        url: m.url.trim(),
+        type: (m.type || "file").toLowerCase(),
       }));
 
-    // Deduplicate by URL
+    // Combine and deduplicate by URL
+    const allMaterials = [...existingMaterials, ...sanitized];
     const uniqueByUrl = Array.from(
-      new Map(sanitized.map((m) => [m.url, m])).values()
+      new Map(allMaterials.map((m) => [m.url, m])).values()
     );
 
-    // Convert to comma-separated string format for MySQL
-    const commaSeparated = uniqueByUrl.map((m) => `${m.name},${m.url},${m.type}`).join(',');
+    // Convert to comma-separated triplet format: "name1,url1,type1,name2,url2,type2"
+    const commaSeparated = uniqueByUrl
+      .map((m) => `${m.name},${m.url},${m.type}`)
+      .join(',');
 
-    // Update the course with comma-separated string
+    // Update the course with comma-separated triplets
     await prisma.course.update({
       where: { id: courseId },
       data: {
@@ -59,27 +85,76 @@ export async function getCourseMaterials(
 
     const raw = course?.courseMaterials ?? "";
 
+    console.log("📋 Course Materials Raw Data:", { courseId, raw });
+
     // Handle empty string
     if (!raw || raw.trim() === "") {
       return [];
     }
 
-    // Parse comma-separated string format: "name1,url1,type1,name2,url2,type2"
-    const parts = raw.split(',');
+    const parts = raw.split(',').map(p => p.trim()).filter(p => p.length > 0);
     const materials: CourseMaterial[] = [];
 
-    // Process in groups of 3 (name, url, type)
-    for (let i = 0; i < parts.length; i += 3) {
-      if (i + 2 < parts.length) {
-        const name = parts[i]?.trim() || "material";
-        const url = parts[i + 1]?.trim() || "";
-        const type = parts[i + 2]?.trim() || "file";
-        
-        if (url) {
-          materials.push({ name, url, type: type.toLowerCase() });
+    // Detect format: if parts count is divisible by 3 and contains /api/files/, it's likely triplet format
+    // Otherwise, it's old URL-only format
+    const isTripletFormat = parts.length % 3 === 0 && parts.some(p => p.includes('/api/files/'));
+
+    if (isTripletFormat) {
+      console.log("🔄 Parsing as TRIPLET format");
+      // Parse comma-separated triplet format: "name1,url1,type1,name2,url2,type2"
+      for (let i = 0; i < parts.length; i += 3) {
+        if (i + 2 < parts.length) {
+          const name = parts[i] || "material";
+          const url = parts[i + 1] || "";
+          const type = parts[i + 2] || "file";
+          
+          if (url) {
+            materials.push({ 
+              name, 
+              url, 
+              type: type.toLowerCase() 
+            });
+          }
         }
       }
+    } else {
+      console.log("🔄 Parsing as URL-ONLY format (legacy)");
+      // Legacy format: just comma-separated URLs or filenames
+      parts.forEach(item => {
+        if (item) {
+          // If it's just a filename (no slashes), construct the full URL
+          let url = item;
+          if (!item.includes('/')) {
+            url = `/api/files/materials/${item}`;
+          } else if (!item.startsWith('/api/files/')) {
+            // If it has slashes but not the /api/files/ prefix, assume it's just the filename
+            const filename = item.split('/').pop();
+            url = `/api/files/materials/${filename}`;
+          }
+          
+          const filename = url.split('/').pop() || 'file';
+          const extension = filename.split('.').pop()?.toLowerCase() || '';
+          
+          let type = 'file';
+          if (['pdf'].includes(extension)) type = 'pdf';
+          else if (['doc', 'docx'].includes(extension)) type = 'document';
+          else if (['ppt', 'pptx'].includes(extension)) type = 'presentation';
+          else if (['xls', 'xlsx'].includes(extension)) type = 'spreadsheet';
+          else if (['mp4', 'avi', 'mov', 'webm'].includes(extension)) type = 'video';
+          else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) type = 'image';
+          else if (['zip', 'rar', '7z'].includes(extension)) type = 'archive';
+          else if (['txt'].includes(extension)) type = 'text';
+          
+          materials.push({
+            name: filename,
+            url: url,
+            type: type
+          });
+        }
+      });
     }
+
+    console.log("📦 Parsed Materials:", materials);
 
     return materials;
   } catch (error) {

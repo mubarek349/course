@@ -31,12 +31,38 @@ interface UploadProgress {
   error?: string;
 }
 
+interface CourseMaterial {
+  name: string;
+  url: string;
+  type: string;
+}
+
 export function CourseMaterialsManager({
   packageId,
   initialMaterials,
 }: CourseMaterialsManagerProps) {
-  const [materials, setMaterials] = useState<string[]>(
-    initialMaterials ? initialMaterials.split(',').filter(Boolean) : []
+  // Parse triplet format: "name1,url1,type1,name2,url2,type2"
+  const parseMaterials = (materialsString: string | null): CourseMaterial[] => {
+    if (!materialsString || materialsString.trim() === '') return [];
+    
+    const parts = materialsString.split(',').map(p => p.trim());
+    const materials: CourseMaterial[] = [];
+    
+    for (let i = 0; i < parts.length; i += 3) {
+      if (i + 2 < parts.length) {
+        materials.push({
+          name: parts[i] || 'material',
+          url: parts[i + 1] || '',
+          type: parts[i + 2] || 'file'
+        });
+      }
+    }
+    
+    return materials;
+  };
+
+  const [materials, setMaterials] = useState<CourseMaterial[]>(
+    parseMaterials(initialMaterials)
   );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
@@ -116,11 +142,44 @@ export function CourseMaterialsManager({
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (uploadedFiles.length > 0) {
-        const updatedMaterials = [...materials, ...uploadedFiles];
+        // Create material objects from uploaded filenames
+        const newMaterials: CourseMaterial[] = uploadedFiles.map(filename => {
+          const url = `/api/files/materials/${filename}`;
+          const extension = filename.split('.').pop()?.toLowerCase() || '';
+          let type = 'file';
+          
+          if (['pdf'].includes(extension)) type = 'pdf';
+          else if (['doc', 'docx'].includes(extension)) type = 'document';
+          else if (['ppt', 'pptx'].includes(extension)) type = 'presentation';
+          else if (['xls', 'xlsx'].includes(extension)) type = 'spreadsheet';
+          else if (['mp4', 'avi', 'mov', 'webm'].includes(extension)) type = 'video';
+          else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension)) type = 'image';
+          else if (['zip', 'rar', '7z'].includes(extension)) type = 'archive';
+          else if (['txt'].includes(extension)) type = 'text';
+          
+          return {
+            name: filename,
+            url: url,
+            type: type
+          };
+        });
+        
+        const updatedMaterials = [...materials, ...newMaterials];
         setMaterials(updatedMaterials);
 
+        console.log('📦 Updated materials array:', updatedMaterials);
+
+        // Convert to triplet format for database: "name1,url1,type1,name2,url2,type2"
+        const materialsString = updatedMaterials
+          .map(m => `${m.name},${m.url},${m.type}`)
+          .join(',');
+        
+        console.log('💾 Saving to database (triplet format):', materialsString);
+        
         // Update database
-        const updateResult = await updateCourseMaterials(packageId, updatedMaterials.join(','));
+        const updateResult = await updateCourseMaterials(packageId, materialsString);
+        
+        console.log('✅ Database update result:', updateResult);
         
         if (!updateResult.success) {
           throw new Error(updateResult.message);
@@ -131,7 +190,12 @@ export function CourseMaterialsManager({
       }
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('❌ Upload error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        error: error
+      });
       toast.error(error instanceof Error ? error.message : 'Failed to upload files');
     } finally {
       setIsUploading(false);
@@ -153,10 +217,16 @@ export function CourseMaterialsManager({
 
     setIsDeleting(true);
     try {
-      const updatedMaterials = materials.filter(m => m !== materialToDelete);
+      // Filter out the material with matching URL
+      const updatedMaterials = materials.filter(m => !m.url.includes(materialToDelete));
       setMaterials(updatedMaterials);
 
-      const result = await updateCourseMaterials(packageId, updatedMaterials.join(','));
+      // Convert to triplet format for database
+      const materialsString = updatedMaterials
+        .map(m => `${m.name},${m.url},${m.type}`)
+        .join(',');
+
+      const result = await updateCourseMaterials(packageId, materialsString);
       
       if (!result.success) {
         throw new Error(result.message);
@@ -283,15 +353,20 @@ export function CourseMaterialsManager({
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   {getFileIcon()}
-                  <span className="text-sm text-slate-700 truncate">
-                    {material}
-                  </span>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-sm text-slate-700 truncate">
+                      {material.name}
+                    </span>
+                    <span className="text-xs text-slate-500 uppercase">
+                      {material.type}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button
                     size="sm"
                     variant="light"
-                    onPress={() => window.open(`/api/materials/${material}`, '_blank')}
+                    onPress={() => window.open(material.url, '_blank')}
                     isIconOnly
                   >
                     <Eye className="h-3 w-3" />
@@ -300,7 +375,7 @@ export function CourseMaterialsManager({
                     size="sm"
                     variant="light"
                     color="danger"
-                    onPress={() => handleDeleteClick(material)}
+                    onPress={() => handleDeleteClick(material.url.split('/').pop() || material.url)}
                     isIconOnly
                   >
                     <Trash2 className="h-3 w-3" />
