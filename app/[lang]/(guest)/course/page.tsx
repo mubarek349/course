@@ -48,7 +48,7 @@ export default function Page() {
                       }`}
                       className="w-full"
                     >
-                      {lang == "en" ? "Enroll" : "ይመዝገቡ"}
+                      {lang == "en" ? "Get Started" : "መማር ጀምር"}
                     </Button>
                   }
                 />

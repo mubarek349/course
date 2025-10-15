@@ -1,7 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause,SkipBack, SkipForward } from "lucide-react";
-import Controls from "./Controls";
+import { Play, Pause } from "lucide-react";
 import Playlist from "./Playlist";
 import ProgressBar from "./ProgressBar";
 import VolumeControl from "./VolumeControl";
@@ -267,6 +266,12 @@ PlayerProps) {
     setPlaying(false);
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
   return (
     <div
       ref={containerRef}
@@ -322,6 +327,56 @@ PlayerProps) {
           }}
         />
 
+        {/* Center Play Button - Show when paused and not loading */}
+        {!playing && !isLoading && isOnline && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 10,
+              pointerEvents: "none",
+            }}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              style={{
+                pointerEvents: "auto",
+                background: "rgba(135, 206, 235, 0.9)", // Vibrant sky blue
+                border: "none",
+                color: "#fff",
+                fontSize: 32,
+                borderRadius: "50%",
+                width: 80,
+                height: 80,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(135, 206, 235, 0.4)",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.1)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 25px rgba(135, 206, 235, 0.6)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow =
+                  "0 4px 20px rgba(135, 206, 235, 0.4)";
+              }}
+              aria-label="Play"
+            >
+              <Play size={32} />
+            </button>
+          </div>
+        )}
+
         {/* Loading Spinner Overlay */}
         {(isLoading || !isOnline) && (
           <div
@@ -335,11 +390,12 @@ PlayerProps) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              backgroundColor: "rgba(135, 206, 235, 0.9)", // Sky blue background
               borderRadius: "50%",
               width: "80px",
               height: "80px",
               pointerEvents: "none",
+              boxShadow: "0 4px 20px rgba(135, 206, 235, 0.4)",
             }}
           >
             <CustomSpinner size={32} color="#fff" />
@@ -360,141 +416,51 @@ PlayerProps) {
 
         {/* --- MOBILE CONTROLS --- */}
         {isMobile && showControls && (
-          <>
-            {/* Center Play/Pause, Skip Back, Skip Forward */}
-            <div
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(135, 206, 235, 0.2)", // Glassy sky blue background
+              padding: "8px 16px",
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              zIndex: 2,
+            }}
+          >
+            {/* Play/Pause Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              title={playing ? "Pause" : "Play"}
               style={{
-                position: "absolute",
-                top: "50%",
-                left: 0,
-                width: "100%",
+                background: "rgba(135, 206, 235, 0.8)", // Glassy sky blue background
+                border: "none",
+                color: "#fff",
+                fontSize: 20,
+                borderRadius: "50%",
+                width: 40,
+                height: 40,
+                cursor: "pointer",
                 display: "flex",
-                justifyContent: "center",
                 alignItems: "center",
-                transform: "translateY(-50%)",
-                zIndex: 2,
-                pointerEvents: "none",
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(135, 206, 235, 0.3)",
               }}
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  skipTime(-10);
-                }}
-                style={{
-                  pointerEvents: "auto",
-                  background: "rgba(0,0,0,0.5)",
-                  border: "none",
-                  color: "#fff",
-                  fontSize: 28,
-                  borderRadius: "50%",
-                  width: 48,
-                  height: 48,
-                  marginRight: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-                aria-label="Skip Backward"
-              >
-                <SkipBack />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  togglePlay();
-                }}
-                style={{
-                  pointerEvents: "auto",
-                  background: "rgba(0,0,0,0.7)",
-                  border: "none",
-                  color: "#fff",
-                  fontSize: 32,
-                  borderRadius: "50%",
-                  width: 56,
-                  height: 56,
-                  margin: "0 8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-                aria-label={playing ? "Pause" : "Play"}
-              >
-                {playing ? <Pause /> : <Play />}
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  skipTime(10);
-                }}
-                style={{
-                  pointerEvents: "auto",
-                  background: "rgba(0,0,0,0.5)",
-                  border: "none",
-                  color: "#fff",
-                  fontSize: 28,
-                  borderRadius: "50%",
-                  width: 48,
-                  height: 48,
-                  marginLeft: 16,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-                aria-label="Skip Forward"
-              >
-                <SkipForward />
-              </button>
-            </div>
-            {/* Volume at upper center right */}
+              {playing ? <Pause /> : <Play />}
+            </button>
+
+            {/* Progress Bar */}
             <div
-              style={{
-                position: "absolute",
-                top: "30%",
-                right: 8,
-                transform: "translateY(-50%)",
-                zIndex: 2,
-                pointerEvents: "auto",
-              }}
-            >
-              <VolumeControl
-                volume={volume}
-                muted={muted}
-                onVolumeChange={handleVolumeChange}
-                onMuteToggle={handleMuteToggle}
-              />
-            </div>
-            {/* Fullscreen at bottom right */}
-            <div
-              style={{
-                position: "absolute",
-                right: 12,
-                bottom: 16,
-                zIndex: 2,
-                pointerEvents: "auto",
-              }}
-            >
-              <FullscreenButton
-                onClick={handleFullscreen}
-                isFullscreen={isFullscreen}
-              />
-            </div>
-            {/* ProgressBar at bottom */}
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: "rgba(0,0,0,0.4)",
-                padding: "8px 0 0 0",
-                borderBottomLeftRadius: 8,
-                borderBottomRightRadius: 8,
-                zIndex: 2,
-              }}
+              style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}
             >
               <ProgressBar
                 currentTime={currentTime}
@@ -503,7 +469,26 @@ PlayerProps) {
                 buffered={buffered}
               />
             </div>
-          </>
+
+            {/* Time Display */}
+            <span style={{ color: "#fff", fontSize: 14, minWidth: 50 }}>
+              -{formatTime(duration - currentTime)}
+            </span>
+
+            {/* Volume Control */}
+            <VolumeControl
+              volume={volume}
+              muted={muted}
+              onVolumeChange={handleVolumeChange}
+              onMuteToggle={handleMuteToggle}
+            />
+
+            {/* Fullscreen Button */}
+            <FullscreenButton
+              onClick={handleFullscreen}
+              isFullscreen={isFullscreen}
+            />
+          </div>
         )}
 
         {/* --- DESKTOP CONTROLS --- */}
@@ -517,79 +502,91 @@ PlayerProps) {
               opacity: showControls ? 1 : 0,
               pointerEvents: showControls ? "auto" : "none",
               transition: "opacity 0.3s",
-              background: "rgba(0,0,0,0.4)",
-              padding: "12px 16px 8px 16px",
+              background: "rgba(135, 206, 235, 0.2)", // Glassy sky blue background
+              padding: "8px 16px",
               borderBottomLeftRadius: 8,
               borderBottomRightRadius: 8,
               display: "flex",
-              flexDirection: "column",
-              gap: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
             }}
           >
-            {/* Progress bar at the top of controls */}
-            <ProgressBar
-              currentTime={currentTime}
-              duration={duration}
-              onSeek={handleSeek}
-              buffered={buffered}
-            />
-            {/* Controls row */}
-            <div
+            {/* Play/Pause Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              title={playing ? "Pause" : "Play"}
               style={{
+                background: "rgba(135, 206, 235, 0.8)", // Glassy sky blue background
+                border: "none",
+                color: "#fff",
+                fontSize: 20,
+                borderRadius: "50%",
+                width: 40,
+                height: 40,
+                cursor: "pointer",
                 display: "flex",
-                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "space-between",
-                width: "100%",
-                marginTop: 4,
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(135, 206, 235, 0.3)",
               }}
             >
-              {/* Left: Play/Pause, Skip Back, Skip Forward */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Controls
-                  playing={playing}
-                  onPlayPause={togglePlay}
-                  onSkip={skipTime}
-                  onSpeedChange={() =>
-                    changeSpeed(speed >= 2 ? 1 : speed + 0.25)
-                  }
-                  speed={speed}
-                  // currentTime={currentTime}
-                  // duration={duration}
-                  // onSeek={handleSeek}
-                />
-              </div>
-              {/* Right: Volume, Speed, Fullscreen */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <VolumeControl
-                  volume={volume}
-                  muted={muted}
-                  onVolumeChange={handleVolumeChange}
-                  onMuteToggle={handleMuteToggle}
-                />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    changeSpeed(speed >= 2 ? 1 : speed + 0.25);
-                  }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#fff",
-                    fontSize: 16,
-                    cursor: "pointer",
-                    padding: "4px 8px",
-                  }}
-                  title="Change Speed"
-                >
-                  {speed}x
-                </button>
-                <FullscreenButton
-                  onClick={handleFullscreen}
-                  isFullscreen={isFullscreen}
-                />
-              </div>
+              {playing ? <Pause /> : <Play />}
+            </button>
+
+            {/* Progress Bar */}
+            <div
+              style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <ProgressBar
+                currentTime={currentTime}
+                duration={duration}
+                onSeek={handleSeek}
+                buffered={buffered}
+              />
             </div>
+
+            {/* Time Display */}
+            <span style={{ color: "#fff", fontSize: 14, minWidth: 50 }}>
+              -{formatTime(duration - currentTime)}
+            </span>
+
+            {/* Volume Control */}
+            <VolumeControl
+              volume={volume}
+              muted={muted}
+              onVolumeChange={handleVolumeChange}
+              onMuteToggle={handleMuteToggle}
+            />
+
+            {/* Speed Control */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                changeSpeed(speed >= 2 ? 1 : speed + 0.25);
+              }}
+              style={{
+                background: "rgba(135, 206, 235, 0.6)",
+                border: "none",
+                color: "#fff",
+                fontSize: 14,
+                cursor: "pointer",
+                padding: "4px 8px",
+                borderRadius: 4,
+              }}
+              title="Change Speed"
+            >
+              {speed}x
+            </button>
+
+            {/* Fullscreen Button */}
+            <FullscreenButton
+              onClick={handleFullscreen}
+              isFullscreen={isFullscreen}
+            />
           </div>
         )}
       </div>
