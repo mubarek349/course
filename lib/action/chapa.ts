@@ -413,7 +413,7 @@ async function verify(tx_ref: string | null) {
     console.log("Chapa verification response:", data);
 
     // Check if the API call was successful and payment is completed
-    if (data && data.status == "success" && data.data) {
+    if (data && data.status == "success" && data.data.status == "success") {
       // For Chapa, a payment can be considered successful if:
       // 1. The API call was successful (data.status == "success")
       // 2. The payment exists and has been processed
