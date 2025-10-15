@@ -3,7 +3,8 @@
 import useData from "@/hooks/useData";
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import Link from "next/link";
 import CustomTable from "@/components/ui/custom-table";
 import { TTableData } from "@/lib/definations";
 import { DollarSign } from "lucide-react";
@@ -11,7 +12,7 @@ import { getCourses } from "@/actions/common/course";
 
 export default function Page() {
   const params = useParams<{ lang: string }>();
-          const lang = params?.lang || "en",
+  const lang = params?.lang || "en",
     [tableData, setTableData] = useState<TTableData>({
       search: "",
       currentPage: 1,

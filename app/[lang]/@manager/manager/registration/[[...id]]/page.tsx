@@ -7,17 +7,18 @@ import useAction from "@/hooks/useAction";
 import useData from "@/hooks/useData";
 import { TManager } from "@/lib/definations";
 import { managerSchema } from "@/lib/zodSchema";
-import { Button, Form, Link } from "@heroui/react";
+import { Button, Form } from "@heroui/react";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 
 export default function Page() {
-  const params= useParams<{ lang: string ,id?:string[]}>();
-      const lang = params?.lang || "en",
-      id = params?.id,
-       router = useRouter(),
+  const params = useParams<{ lang: string; id?: string[] }>();
+  const lang = params?.lang || "en",
+    id = params?.id,
+    router = useRouter(),
     { handleSubmit, register, formState, setValue } = useForm<TManager>({
       resolver: zodResolver(managerSchema),
       defaultValues: {

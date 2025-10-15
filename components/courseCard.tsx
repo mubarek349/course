@@ -42,8 +42,7 @@ export default function CourseCardAffiliate({
 
   return (
     <div className="h-fit relative bg-background rounded-xl overflow-hidden  ">
-      <Link
-        href={`/${lang}/course/${id}?code=${searchParams?.get("code") || ""}`}
+      <div
         style={{
           backgroundImage: `url('${thumbnail}')`,
         }}
@@ -54,17 +53,12 @@ export default function CourseCardAffiliate({
             <Play className="size-4 stroke-background fill-background" />
           </div>
         </div>
-      </Link>
+      </div>
       <div className="px-5 divide-y divide-primary-600/20">
         <div className="py-2 grid gap-2 grid-rows-[auto_auto_1fr]  ">
-          <Link
-            href={`/${lang}/course/${id}?code=${
-              searchParams?.get("code") || ""
-            }`}
-            className="text-lg font-semibold "
-          >
+          <h3 className="text-lg font-semibold">
             {lang == "en" ? titleEn : titleAm}
-          </Link>
+          </h3>
           <p className="space-x-2">
             <span className="">{lang == "en" ? "course by" : "ኮርስ "}</span>
             <span className="font-bold">

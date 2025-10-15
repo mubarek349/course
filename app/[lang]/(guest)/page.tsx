@@ -5,7 +5,7 @@ import CourseSample from "./course/page";
 import React, { useEffect } from "react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Link } from "@heroui/react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CButton } from "@/components/heroui";
 
@@ -160,26 +160,26 @@ function HomeSample() {
               transition={{ delay: 0.9, duration: 0.6 }}
               className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4"
             >
-              <CButton
-                as={Link}
-                href={`/${lang}/course`}
-                color="primary"
-                variant="shadow"
-                size="lg"
-                className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold bg-gradient-to-r from-blue-500 to-green-500 w-full sm:w-auto"
-              >
-                {lang === "en" ? "Start Learning Now" : "አሁን መማር ጀምር"}
-              </CButton>
-              <CButton
-                as={Link}
-                href={`/${lang}/#about`}
-                color="default"
-                variant="bordered"
-                size="lg"
-                className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold border-2 border-gray-300 hover:border-blue-500 w-full sm:w-auto"
-              >
-                {lang === "en" ? "Learn More" : "የበለጠ ለማወቅ"}
-              </CButton>
+              <Link href={`/${lang}/course`} className="w-full sm:w-auto">
+                <CButton
+                  color="primary"
+                  variant="shadow"
+                  size="lg"
+                  className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold bg-gradient-to-r from-blue-500 to-green-500 w-full sm:w-auto"
+                >
+                  {lang === "en" ? "Start Learning Now" : "አሁን መማር ጀምር"}
+                </CButton>
+              </Link>
+              <Link href={`/${lang}/#about`} className="w-full sm:w-auto">
+                <CButton
+                  color="default"
+                  variant="bordered"
+                  size="lg"
+                  className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold border-2 border-gray-300 hover:border-blue-500 w-full sm:w-auto"
+                >
+                  {lang === "en" ? "Learn More" : "የበለጠ ለማወቅ"}
+                </CButton>
+              </Link>
             </motion.div>
           </motion.div>
 

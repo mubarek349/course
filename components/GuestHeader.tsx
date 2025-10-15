@@ -51,16 +51,18 @@ export default function GuestHeader() {
                 key={i + ""}
                 className={cn("relative max-md:w-full md:min-w-40 grid ")}
               >
-                <CButton
-                  as={Link}
-                  color="primary"
-                  variant={(selectedSegment || "") === url ? "flat" : "light"}
+                <Link
                   href={`/${lang}/` + url}
                   onClick={() => setTimeout(() => setSide(false), 300)}
-                  className={"z-10"}
                 >
-                  {label}
-                </CButton>
+                  <CButton
+                    color="primary"
+                    variant={(selectedSegment || "") === url ? "flat" : "light"}
+                    className={"z-10"}
+                  >
+                    {label}
+                  </CButton>
+                </Link>
               </div>
             ))}
           </div>
@@ -79,19 +81,21 @@ export default function GuestHeader() {
                 <Moon className="size-5 " />
               )}
             </CButton>
-            <CButton
-              isIconOnly
-              color="primary"
-              variant="flat"
-              as={Link}
+            <Link
               href={`/${lang == "en" ? "am" : "en"}/${(pathname ?? "")
                 .split("/")
                 .slice(2)
                 .join("/")}`}
-              className="btn-light-primary size-10 place-self-center rounded-xl "
             >
-              {lang == "en" ? "አማ" : "En"}
-            </CButton>
+              <CButton
+                isIconOnly
+                color="primary"
+                variant="flat"
+                className="btn-light-primary size-10 place-self-center rounded-xl "
+              >
+                {lang == "en" ? "አማ" : "En"}
+              </CButton>
+            </Link>
           </div>
         </div>
         <div
@@ -111,24 +115,24 @@ export default function GuestHeader() {
           {side ? <X className="size-8" /> : <AlignLeft className="size-8" />}
         </CButton>
         <div className="gap-2">
-          <CButton
-            color="primary"
-            variant="flat"
-            as={Link}
-            href={`/${lang}/login`}
-            className="btn-light-primary w-30 ml-3"
-          >
-            {lang == "en" ? "Login" : "መግቢያ"}
-          </CButton>
-          <CButton
-            color="primary"
-            variant="flat"
-            as={Link}
-            href={`/${lang}/signup`}
-            className="bg-red-200 w-30 ml-3"
-          >
-            {lang == "en" ? "Sign Up" : "መዝግብ"}
-          </CButton>
+          <Link href={`/${lang}/login`}>
+            <CButton
+              color="primary"
+              variant="flat"
+              className="btn-light-primary w-30 ml-3"
+            >
+              {lang == "en" ? "Login" : "መግቢያ"}
+            </CButton>
+          </Link>
+          <Link href={`/${lang}/signup`}>
+            <CButton
+              color="primary"
+              variant="flat"
+              className="bg-red-200 w-30 ml-3"
+            >
+              {lang == "en" ? "Sign Up" : "መዝግብ"}
+            </CButton>
+          </Link>
         </div>
       </div>
     </div>

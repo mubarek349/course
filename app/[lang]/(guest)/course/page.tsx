@@ -7,7 +7,8 @@ import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
 import { useParams, useSearchParams } from "next/navigation";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import Link from "next/link";
 
 export default function Page() {
   const params = useParams<{ lang: string }>(),
@@ -40,16 +41,16 @@ export default function Page() {
                   key={i + ""}
                   {...{ ...value, id }}
                   btn={
-                    <Button
-                      color="primary"
-                      as={Link}
+                    <Link
                       href={`/${lang}/course/${id}?code=${
                         searchParams?.get("code") || ""
                       }`}
                       className="w-full"
                     >
-                      {lang == "en" ? "Get Started" : "መማር ጀምር"}
-                    </Button>
+                      <Button color="primary" className="w-full">
+                        {lang == "en" ? "Get Started" : "መማር ጀምር"}
+                      </Button>
+                    </Link>
                   }
                 />
               ))}

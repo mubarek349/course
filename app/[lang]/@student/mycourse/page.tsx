@@ -8,7 +8,8 @@ import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
 import { useParams } from "next/navigation";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 export default function Page() {
