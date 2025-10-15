@@ -240,12 +240,6 @@ PlayerProps) {
     }
   };
 
-  const skipTime = (seconds: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.currentTime += seconds;
-  };
-
   const changeSpeed = (newSpeed: number) => {
     setSpeed(newSpeed);
     const video = videoRef.current;
