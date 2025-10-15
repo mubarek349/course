@@ -3,11 +3,11 @@
 import { cn } from "@heroui/react";
 import { Course, User } from "@prisma/client";
 import { ChartBarIncreasing, Clock, Logs, Play } from "lucide-react";
-import Link from "next/link";
+// import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 
 export default function CourseCardAffiliate({
-  id,
+  // id,
   titleEn,
   titleAm,
   instructor,
@@ -36,7 +36,7 @@ export default function CourseCardAffiliate({
   _count: { activity: number };
   btn: React.ReactNode;
 }) {
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
   const params = useParams<{ lang: string }>();
   const lang = params?.lang || "en";
 
