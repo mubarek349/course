@@ -29,7 +29,7 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
           onMuteToggle();
         }}
         style={{
-          background: "rgba(135, 206, 235, 0.6)",
+          background: "rgba(59, 130, 246, 0.6)",
           border: "none",
           color: "#fff",
           padding: 4,
@@ -42,17 +42,25 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
       >
         {muted || volume === 0 ? <VolumeOff size={20} /> : <Volume size={20} />}
       </button>
-      <div style={{ position: "relative", width: 60, height: 8 }}>
+      <div
+        style={{
+          position: "relative",
+          width: 60,
+          height: 8,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
         {/* Background bar (darker sky blue) */}
         <div
           style={{
             position: "absolute",
             left: 0,
-            top: 3,
+            top: 0,
             height: 8,
             width: "100%",
-            background: "rgba(135, 206, 235, 0.3)", // Darker sky blue background
-            borderRadius: 2,
+            background: "rgba(59, 130, 246, 0.3)", // Darker sky blue background
+            borderRadius: 4,
             zIndex: 0,
           }}
         />
@@ -61,11 +69,11 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
           style={{
             position: "absolute",
             left: 0,
-            top: 3,
+            top: 0,
             height: 8,
             width: `${(muted ? 0 : volume) * 100}%`,
-            background: "rgba(135, 206, 235, 0.8)", // Sky blue
-            borderRadius: 2,
+            background: "rgba(59, 130, 246, 0.8)", // Sky blue
+            borderRadius: 4,
             zIndex: 1,
           }}
         />
@@ -84,13 +92,15 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
             background: "transparent",
             position: "relative",
             zIndex: 2,
-            height: 0,
+            height: 8,
             margin: 0,
             padding: 0,
             cursor: "pointer",
             outline: "none",
             WebkitAppearance: "none",
             appearance: "none",
+            WebkitTapHighlightColor: "transparent", // Fix iPhone touch
+            touchAction: "manipulation", // Fix iPhone touch
           }}
         />
       </div>

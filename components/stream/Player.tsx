@@ -304,6 +304,8 @@ PlayerProps) {
             top: isFullscreen && isMobile && isLandscape ? 0 : "auto",
             left: isFullscreen && isMobile && isLandscape ? 0 : "auto",
             zIndex: isFullscreen && isMobile && isLandscape ? 1 : "auto",
+            WebkitTapHighlightColor: "transparent", // Fix iPhone touch
+            touchAction: "manipulation", // Fix iPhone touch
           }}
           onPlay={(e) => {
             e.stopPropagation();
@@ -340,7 +342,7 @@ PlayerProps) {
               }}
               style={{
                 pointerEvents: "auto",
-                background: "rgba(135, 206, 235, 0.9)", // Vibrant sky blue
+                background: "rgba(59, 130, 246, 0.9)", // Regular blue
                 border: "none",
                 color: "#fff",
                 fontSize: 32,
@@ -352,18 +354,20 @@ PlayerProps) {
                 justifyContent: "center",
                 cursor: "pointer",
                 boxShadow:
-                  "0 4px 20px rgba(135, 206, 235, 0.8), 0 0 30px rgba(135, 206, 235, 0.3)",
+                  "0 4px 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.3)",
                 transition: "all 0.3s ease",
+                WebkitTapHighlightColor: "transparent", // Fix iPhone touch
+                touchAction: "manipulation", // Fix iPhone touch
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.1)";
                 e.currentTarget.style.boxShadow =
-                  "0 6px 25px rgba(135, 206, 235, 1), 0 0 40px rgba(135, 206, 235, 0.5)";
+                  "0 6px 25px rgba(59, 130, 246, 1), 0 0 40px rgba(59, 130, 246, 0.5)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
                 e.currentTarget.style.boxShadow =
-                  "0 4px 20px rgba(135, 206, 235, 0.8), 0 0 30px rgba(135, 206, 235, 0.3)";
+                  "0 4px 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.3)";
               }}
               aria-label="Play"
             >
@@ -385,13 +389,13 @@ PlayerProps) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "rgba(135, 206, 235, 0.9)", // Sky blue background
+              backgroundColor: "rgba(59, 130, 246, 0.9)", // Regular blue background
               borderRadius: "50%",
               width: "80px",
               height: "80px",
               pointerEvents: "none",
               boxShadow:
-                "0 4px 20px rgba(135, 206, 235, 0.8), 0 0 30px rgba(135, 206, 235, 0.3)",
+                "0 4px 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.3)",
             }}
           >
             <CustomSpinner size={32} color="#fff" />
@@ -418,7 +422,7 @@ PlayerProps) {
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(135, 206, 235, 0.2)", // Glassy sky blue background
+              background: "rgba(59, 130, 246, 0.2)", // Glassy blue background
               padding: "8px 16px",
               borderBottomLeftRadius: 8,
               borderBottomRightRadius: 8,
@@ -437,7 +441,7 @@ PlayerProps) {
               }}
               title={playing ? "Pause" : "Play"}
               style={{
-                background: "rgba(135, 206, 235, 0.8)", // Glassy sky blue background
+                background: "rgba(59, 130, 246, 0.8)", // Glassy blue background
                 border: "none",
                 color: "#fff",
                 fontSize: 20,
@@ -448,7 +452,11 @@ PlayerProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(135, 206, 235, 0.3)",
+                boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
+                WebkitTapHighlightColor: "transparent", // Fix iPhone touch
+                touchAction: "manipulation", // Fix iPhone touch
+                minHeight: "44px", // iOS minimum touch target
+                minWidth: "44px", // iOS minimum touch target
               }}
             >
               {playing ? <Pause /> : <Play />}
@@ -498,7 +506,7 @@ PlayerProps) {
               opacity: showControls ? 1 : 0,
               pointerEvents: showControls ? "auto" : "none",
               transition: "opacity 0.3s",
-              background: "rgba(135, 206, 235, 0.2)", // Glassy sky blue background
+              background: "rgba(59, 130, 246, 0.2)", // Glassy blue background
               padding: "8px 16px",
               borderBottomLeftRadius: 8,
               borderBottomRightRadius: 8,
@@ -516,7 +524,7 @@ PlayerProps) {
               }}
               title={playing ? "Pause" : "Play"}
               style={{
-                background: "rgba(135, 206, 235, 0.8)", // Glassy sky blue background
+                background: "rgba(59, 130, 246, 0.8)", // Glassy blue background
                 border: "none",
                 color: "#fff",
                 fontSize: 20,
@@ -527,7 +535,7 @@ PlayerProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(135, 206, 235, 0.3)",
+                boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)",
               }}
             >
               {playing ? <Pause /> : <Play />}
@@ -565,7 +573,7 @@ PlayerProps) {
                 changeSpeed(speed >= 2 ? 1 : speed + 0.25);
               }}
               style={{
-                background: "rgba(135, 206, 235, 0.6)",
+                background: "rgba(59, 130, 246, 0.6)",
                 border: "none",
                 color: "#fff",
                 fontSize: 14,

@@ -25,18 +25,24 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <div
       className="progress-bar"
-      style={{ position: "relative", flex: 1, height: 8 }}
+      style={{
+        position: "relative",
+        flex: 1,
+        height: 8,
+        display: "flex",
+        alignItems: "center",
+      }}
     >
       {/* Background bar (darker sky blue) */}
       <div
         style={{
           position: "absolute",
           left: 0,
-          top: 3,
+          top: 0,
           height: 8,
           width: "100%",
-          background: "rgba(135, 206, 235, 0.3)", // Darker sky blue background
-          borderRadius: 2,
+          background: "rgba(59, 130, 246, 0.3)", // Darker sky blue background
+          borderRadius: 4,
           zIndex: 0,
         }}
       />
@@ -45,11 +51,11 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
         style={{
           position: "absolute",
           left: 0,
-          top: 3,
+          top: 0,
           height: 8,
           width: `${bufferedPercent}%`,
-          background: "rgba(135, 206, 235, 0.6)", // Sky blue
-          borderRadius: 2,
+          background: "rgba(59, 130, 246, 0.6)", // Sky blue
+          borderRadius: 4,
           zIndex: 1,
         }}
       />
@@ -58,11 +64,11 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
         style={{
           position: "absolute",
           left: 0,
-          top: 3,
+          top: 0,
           height: 8,
           width: `${playedPercent}%`,
-          background: "rgba(135, 206, 235, 0.9)", // Bright sky blue
-          borderRadius: 2,
+          background: "rgba(59, 130, 246, 0.9)", // Bright sky blue
+          borderRadius: 4,
           zIndex: 2,
         }}
       />
@@ -78,13 +84,15 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
           background: "transparent",
           position: "relative",
           zIndex: 3,
-          height: 0,
+          height: 8,
           margin: 0,
           padding: 0,
           cursor: "pointer",
           outline: "none",
           WebkitAppearance: "none",
           appearance: "none",
+          WebkitTapHighlightColor: "transparent", // Fix iPhone touch
+          touchAction: "manipulation", // Fix iPhone touch
         }}
       />
     </div>
