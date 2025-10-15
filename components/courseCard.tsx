@@ -4,7 +4,7 @@ import { cn } from "@heroui/react";
 import { Course, User } from "@prisma/client";
 import { ChartBarIncreasing, Clock, Logs, Play } from "lucide-react";
 // import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export default function CourseCardAffiliate({
   // id,
