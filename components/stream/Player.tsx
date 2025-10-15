@@ -357,18 +357,19 @@ PlayerProps) {
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(135, 206, 235, 0.4)",
+                boxShadow:
+                  "0 4px 20px rgba(135, 206, 235, 0.8), 0 0 30px rgba(135, 206, 235, 0.3)",
                 transition: "all 0.3s ease",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.1)";
                 e.currentTarget.style.boxShadow =
-                  "0 6px 25px rgba(135, 206, 235, 0.6)";
+                  "0 6px 25px rgba(135, 206, 235, 1), 0 0 40px rgba(135, 206, 235, 0.5)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
                 e.currentTarget.style.boxShadow =
-                  "0 4px 20px rgba(135, 206, 235, 0.4)";
+                  "0 4px 20px rgba(135, 206, 235, 0.8), 0 0 30px rgba(135, 206, 235, 0.3)";
               }}
               aria-label="Play"
             >
@@ -395,7 +396,8 @@ PlayerProps) {
               width: "80px",
               height: "80px",
               pointerEvents: "none",
-              boxShadow: "0 4px 20px rgba(135, 206, 235, 0.4)",
+              boxShadow:
+                "0 4px 20px rgba(135, 206, 235, 0.8), 0 0 30px rgba(135, 206, 235, 0.3)",
             }}
           >
             <CustomSpinner size={32} color="#fff" />
