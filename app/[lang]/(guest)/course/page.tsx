@@ -5,9 +5,16 @@ import { getCoursesForCustomer } from "@/lib/data/course";
 import React from "react";
 import Loading from "@/components/loading";
 import NoData from "@/components/noData";
-import CourseCard from "@/components/courseCard";
 import { useParams, useSearchParams } from "next/navigation";
-import { Button } from "@heroui/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Chip,
+} from "@heroui/react";
+import { Clock, Users, Star } from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/guest/header";
 import { Footer } from "@/components/guest/footer";
@@ -23,7 +30,6 @@ export default function Page() {
 
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="bg-gradient-to-b from-white to-sky-50">
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
@@ -50,30 +56,84 @@ export default function Page() {
 
               {/* Courses Grid */}
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-                {data.map(({ id, ...value }, i) => (
-                  <CourseCard
-                    key={i + ""}
-                    {...{ ...value, id }}
-                    btn={
+                {data.map((course, i) => (
+                  <Card
+                    key={i}
+                    className="flex flex-col hover:shadow-lg transition-shadow"
+                  >
+                    {/* Thumbnail with Play Icon - KEEPING EXACTLY AS IS */}
+                    <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-green-100 rounded-t-lg overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-green-500/20"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                          <div className="w-0 h-0 border-l-[12px] border-l-blue-500 border-y-[8px] border-y-transparent ml-1"></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Course Details Section - Matching Image Layout */}
+                    <CardHeader className="flex-col items-start">
+                      {/* Level Badge and Star Rating Row */}
+                      <div className="flex items-start justify-between mb-3 w-full">
+                        <Chip color="primary" variant="flat" size="sm">
+                          {course.level}
+                        </Chip>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-sm font-medium">4.8</span>
+                        </div>
+                      </div>
+
+                      {/* Title and Price Row */}
+                      <div className="flex items-start justify-between mb-3 w-full">
+                        <h3 className="text-xl font-bold flex-1">
+                          {lang === "en" ? course.titleEn : course.titleAm}
+                        </h3>
+                        <div className="text-2xl font-bold text-primary ml-4">
+                          {course.price > 0 ? `${course.price} ETB` : "Free"}
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-default-600 mb-4">
+                        {lang === "en" ? course.aboutEn : course.aboutAm}
+                      </p>
+                    </CardHeader>
+
+                    {/* Metadata and Action Section */}
+                    <CardBody className="flex-1 pt-0">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm text-default-600">
+                          <Clock className="h-4 w-4" />
+                          <span>{course.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-default-600">
+                          <Users className="h-4 w-4" />
+                          <span>{course._count?.activity || 0} activities</span>
+                        </div>
+                      </div>
+                    </CardBody>
+
+                    {/* Enroll Now Button */}
+                    <CardFooter className="pt-4">
                       <Link
-                        href={`/${lang}/course/${id}?code=${
+                        href={`/${lang}/course/${course.id}?code=${
                           searchParams?.get("code") || ""
                         }`}
                         className="w-full"
                       >
                         <Button color="primary" className="w-full">
-                          {lang == "en" ? "Get Started" : "መማር ጀምር"}
+                          {lang == "en" ? "Enroll Now" : "መዝግብ"}
                         </Button>
                       </Link>
-                    }
-                  />
+                    </CardFooter>
+                  </Card>
                 ))}
               </div>
             </div>
           </section>
         )}
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }
