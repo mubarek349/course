@@ -51,7 +51,7 @@ export function TestimonialsSection() {
     <section id="testimonials" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance text-foreground">
             Testimonials
           </h2>
           <p className="text-lg font-semibold text-primary mb-2">
@@ -65,7 +65,10 @@ export function TestimonialsSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={index}
+              className="hover:shadow-lg transition-shadow bg-background border border-divider"
+            >
               <CardBody className="pt-6">
                 <div className="flex gap-1 mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
@@ -78,8 +81,10 @@ export function TestimonialsSection() {
                 <p className="text-default-600 mb-6 italic">
                   "{testimonial.content}"
                 </p>
-                <div className="border-t pt-4">
-                  <p className="font-semibold">{testimonial.name}</p>
+                <div className="border-t border-divider pt-4">
+                  <p className="font-semibold text-foreground">
+                    {testimonial.name}
+                  </p>
                   <p className="text-sm text-default-600">{testimonial.role}</p>
                 </div>
               </CardBody>

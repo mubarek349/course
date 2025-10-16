@@ -47,7 +47,7 @@ export function CoursesSection() {
     <section id="courses" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance text-foreground">
             Popular Courses
           </h2>
           <p className="text-lg text-default-600 max-w-2xl mx-auto text-pretty">
@@ -63,14 +63,14 @@ export function CoursesSection() {
           {courses.map((course, index) => (
             <Card
               key={index}
-              className="flex flex-col hover:shadow-lg transition-shadow"
+              className="flex flex-col hover:shadow-lg transition-shadow bg-background border border-divider"
             >
-              {/* Thumbnail with Play Icon */}
-              <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-green-100 rounded-t-lg overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-green-500/20"></div>
+              {/* Thumbnail with Play Icon - Dark Mode Compatible */}
+              <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-t-lg overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-green-500/20 dark:from-blue-400/30 dark:to-green-400/30"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                    <div className="w-0 h-0 border-l-[12px] border-l-blue-500 border-y-[8px] border-y-transparent ml-1"></div>
+                  <div className="w-16 h-16 bg-white/90 dark:bg-white/20 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
+                    <div className="w-0 h-0 border-l-[12px] border-l-blue-500 dark:border-l-blue-400 border-y-[8px] border-y-transparent ml-1"></div>
                   </div>
                 </div>
               </div>

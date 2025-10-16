@@ -4,13 +4,13 @@ import { Mail, Phone } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-200 py-12">
+    <footer className="bg-slate-900 dark:bg-slate-950 text-slate-200 py-12">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Brand */}
           <div>
             <h3 className="text-2xl font-bold text-white mb-4">Darulkubra</h3>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-400 dark:text-slate-300 text-sm">
               Empowering students worldwide to learn and understand the Holy
               Quran.
             </p>
@@ -110,7 +110,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-400">
+        <div className="border-t border-slate-800 dark:border-slate-700 pt-8 text-center text-sm text-slate-400 dark:text-slate-300">
           <p>
             © 2025 Darulkubra. All rights reserved. Made with ❤️ for the Muslim
             Ummah.

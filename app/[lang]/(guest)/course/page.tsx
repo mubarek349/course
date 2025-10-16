@@ -30,7 +30,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen">
-      <main className="bg-gradient-to-b from-white to-sky-50">
+      <main className="bg-gradient-to-b from-background to-sky-50 dark:to-sky-900/20">
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <Loading />
@@ -59,14 +59,14 @@ export default function Page() {
                 {data.map((course, i) => (
                   <Card
                     key={i}
-                    className="flex flex-col hover:shadow-lg transition-shadow"
+                    className="flex flex-col hover:shadow-lg transition-shadow bg-background border border-divider"
                   >
-                    {/* Thumbnail with Play Icon - KEEPING EXACTLY AS IS */}
-                    <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-green-100 rounded-t-lg overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-green-500/20"></div>
+                    {/* Thumbnail with Play Icon - Dark Mode Compatible */}
+                    <div className="relative aspect-video bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-t-lg overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-green-500/20 dark:from-blue-400/30 dark:to-green-400/30"></div>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                          <div className="w-0 h-0 border-l-[12px] border-l-blue-500 border-y-[8px] border-y-transparent ml-1"></div>
+                        <div className="w-16 h-16 bg-white/90 dark:bg-white/20 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
+                          <div className="w-0 h-0 border-l-[12px] border-l-blue-500 dark:border-l-blue-400 border-y-[8px] border-y-transparent ml-1"></div>
                         </div>
                       </div>
                     </div>

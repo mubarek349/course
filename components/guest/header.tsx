@@ -28,7 +28,7 @@ export function Header() {
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={setIsMenuOpen}
       maxWidth="xl"
-      className="border-b"
+      className="border-b border-divider bg-background/80 backdrop-blur-md"
       isBordered
     >
       <NavbarContent>

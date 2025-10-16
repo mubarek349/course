@@ -49,10 +49,10 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-20 bg-sky-50">
+    <section id="features" className="py-20 bg-sky-50 dark:bg-sky-900/10">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance text-foreground">
             Why Choose Us
           </h2>
           <p className="text-lg font-semibold text-primary mb-2">
@@ -70,7 +70,7 @@ export function FeaturesSection() {
             return (
               <Card
                 key={index}
-                className="border-none shadow-sm hover:shadow-md transition-shadow"
+                className="border-none shadow-sm hover:shadow-md transition-shadow bg-background border border-divider"
               >
                 <CardHeader className="flex-col items-start">
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -89,7 +89,7 @@ export function FeaturesSection() {
         {/* Additional Why Choose Section */}
         <div className="mt-20">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance text-foreground">
               Why Choose Darulkubra
             </h2>
             <p className="text-lg text-default-600">
@@ -98,7 +98,7 @@ export function FeaturesSection() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center border-none shadow-sm">
+            <Card className="text-center border-none shadow-sm bg-background border border-divider">
               <CardHeader className="flex-col items-center">
                 <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <BookOpen className="h-8 w-8 text-primary" />
@@ -115,7 +115,7 @@ export function FeaturesSection() {
               </CardBody>
             </Card>
 
-            <Card className="text-center border-none shadow-sm">
+            <Card className="text-center border-none shadow-sm bg-background border border-divider">
               <CardHeader className="flex-col items-center">
                 <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <GraduationCap className="h-8 w-8 text-primary" />
@@ -130,7 +130,7 @@ export function FeaturesSection() {
               </CardBody>
             </Card>
 
-            <Card className="text-center border-none shadow-sm">
+            <Card className="text-center border-none shadow-sm bg-background border border-divider">
               <CardHeader className="flex-col items-center">
                 <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <Clock className="h-8 w-8 text-primary" />
@@ -145,7 +145,7 @@ export function FeaturesSection() {
               </CardBody>
             </Card>
 
-            <Card className="text-center border-none shadow-sm">
+            <Card className="text-center border-none shadow-sm bg-background border border-divider">
               <CardHeader className="flex-col items-center">
                 <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <Award className="h-8 w-8 text-primary" />

@@ -3,14 +3,14 @@ import { ArrowRight } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 to-background py-20 md:py-32">
+    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 to-background dark:from-sky-900/20 dark:to-background py-20 md:py-32">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-4xl text-center">
           <Chip color="primary" variant="flat" className="mb-6">
             Join 10,000+ students worldwide
           </Chip>
 
-          <h1 className="mb-6 text-4xl font-bold tracking-tight text-balance md:text-6xl lg:text-7xl">
+          <h1 className="mb-6 text-4xl font-bold tracking-tight text-balance md:text-6xl lg:text-7xl text-foreground">
             Master Islamic Studies
             <br />
             <span className="text-primary">From the Comfort of Home</span>
@@ -47,31 +47,25 @@ export function HeroSection() {
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
                 10K+
               </div>
-              <div className="text-sm text-muted-foreground">
-                Active Students
-              </div>
+              <div className="text-sm text-default-600">Active Students</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
                 50+
               </div>
-              <div className="text-sm text-muted-foreground">
-                Expert Scholars
-              </div>
+              <div className="text-sm text-default-600">Expert Scholars</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
                 95%
               </div>
-              <div className="text-sm text-muted-foreground">
-                Satisfaction Rate
-              </div>
+              <div className="text-sm text-default-600">Satisfaction Rate</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
                 30+
               </div>
-              <div className="text-sm text-muted-foreground">Countries</div>
+              <div className="text-sm text-default-600">Countries</div>
             </div>
           </div>
         </div>

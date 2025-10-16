@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/guest/header";
 import { HeroSection } from "@/components/guest/hero-section";
-import { CoursesSection } from "@/components/guest/courses-sections";
+import CoursePage from "./course/page";
 import { FeaturesSection } from "@/components/guest/features-section";
 import { TestimonialsSection } from "@/components/guest/testimonial";
 import { Footer } from "@/components/guest/footer";
@@ -18,7 +18,7 @@ export default function Page() {
     <div className="min-h-screen">
       <main>
         <HeroSection />
-        <CoursesSection />
+        <CoursePage />
         <FeaturesSection />
         <TestimonialsSection />
       </main>
