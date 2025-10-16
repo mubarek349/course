@@ -11,11 +11,12 @@ import { signupWithOTP } from "@/lib/action/user";
 import { sendOTP } from "@/lib/action";
 import CountrySelector from "@/components/CountrySelector";
 import OTPInput from "@/components/OTPInput";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Ensure signup returns StateType:
 // type StateType = { status: true; message: string } | { status: false; cause: string; message: string };
 import { CButton } from "@/components/heroui";
-import { Form, Input, Button } from "@heroui/react";
+import { Form, Input, Button, Progress } from "@heroui/react";
 
 const formSchema = z.object({
   countryCode: z.string({ message: "" }).nonempty("Country code is required"),
@@ -36,6 +37,7 @@ export default function Page() {
     lang = params?.lang ?? "en",
     searchParams = useSearchParams(),
     router = useRouter(),
+    [currentStep, setCurrentStep] = useState(1),
     [selectedCountry, setSelectedCountry] = useState("+251"),
     [otp, setOtp] = useState(""),
     [isOtpSent, setIsOtpSent] = useState(false),
@@ -95,6 +97,19 @@ export default function Page() {
     setValue("otp", otpValue);
   };
 
+  // Step navigation functions
+  const nextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   // Handle Get OTP
   const handleGetOtp = () => {
     const phoneNumber = watch("phoneNumber");
@@ -116,6 +131,26 @@ export default function Page() {
     // Set UI state
     setIsOtpSent(true);
     setOtpTimer(60); // 60 seconds timer
+
+    // Move to next step
+    nextStep();
+  };
+
+  // Handle step validation
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1:
+        const phoneNumber = watch("phoneNumber");
+        return phoneNumber && phoneNumber.length > 0;
+      case 2:
+        return isOtpSent && otp.length === 6;
+      case 3:
+        const password = watch("password");
+        const confirmPassword = watch("confirmPassword");
+        return password && confirmPassword && password === confirmPassword;
+      default:
+        return false;
+    }
   };
 
   useEffect(() => {
@@ -133,120 +168,216 @@ export default function Page() {
     }
   }, []);
 
+  // Step titles
+  const stepTitles = [
+    lang == "en" ? "Phone Verification" : "የስልክ ማረጋገጫ",
+    lang == "en" ? "OTP Verification" : "OTP ማረጋገጫ",
+    lang == "en" ? "Set Password" : "የይለፍ ቃል ያዘጋጁ",
+  ];
+
   return (
     <div className="h-dvh p-4 grid content-center md:justify-center">
-      <Form
-        onSubmit={handleSubmit(action)}
-        validationErrors={Object.entries(formState.errors).reduce(
-          (a, [key, { message }]) => {
-            return { ...a, [key]: message };
-          },
-          {}
-        )}
-        className="w-full md:w-96 py-10 px-5 md:px-10 bg-background shadow shadow-primary-200 rounded-xl grid gap-5"
-      >
-        <div className="grid place-content-center">
+      <div className="w-full md:w-96 py-10 px-5 md:px-10 bg-background shadow shadow-primary-200 rounded-xl">
+        {/* Header */}
+        <div className="grid place-content-center mb-6">
           <Logo />
         </div>
+
         <h2 className="text-2xl font-bold text-center mb-2">
           {lang == "en" ? "Student Registration" : "የተማሪ መመዝገቢያ"}
         </h2>
-        <div className="grid gap-4 auto-rows-min">
-          {/* Country Selector */}
-          <CountrySelector
-            value={selectedCountry}
-            onChange={handleCountryChange}
-            placeholder={lang == "en" ? "Select Country" : "አገር ይምረጡ"}
-            label={lang == "en" ? "Country" : "አገር"}
-          />
 
-          {/* Phone Number Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {lang == "en" ? "Phone Number" : "የስልክ ቁጥር"}
-            </label>
-            <div className="flex gap-2">
-              <div className="w-20">
-                <Input
-                  color="primary"
-                  value={selectedCountry}
-                  readOnly
-                  className="text-center font-semibold"
-                  variant="bordered"
-                />
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">
+              {lang == "en" ? "Step" : "ደረጃ"} {currentStep}{" "}
+              {lang == "en" ? "of" : "ከ"} 3
+            </span>
+            <span className="text-sm text-gray-500">
+              {Math.round((currentStep / 3) * 100)}%
+            </span>
+          </div>
+          <Progress
+            value={(currentStep / 3) * 100}
+            className="w-full"
+            color="primary"
+            size="sm"
+          />
+          <p className="text-center text-sm font-medium text-primary mt-2">
+            {stepTitles[currentStep - 1]}
+          </p>
+        </div>
+
+        {/* Form Steps */}
+        <Form
+          onSubmit={handleSubmit(action)}
+          validationErrors={Object.entries(formState.errors).reduce(
+            (a, [key, { message }]) => {
+              return { ...a, [key]: message };
+            },
+            {}
+          )}
+          className="grid gap-6"
+        >
+          {/* Step 1: Phone Number */}
+          {currentStep === 1 && (
+            <div className="grid gap-4">
+              <CountrySelector
+                value={selectedCountry}
+                onChange={handleCountryChange}
+                placeholder={lang == "en" ? "Select Country" : "አገር ይምረጡ"}
+                label={lang == "en" ? "Country" : "አገር"}
+              />
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {lang == "en" ? "Phone Number" : "የስልክ ቁጥር"}
+                </label>
+                <div className="flex gap-2">
+                  <div className="w-20">
+                    <Input
+                      color="primary"
+                      value={selectedCountry}
+                      readOnly
+                      className="text-center font-semibold"
+                      variant="bordered"
+                    />
+                  </div>
+                  <Input
+                    color="primary"
+                    {...register("phoneNumber")}
+                    placeholder={lang == "en" ? "Phone number" : "የስልክ ቁጥር"}
+                    className="flex-1"
+                    variant="bordered"
+                  />
+                </div>
               </div>
+
+              <CButton
+                color="primary"
+                onPress={handleGetOtp}
+                isLoading={otpPending}
+                isDisabled={!validateStep(1)}
+                className="mt-4"
+              >
+                {lang == "en" ? "Get OTP" : "OTP ያግኙ"}
+              </CButton>
+            </div>
+          )}
+
+          {/* Step 2: OTP Verification */}
+          {currentStep === 2 && (
+            <div className="grid gap-4">
+              <div className="text-center mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  {lang == "en"
+                    ? "We sent a 6-digit code to your phone"
+                    : "6-ዲጂት ኮድ ወደ ስልክዎ ላክን"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {selectedCountry}
+                  {watch("phoneNumber")}
+                </p>
+              </div>
+
+              <OTPInput
+                value={otp}
+                onChange={handleOtpChange}
+                onComplete={handleOtpChange}
+                disabled={!isOtpSent}
+                placeholder={
+                  lang == "en" ? "Enter 6-digit OTP" : "6-ዲጂት OTP ያስገቡ"
+                }
+                label=""
+                length={6}
+              />
+
+              <div className="flex gap-3">
+                <CButton
+                  color="default"
+                  variant="bordered"
+                  onPress={prevStep}
+                  startContent={<ChevronLeft size={16} />}
+                  className="flex-1"
+                >
+                  {lang == "en" ? "Back" : "ተመለስ"}
+                </CButton>
+                <CButton
+                  color="primary"
+                  onPress={nextStep}
+                  isDisabled={!validateStep(2)}
+                  endContent={<ChevronRight size={16} />}
+                  className="flex-1"
+                >
+                  {lang == "en" ? "Next" : "ቀጥል"}
+                </CButton>
+              </div>
+
+              {otpTimer > 0 && (
+                <div className="text-center">
+                  <Button
+                    size="sm"
+                    color="primary"
+                    variant="flat"
+                    onPress={handleGetOtp}
+                    isDisabled={otpTimer > 0}
+                    isLoading={otpPending}
+                    className="text-xs"
+                  >
+                    {lang == "en" ? "Resend OTP" : "OTP እንደገና ላክ"} ({otpTimer}s)
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Password Setup */}
+          {currentStep === 3 && (
+            <div className="grid gap-4">
               <Input
                 color="primary"
-                {...register("phoneNumber")}
-                placeholder={lang == "en" ? "Phone number" : "የስልክ ቁጥር"}
-                className="flex-1"
+                {...register("password")}
+                type="password"
+                placeholder={lang == "en" ? "Password" : "የይለፍ ቃል"}
                 variant="bordered"
+                label={lang == "en" ? "New Password" : "አዲስ የይለፍ ቃል"}
               />
-            </div>
-          </div>
 
-          {/* OTP Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {lang == "en" ? "OTP Verification" : "OTP ማረጋገጫ"}
-              </label>
-              <Button
-                size="sm"
+              <Input
                 color="primary"
-                variant="flat"
-                onPress={handleGetOtp}
-                isDisabled={otpTimer > 0}
-                isLoading={otpPending}
-                className="text-xs"
-              >
-                {otpTimer > 0
-                  ? `${otpTimer}s`
-                  : lang == "en"
-                  ? "Get OTP"
-                  : "OTP ያግኙ"}
-              </Button>
+                {...register("confirmPassword")}
+                type="password"
+                placeholder={
+                  lang == "en" ? "Confirm Password" : "የይለፍ ቃል አረጋግጥ"
+                }
+                variant="bordered"
+                label={lang == "en" ? "Confirm Password" : "የይለፍ ቃል አረጋግጥ"}
+              />
+
+              <div className="flex gap-3">
+                <CButton
+                  color="default"
+                  variant="bordered"
+                  onPress={prevStep}
+                  startContent={<ChevronLeft size={16} />}
+                  className="flex-1"
+                >
+                  {lang == "en" ? "Back" : "ተመለስ"}
+                </CButton>
+                <CButton
+                  type="submit"
+                  color="primary"
+                  isLoading={isPending}
+                  isDisabled={!validateStep(3)}
+                  className="flex-1"
+                >
+                  {lang == "en" ? "Sign up" : "ይመዝገቡ"}
+                </CButton>
+              </div>
             </div>
-
-            <OTPInput
-              value={otp}
-              onChange={handleOtpChange}
-              onComplete={handleOtpChange}
-              disabled={!isOtpSent}
-              placeholder={
-                lang == "en" ? "Enter 6-digit OTP" : "6-ዲጂት OTP ያስገቡ"
-              }
-              label=""
-              length={6}
-            />
-          </div>
-
-          {/* Password Fields */}
-          <Input
-            color="primary"
-            {...register("password")}
-            type="password"
-            placeholder={lang == "en" ? "Password" : "የይለፍ ቃል"}
-            variant="bordered"
-          />
-          <Input
-            color="primary"
-            {...register("confirmPassword")}
-            type="password"
-            placeholder={lang == "en" ? "Confirm Password" : "የይለፍ ቃል አረጋግጥ"}
-            variant="bordered"
-          />
-
-          <CButton
-            type="submit"
-            color="primary"
-            isLoading={isPending}
-            className="mt-4"
-            isDisabled={!isOtpSent || otp.length !== 6}
-          >
-            {lang == "en" ? "Sign up" : "ይመዝገቡ"}
-          </CButton>
-        </div>
+          )}
+        </Form>
 
         {/* Login Link */}
         <div className="text-center mt-6 pt-4 border-t border-gray-200">
@@ -276,7 +407,7 @@ export default function Page() {
             )}
           </p>
         </div>
-      </Form>
+      </div>
     </div>
   );
 }

@@ -64,7 +64,7 @@ export default function Page() {
             <CourseMainDescription
               btn={
                 <Button onPress={loginRedirect} variant="solid" color="primary">
-                  {lang == "en" ? "Login & Enroll" : " ይመዝገቡ"}
+                  {lang == "en" ? "Continue Learning" : "መማርዎን ይቀጥሉ"}
                 </Button>
               }
               data={[

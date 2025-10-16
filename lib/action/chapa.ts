@@ -7,6 +7,7 @@ import { bot } from "@/bot";
 import { StateType } from "../definations";
 import { Transfer, User } from "@prisma/client";
 import { headers } from "next/headers";
+import { auth } from "../auth";
 
 type TPayState =
   | { status: true; cause?: undefined; message?: undefined; url: string }
@@ -25,6 +26,17 @@ export async function pay(
 ): Promise<TPayState> {
   try {
     if (!data) return undefined;
+
+    // Check if user is authenticated
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        status: false,
+        cause: "unauthorized",
+        message: "Please login to purchase courses",
+      };
+    }
+
     const { id, phoneNumber, affiliateCode } = data,
       course = await prisma.course.findFirst({
         where: { id: id },
@@ -61,15 +73,14 @@ export async function pay(
     };
 
     const user = await prisma.user.findFirst({
-      where: { role: "student", phoneNumber },
+      where: { role: "student", phoneNumber, id: session.user.id },
     });
 
     if (!user) {
       return {
         status: false,
         cause: "user_not_found",
-        message:
-          "Please register with this phone number before ordering the course",
+        message: "Please login to purchase courses",
       };
     }
     const affiliate = await prisma.user.findFirst({
@@ -402,7 +413,7 @@ async function verify(tx_ref: string | null) {
     console.log("Chapa verification response:", data);
 
     // Check if the API call was successful and payment is completed
-    if (data && data.status == "success" && data.data) {
+    if (data && data.status == "success" && data.data.status == "success") {
       // For Chapa, a payment can be considered successful if:
       // 1. The API call was successful (data.status == "success")
       // 2. The payment exists and has been processed

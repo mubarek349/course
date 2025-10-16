@@ -5,7 +5,8 @@ import { getCoursesForLoginCustomer } from "@/lib/data/course";
 import React from "react";
 import CourseCard from "@/components/courseCard";
 import { useParams } from "next/navigation";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import Link from "next/link";
 import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
 import PageHeader from "@/components/layout/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -83,7 +84,12 @@ export default function Page() {
             key={i + ""}
             {...{ ...value, id }}
             btn={
-              <Button color="primary" as={Link} href={`/${id}`} className="">
+              <Button
+                color="primary"
+                as={Link}
+                href={`/${lang}/course/${id}`}
+                className=""
+              >
                 {lang == "en" ? "Enroll" : "ይመዝገቡ"}
               </Button>
             }

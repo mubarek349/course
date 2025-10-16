@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Elements,
   PaymentElement,
@@ -33,6 +33,7 @@ interface StripeCheckoutProps {
   birrPrice: number;
   dolarPrice: number;
   lang: string;
+  userPhoneNumber: string;
 }
 
 function CheckoutForm({
@@ -59,7 +60,7 @@ function CheckoutForm({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!stripe || !elements) return;
 
@@ -197,15 +198,26 @@ export default function StripeCheckout({
   // birrPrice,
   dolarPrice,
   lang,
+  userPhoneNumber,
 }: StripeCheckoutProps) {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState(userPhoneNumber);
   const [affiliateCode, setAffiliateCode] = useState("");
   const [showCardForm, setShowCardForm] = useState(false);
-  const [userExists, setUserExists] = useState(false);
+  const [userExists, setUserExists] = useState(true);
   const [checkingUser, setCheckingUser] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoadingClientSecret, setIsLoadingClientSecret] = useState(false);
   const router = useRouter();
+
+  // Update phone number when userPhoneNumber prop changes
+  useEffect(() => {
+    if (userPhoneNumber) {
+      setPhoneNumber(userPhoneNumber);
+      setUserExists(true);
+      // Auto-create payment intent when modal opens with logged-in user
+      createPaymentIntent();
+    }
+  }, [userPhoneNumber, isOpen]);
 
   const createPaymentIntent = async () => {
     if (!phoneNumber) return;
@@ -232,6 +244,7 @@ export default function StripeCheckout({
       }
 
       setClientSecret(data.clientSecret);
+      setShowCardForm(true);
     } catch (error) {
       console.error("Error creating payment intent:", error);
     } finally {
@@ -246,22 +259,10 @@ export default function StripeCheckout({
 
     setCheckingUser(true);
     try {
-      const response = await fetch("/api/check-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber }),
-      });
-
-      const { exists } = await response.json();
-      setUserExists(exists);
-
-      if (exists) {
-        // Create payment intent when user exists
-        await createPaymentIntent();
-        setShowCardForm(true);
-      }
+      // Since user is already logged in, we can directly create payment intent
+      await createPaymentIntent();
     } catch (error) {
-      console.error("Error checking user:", error);
+      console.error("Error creating payment intent:", error);
     } finally {
       setCheckingUser(false);
     }
@@ -275,9 +276,9 @@ export default function StripeCheckout({
   const handleClose = () => {
     setShowCardForm(false);
     setClientSecret(null);
-    setPhoneNumber("");
+    setPhoneNumber(userPhoneNumber);
     setAffiliateCode("");
-    setUserExists(false);
+    setUserExists(true);
     onOpenChange();
   };
 
@@ -308,13 +309,12 @@ export default function StripeCheckout({
                       </p>
                     </div>
 
-                    <Input
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder={lang === "en" ? "Phone Number" : "የስልክ ቁጥር"}
-                      color="primary"
-                      onBlur={checkUserExists}
-                    />
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">
+                        {lang === "en" ? "Phone Number" : "የስልክ ቁጥር"}
+                      </p>
+                      <p className="text-lg font-semibold">{phoneNumber}</p>
+                    </div>
 
                     <Input
                       value={affiliateCode}
@@ -326,14 +326,6 @@ export default function StripeCheckout({
                       }
                       color="primary"
                     />
-
-                    {!userExists && phoneNumber && (
-                      <p className="text-red-600 text-sm">
-                        {lang === "en"
-                          ? "Please register with this phone number before ordering the course"
-                          : "እባክዎ ኮርሱን ከመያዝ በፊት በዚህ ስልክ ቁጥር ይመዝገቡ"}
-                      </p>
-                    )}
                   </div>
                 </ModalBody>
 
@@ -344,7 +336,7 @@ export default function StripeCheckout({
                   <Button
                     color="primary"
                     onPress={() => checkUserExists()}
-                    isLoading={checkingUser}
+                    isLoading={checkingUser || isLoadingClientSecret}
                     isDisabled={!phoneNumber || phoneNumber.length !== 10}
                   >
                     {lang === "en" ? "Continue to Payment" : "ወደ ክፍያ ይቀጥሉ"}

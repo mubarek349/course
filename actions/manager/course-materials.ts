@@ -5,13 +5,19 @@ import { revalidatePath } from "next/cache";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 
-export async function updateCourseMaterials(courseId: string, materials: string) {
+export async function updateCourseMaterials(
+  courseId: string,
+  materials: string
+) {
   try {
-    console.log("💾 Updating course materials:", { courseId, materialsLength: materials.length });
-    
+    console.log("💾 Updating course materials:", {
+      courseId,
+      materialsLength: materials.length,
+    });
+
     await prisma.course.update({
       where: { id: courseId },
-      data: { courseMaterials: materials || null },
+      data: { courseMaterials: materials || undefined },
     });
 
     console.log("✅ Course materials updated successfully");
@@ -43,8 +49,10 @@ export async function uploadCourseMaterial(formData: FormData) {
 
     // Generate unique filename
     const timestamp = Date.now();
-    const ext = file.name.split('.').pop() || 'pdf';
-    const filename = `${timestamp}-${Math.floor(Math.random() * 100000)}.${ext}`;
+    const ext = file.name.split(".").pop() || "pdf";
+    const filename = `${timestamp}-${Math.floor(
+      Math.random() * 100000
+    )}.${ext}`;
     const filepath = join(uploadsDir, filename);
 
     // Save file
@@ -64,7 +72,7 @@ export async function deleteCourseMaterial(courseId: string, filename: string) {
     // Get current materials
     const course = await prisma.course.findUnique({
       where: { id: courseId },
-        select: { courseMaterials: true },
+      select: { courseMaterials: true },
     });
 
     if (!course) {
@@ -73,28 +81,28 @@ export async function deleteCourseMaterial(courseId: string, filename: string) {
 
     // Parse materials from triplet format
     const currentMaterials = course.courseMaterials || "";
-    const materials: Array<{name: string, url: string, type: string}> = [];
-    
+    const materials: Array<{ name: string; url: string; type: string }> = [];
+
     if (currentMaterials.trim()) {
-      const parts = currentMaterials.split(',');
+      const parts = currentMaterials.split(",");
       for (let i = 0; i < parts.length; i += 3) {
         if (i + 2 < parts.length) {
           materials.push({
             name: parts[i].trim(),
             url: parts[i + 1].trim(),
-            type: parts[i + 2].trim()
+            type: parts[i + 2].trim(),
           });
         }
       }
     }
 
     // Filter out the material with matching URL
-    const updatedMaterials = materials.filter(m => !m.url.includes(filename));
+    const updatedMaterials = materials.filter((m) => !m.url.includes(filename));
 
     // Convert back to triplet format
     const materialsString = updatedMaterials
-      .map(m => `${m.name},${m.url},${m.type}`)
-      .join(',');
+      .map((m) => `${m.name},${m.url},${m.type}`)
+      .join(",");
 
     // Update database
     await prisma.course.update({
@@ -129,7 +137,6 @@ export async function getCourses() {
           },
         },
       },
-      
     });
 
     return { success: true, data: courses };

@@ -13,7 +13,7 @@ export async function GET(
     console.log("📁 File request:", { type, filename });
 
     // Validate type to prevent directory traversal
-    const allowedTypes = ['thumbnails', 'pdfs', 'materials', 'ai-pdfs'];
+    const allowedTypes = ["thumbnails", "pdfs", "materials", "ai-pdfs"];
     if (!allowedTypes.includes(type)) {
       console.error("❌ Invalid file type:", type);
       return new NextResponse("Invalid file type", { status: 400 });
@@ -21,16 +21,19 @@ export async function GET(
 
     // Sanitize filename to prevent directory traversal (allow more characters for real filenames)
     // Allow: letters, numbers, dots, hyphens, underscores, parentheses, and spaces
-    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.\-_() ]/g, '');
-    
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.\-_() ]/g, "");
+
     if (sanitizedFilename !== filename) {
-      console.warn("⚠️ Filename was sanitized:", { original: filename, sanitized: sanitizedFilename });
+      console.warn("⚠️ Filename was sanitized:", {
+        original: filename,
+        sanitized: sanitizedFilename,
+      });
     }
-    
+
     const filePath = join(process.cwd(), "docs", type, sanitizedFilename);
-    
+
     console.log("📂 Looking for file:", filePath);
-    
+
     // Check if file exists
     if (!existsSync(filePath)) {
       const dirPath = join(process.cwd(), "docs", type);
@@ -38,62 +41,61 @@ export async function GET(
       console.error("❌ File not found. Files in directory:", filesInDir);
       return new NextResponse("File not found", { status: 404 });
     }
-    
+
     const fileBuffer = await readFile(filePath);
-    
+
     // Determine content type based on file extension
-    const extension = sanitizedFilename.split('.').pop()?.toLowerCase();
-    let contentType = 'application/octet-stream';
-    
+    const extension = sanitizedFilename.split(".").pop()?.toLowerCase();
+    let contentType = "application/octet-stream";
+
     switch (extension) {
-      case 'pdf':
-        contentType = 'application/pdf';
+      case "pdf":
+        contentType = "application/pdf";
         break;
-      case 'png':
-        contentType = 'image/png';
+      case "png":
+        contentType = "image/png";
         break;
-      case 'jpg':
-      case 'jpeg':
-        contentType = 'image/jpeg';
+      case "jpg":
+      case "jpeg":
+        contentType = "image/jpeg";
         break;
-      case 'webp':
-        contentType = 'image/webp';
+      case "webp":
+        contentType = "image/webp";
         break;
-      case 'doc':
-      case 'docx':
-        contentType = 'application/msword';
+      case "doc":
+      case "docx":
+        contentType = "application/msword";
         break;
-      case 'ppt':
-      case 'pptx':
-        contentType = 'application/vnd.ms-powerpoint';
+      case "ppt":
+      case "pptx":
+        contentType = "application/vnd.ms-powerpoint";
         break;
-      case 'xls':
-      case 'xlsx':
-        contentType = 'application/vnd.ms-excel';
+      case "xls":
+      case "xlsx":
+        contentType = "application/vnd.ms-excel";
         break;
-      case 'txt':
-        contentType = 'text/plain';
+      case "txt":
+        contentType = "text/plain";
         break;
-      case 'zip':
-        contentType = 'application/zip';
+      case "zip":
+        contentType = "application/zip";
         break;
     }
 
     return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
       headers: {
-        'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${sanitizedFilename}"`,
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        "Content-Type": contentType,
+        "Content-Disposition": `inline; filename="${sanitizedFilename}"`,
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {
     console.error("❌ Error serving file:", error);
     console.error("Error details:", {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any)?.code,
+      message: error instanceof Error ? error.message : "Unknown error",
+      code: (error as NodeJS.ErrnoException)?.code,
     });
     return new NextResponse("File not found", { status: 404 });
   }
 }
-

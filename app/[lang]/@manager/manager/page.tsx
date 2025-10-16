@@ -5,7 +5,8 @@ import CustomTable from "@/components/ui/custom-table";
 import UserStatusToggle from "@/components/userStatusToggle";
 import useData from "@/hooks/useData";
 import { TTableData } from "@/lib/definations";
-import { Button, Chip, Link } from "@heroui/react";
+import { Button, Chip } from "@heroui/react";
+import Link from "next/link";
 import { Pen, Plus, Trash } from "lucide-react";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
@@ -44,7 +45,11 @@ export default function Page() {
     <ScrollablePageWrapper>
       <PageHeader
         title={lang === "en" ? "Manager Management" : "የአስተዳዳሪ አስተዳደር"}
-        subtitle={lang === "en" ? "Manage system administrators and their permissions." : "የስርዓት አስተዳዳሪዎችን እና ፈቃዶቻቸውን ያስተዳድሩ።"}
+        subtitle={
+          lang === "en"
+            ? "Manage system administrators and their permissions."
+            : "የስርዓት አስተዳዳሪዎችን እና ፈቃዶቻቸውን ያስተዳድሩ።"
+        }
         actions={
           <Button
             size="sm"

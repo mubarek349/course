@@ -1,10 +1,9 @@
 import React from "react";
-import { Play, Pause, ChevronRight, ChevronLeft } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 
 interface ControlsProps {
   playing: boolean;
   onPlayPause: () => void;
-  onSkip: (seconds: number) => void;
   onSpeedChange: () => void;
   speed: number;
 }
@@ -12,7 +11,6 @@ interface ControlsProps {
 export default function Controls({
   playing,
   onPlayPause,
-  onSkip,
   onSpeedChange,
   speed,
 }: ControlsProps) {
@@ -24,53 +22,25 @@ export default function Controls({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          onSkip(-10);
-        }}
-        title="Skip Back 10s"
-        style={{
-          background: "none",
-          border: "none",
-          color: "#fff",
-          fontSize: 20,
-          cursor: "pointer",
-          padding: 6,
-        }}
-      >
-        <ChevronLeft />
-      </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
           onPlayPause();
         }}
         title={playing ? "Pause" : "Play"}
         style={{
-          background: "none",
+          background: "rgba(135, 206, 235, 0.8)", // Sky blue background
           border: "none",
           color: "#fff",
           fontSize: 24,
+          borderRadius: "50%",
+          width: 48,
+          height: 48,
           cursor: "pointer",
-          padding: 6,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 2px 8px rgba(135, 206, 235, 0.3)",
         }}
       >
         {playing ? <Pause /> : <Play />}
-      </button>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onSkip(10);
-        }}
-        title="Skip Forward 10s"
-        style={{
-          background: "none",
-          border: "none",
-          color: "#fff",
-          fontSize: 20,
-          cursor: "pointer",
-          padding: 6,
-        }}
-      >
-        <ChevronRight />
       </button>
       <button
         onClick={(e) => {

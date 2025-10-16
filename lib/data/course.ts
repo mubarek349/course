@@ -93,15 +93,20 @@ export async function getCoursesForLoginCustomer() {
       return null;
     }
 
-    // Get all course IDs that the user has already ordered/enrolled in
+    // Get all course IDs that the user has already paid for (exclude unpaid orders)
     const userOrders = await prisma.order.findMany({
-      where: { userId: session.user.id },
+      where: {
+        userId: session.user.id,
+        status: {
+          not: "unpaid", // Only exclude courses with paid/completed orders
+        },
+      },
       select: { courseId: true },
     });
 
-    const enrolledCourseIds = userOrders.map((order) => order.courseId);
+    const enrolledCourseIds = userOrders.map((order: any) => order.courseId);
 
-    // Fetch courses excluding the ones user is already enrolled in
+    // Fetch courses excluding the ones user is already enrolled in (with paid status)
     const data = await prisma.course
       .findMany({
         where: {
@@ -139,6 +144,7 @@ export async function getCoursesForLoginCustomer() {
           })
         )
       );
+    console.log("data >>fuads  ", data);
     return data;
   } catch (error) {
     console.log(error);

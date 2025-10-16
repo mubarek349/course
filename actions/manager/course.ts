@@ -5,7 +5,6 @@ import prisma from "@/lib/db";
 import { StateType, TTableData } from "@/lib/definations";
 import { Selection } from "@heroui/react";
 
-
 export async function toggleCourseStatus(
   prevState: StateType,
   id: string | undefined
@@ -424,7 +423,7 @@ export async function updateAiProvider(packageId: string, aiProvider: string) {
   try {
     await prisma.course.update({
       where: { id: packageId },
-      data: { aiProvider: aiProvider as AIProvider },
+      data: { aiProvider: aiProvider },
     });
   } catch (error) {
     console.error("Error updating AI provider:", error);

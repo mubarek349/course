@@ -7,7 +7,8 @@ import Loading from "@/components/loading";
 import NoData from "@/components/noData";
 import CourseCard from "@/components/courseCard";
 import { useParams, useSearchParams } from "next/navigation";
-import { Button, Link } from "@heroui/react";
+import { Button } from "@heroui/react";
+import Link from "next/link";
 
 export default function Page() {
   const params = useParams<{ lang: string }>(),
@@ -56,16 +57,16 @@ export default function Page() {
                   key={i + ""}
                   {...{ ...value, id }}
                   btn={
-                    <Button
-                      color="primary"
-                      as={Link}
+                    <Link
                       href={`/${lang}/course/${id}?code=${
                         searchParams?.get("code") || ""
                       }`}
                       className="w-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800 shadow-lg hover:shadow-xl dark:shadow-primary-900/50 transition-all duration-300 hover:scale-[1.02] font-bold"
                     >
-                      {lang == "en" ? "Enroll" : "ይመዝገቡ"}
-                    </Button>
+                      <Button color="primary" className="w-full">
+                        {lang == "en" ? "Get Started" : "መማር ጀምር"}
+                      </Button>
+                    </Link>
                   }
                 />
               ))}
