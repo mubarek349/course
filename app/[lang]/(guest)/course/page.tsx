@@ -16,8 +16,6 @@ import {
 } from "@heroui/react";
 import { Clock, Users, Star } from "lucide-react";
 import Link from "next/link";
-import { Header } from "@/components/guest/header";
-import { Footer } from "@/components/guest/footer";
 
 export default function Page() {
   const params = useParams<{ lang: string }>(),

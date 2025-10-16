@@ -2,7 +2,6 @@
 
 import React, { useEffect } from "react";
 import { toast } from "sonner";
-import { Header } from "@/components/guest/header";
 import { HeroSection } from "@/components/guest/hero-section";
 import CoursePage from "./course/page";
 import { FeaturesSection } from "@/components/guest/features-section";

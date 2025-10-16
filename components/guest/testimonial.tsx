@@ -79,7 +79,7 @@ export function TestimonialsSection() {
                   ))}
                 </div>
                 <p className="text-default-600 mb-6 italic">
-                  "{testimonial.content}"
+                  &quot;{testimonial.content}&quot;
                 </p>
                 <div className="border-t border-divider pt-4">
                   <p className="font-semibold text-foreground">
