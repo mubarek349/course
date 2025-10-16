@@ -38,33 +38,50 @@ PlayerProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
   const [isLandscape, setIsLandscape] = useState(false);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Compute the video source based on type
   let videoSrc = src;
-  if (type === "url" && !src.startsWith("blob:")) {
-    videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
-  } else if (type === "local") {
+  if (type === "local") {
     videoSrc = `/api/stream?file=${encodeURIComponent(src)}`;
+  }else if (type === "url" && !src.startsWith("blob:")) {
+    videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
   }
+  
   // For blob URLs (uploaded files), use src directly
 
   const currentSrc =
     playlist.length > 0 ? playlist[currentVideoIndex]?.url : videoSrc;
 
-  // Detect mobile
+  // Detect mobile and iOS specifically
   const isMobile =
-    typeof window !== "undefined" && /Mobi|Android/i.test(navigator.userAgent);
+    typeof window !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  const isIOS =
+    typeof window !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   // Hide controls after a few seconds on mobile
   useEffect(() => {
-    if (!isMobile || !showControls) return;
-    const timeout = setTimeout(() => setShowControls(false), 2500);
-    return () => clearTimeout(timeout);
-  }, [showControls, isMobile]);
+    if (!isMobile || !showControls || !playing) return;
+    
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+    
+    return () => {
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    };
+  }, [showControls, isMobile, playing]);
 
   // Network status detection
   useEffect(() => {
@@ -169,6 +186,19 @@ PlayerProps) {
 
   // Fullscreen handlers
   const handleFullscreen = () => {
+    // iOS devices: use video element fullscreen for better experience
+    if (isIOS && videoRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const video = videoRef.current as any;
+      if (video.webkitEnterFullscreen) {
+        video.webkitEnterFullscreen();
+      } else if (video.webkitRequestFullscreen) {
+        video.webkitRequestFullscreen();
+      }
+      return;
+    }
+
+    // Non-iOS devices: use container fullscreen
     if (!containerRef.current) return;
     if (!isFullscreen) {
       // Try different fullscreen methods for cross-browser support
@@ -223,13 +253,34 @@ PlayerProps) {
     document.addEventListener("mozfullscreenchange", handleChange);
     document.addEventListener("MSFullscreenChange", handleChange);
 
+    // iOS-specific fullscreen events for video element
+    const video = videoRef.current;
+    if (isIOS && video) {
+      const handleWebkitBeginFullscreen = () => {
+        setIsFullscreen(true);
+        console.log("iOS entered fullscreen");
+      };
+      const handleWebkitEndFullscreen = () => {
+        setIsFullscreen(false);
+        console.log("iOS exited fullscreen");
+      };
+
+      video.addEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+      video.addEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
+
+      return () => {
+        video.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+        video.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
+      };
+    }
+
     return () => {
       document.removeEventListener("fullscreenchange", handleChange);
       document.removeEventListener("webkitfullscreenchange", handleChange);
       document.removeEventListener("mozfullscreenchange", handleChange);
       document.removeEventListener("MSFullscreenChange", handleChange);
     };
-  }, [isMobile, isLandscape]);
+  }, [isMobile, isLandscape, isIOS]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -291,6 +342,10 @@ PlayerProps) {
         <video
           ref={videoRef}
           src={currentSrc}
+          playsInline
+          preload="metadata"
+          webkit-playsinline="true"
+          x-webkit-airplay="allow"
           width="100%"
           height="auto"
           style={{
@@ -319,6 +374,17 @@ PlayerProps) {
           onClick={(e) => {
             e.stopPropagation();
             if (isMobile) setShowControls((v) => !v);
+          }}
+          onTouchStart={(e) => {
+            // For iOS: show controls on touch
+            if (isMobile) {
+              e.stopPropagation();
+              setShowControls((v) => !v);
+            }
+          }}
+          onError={(e) => {
+            console.error("Video load error:", e);
+            setIsLoading(false);
           }}
         />
 

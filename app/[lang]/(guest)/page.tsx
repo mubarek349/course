@@ -2,20 +2,12 @@
 
 import Image from "next/image";
 import CourseSample from "./course/page";
-// import Link from "next/link";
 import React, { useEffect } from "react";
 import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { sendMessage } from "@/lib/action/message";
-import { Button, Form, Input, Link, Textarea } from "@heroui/react";
+import { Link } from "@heroui/react";
 import { useParams } from "next/navigation";
 import { CButton } from "@/components/heroui";
-import useAction from "@/hooks/useAction";
-import { getCoursesForCustomer } from "@/lib/data/course";
 import { PlayCircle } from "lucide-react";
 
 export default function Page() {
@@ -36,10 +28,11 @@ function HomeSample() {
   const lang = params?.lang || "en";
 
   return (
-    <div className="relative w-full min-h-screen bg-white overflow-hidden">
+    <div className="relative w-full min-h-screen bg-gradient-to-br from-background via-background to-primary-50/30 dark:from-background dark:via-background dark:to-primary-950/20 overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-20 right-20 w-32 h-32 bg-blue-100/30 rounded-full blur-2xl hidden md:block"></div>
-      <div className="absolute bottom-20 left-20 w-40 h-40 bg-green-100/30 rounded-full blur-2xl hidden md:block"></div>
+      <div className="absolute top-20 right-20 w-32 h-32 bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl hidden md:block"></div>
+      <div className="absolute bottom-20 left-20 w-40 h-40 bg-success-100/30 dark:bg-success-900/20 rounded-full blur-3xl hidden md:block"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-secondary-100/20 dark:bg-secondary-900/10 rounded-full blur-3xl hidden lg:block"></div>
 
       <div className="relative z-10 w-full px-4 md:px-10 py-12 md:py-20">
         <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center min-h-screen">
@@ -52,12 +45,12 @@ function HomeSample() {
           >
             {/* Main Title */}
             <div className="space-y-4">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-foreground dark:text-white leading-tight bg-gradient-to-r from-primary-600 via-primary-700 to-success-600 dark:from-primary-400 dark:via-primary-300 dark:to-success-400 bg-clip-text text-transparent">
                 {lang === "en"
                   ? "The Leading Islamic Education Platform in Ethiopia"
                   : "በኢትዮጵያ ውስጥ ዋናው የኢስላማዊ ትምህርት መድረክ"}
               </h1>
-              <div className="w-20 md:w-24 h-1 bg-gradient-to-r from-blue-500 to-green-500 rounded-full"></div>
+              <div className="w-20 md:w-24 h-1.5 bg-gradient-to-r from-primary-500 via-primary-600 to-success-500 dark:from-primary-400 dark:via-primary-500 dark:to-success-400 rounded-full shadow-lg dark:shadow-primary-500/50"></div>
             </div>
 
             {/* Features List */}
@@ -66,11 +59,11 @@ function HomeSample() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="flex items-start gap-4"
+                className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-primary-50/50 to-primary-100/30 dark:from-primary-950/30 dark:to-primary-900/20 border border-primary-200/50 dark:border-primary-800/30 hover:shadow-lg dark:hover:shadow-primary-900/30 transition-all duration-300"
               >
-                <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 rounded-full flex items-center justify-center shadow-lg dark:shadow-primary-900/50">
                   <svg
-                    className="w-5 h-5 text-white"
+                    className="w-6 h-6 text-white"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -82,12 +75,12 @@ function HomeSample() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2">
                     {lang === "en"
                       ? "Expert Quran Teachers:"
                       : "ባለሙያ የቁርአን አስተማሪዎች:"}
                   </h3>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-medium">
+                  <p className="text-sm md:text-base text-foreground/80 dark:text-foreground/70 leading-relaxed">
                     {lang === "en"
                       ? "Learn from certified Hafizul Quran instructors with years of experience, ensuring authentic and accurate Islamic education."
                       : "ዓመታት የሚሆኑ ልምድ ያላቸው የሰርተፍኬት ያላቸው ሃፊዘል ቁርአን አስተማሪዎች ይማሩ፣ እውነተኛ እና ትክክለኛ የኢስላማዊ ትምህርት ዋስትና።"}
@@ -99,11 +92,11 @@ function HomeSample() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.6 }}
-                className="flex items-start gap-4"
+                className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-success-50/50 to-success-100/30 dark:from-success-950/30 dark:to-success-900/20 border border-success-200/50 dark:border-success-800/30 hover:shadow-lg dark:hover:shadow-success-900/30 transition-all duration-300"
               >
-                <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-success-500 to-success-600 dark:from-success-600 dark:to-success-700 rounded-full flex items-center justify-center shadow-lg dark:shadow-success-900/50">
                   <svg
-                    className="w-5 h-5 text-white"
+                    className="w-6 h-6 text-white"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -115,12 +108,12 @@ function HomeSample() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2">
                     {lang === "en"
                       ? "Interactive Learning Experience:"
                       : "የመስተጋብር የመማሪያ ልምድ:"}
                   </h3>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-medium">
+                  <p className="text-sm md:text-base text-foreground/80 dark:text-foreground/70 leading-relaxed">
                     {lang === "en"
                       ? "Engage with modern technology and traditional teaching methods. Track your progress with AI-powered tools and personalized learning paths."
                       : "ዘመናዊ ቴክኖሎጂ እና ባህላዊ የመማሪያ ዘዴዎች ይስተጋብሩ። በAI የተመሰረተ መሳሪያዎች እና የተበጀ የመማሪያ መንገዶች እድገትዎን ይከታተሉ።"}
@@ -132,11 +125,11 @@ function HomeSample() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.6 }}
-                className="flex items-start gap-4"
+                className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-secondary-50/50 to-secondary-100/30 dark:from-secondary-950/30 dark:to-secondary-900/20 border border-secondary-200/50 dark:border-secondary-800/30 hover:shadow-lg dark:hover:shadow-secondary-900/30 transition-all duration-300"
               >
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-secondary-500 to-secondary-600 dark:from-secondary-600 dark:to-secondary-700 rounded-full flex items-center justify-center shadow-lg dark:shadow-secondary-900/50">
                   <svg
-                    className="w-5 h-5 text-white"
+                    className="w-6 h-6 text-white"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -148,12 +141,12 @@ function HomeSample() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2">
                     {lang === "en"
                       ? "Certificates & Spiritual Growth:"
                       : "ሰርተፍኬቶች እና መንፈሳዊ እድገት:"}
                   </h3>
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-medium">
+                  <p className="text-sm md:text-base text-foreground/80 dark:text-foreground/70 leading-relaxed">
                     {lang === "en"
                       ? "Earn recognized certificates that demonstrate your Quranic knowledge and skills. Join a community committed to spiritual development and Islamic learning."
                       : "የቁርአን እውቀትን እና ክህሎቶችን የሚያሳዩ የታወቁ ሰርተፍኬቶች ያግኙ። ለመንፈሳዊ እድገት እና የኢስላማዊ መማሪያ የተዋደደ ማህበረሰብ ይቀላቀሉ።"}
@@ -172,20 +165,18 @@ function HomeSample() {
               <CButton
                 as={Link}
                 href={`/${lang}/course`}
-                color="primary"
-                variant="shadow"
                 size="lg"
-                className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold bg-gradient-to-r from-blue-500 to-green-500 w-full sm:w-auto"
+                startContent={<PlayCircle className="w-5 h-5" />}
+                className="px-6 md:px-8 h-12 md:h-14 text-base md:text-lg font-bold bg-gradient-to-r from-primary-500 via-primary-600 to-success-500 dark:from-primary-600 dark:via-primary-700 dark:to-success-600 hover:from-primary-600 hover:via-primary-700 hover:to-success-600 dark:hover:from-primary-700 dark:hover:via-primary-800 dark:hover:to-success-700 text-white shadow-xl hover:shadow-2xl dark:shadow-primary-900/50 transition-all duration-300 hover:scale-105 w-full sm:w-auto"
               >
                 {lang === "en" ? "Start Learning Now" : "አሁን መማር ጀምር"}
               </CButton>
               <CButton
                 as={Link}
                 href={`/${lang}/#about`}
-                color="default"
                 variant="bordered"
                 size="lg"
-                className="px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-bold border-2 border-gray-300 hover:border-blue-500 w-full sm:w-auto"
+                className="px-6 md:px-8 h-12 md:h-14 text-base md:text-lg font-bold border-2 border-primary-300 dark:border-primary-700 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/30 hover:border-primary-500 dark:hover:border-primary-500 transition-all duration-300 w-full sm:w-auto"
               >
                 {lang === "en" ? "Learn More" : "የበለጠ ለማወቅ"}
               </CButton>
@@ -199,10 +190,10 @@ function HomeSample() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative flex justify-center items-center mt-12 lg:mt-0"
           >
-            {/* Large Blue Circle Background with Image Inside */}
+            {/* Large Circle Background with Image Inside */}
             <div className="relative w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[450px] md:h-[450px] lg:w-[550px] lg:h-[550px]">
-              {/* Main blue circle */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-green-500 rounded-full shadow-2xl overflow-hidden">
+              {/* Main gradient circle */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-500 via-primary-600 to-success-500 dark:from-primary-600 dark:via-primary-700 dark:to-success-600 rounded-full shadow-2xl dark:shadow-primary-900/50 overflow-hidden ring-4 ring-primary-200/50 dark:ring-primary-800/30">
                 {/* Tutor Image - top 65% of circle */}
                 <div className="absolute top-0 left-0 right-0 h-[65%] flex items-start justify-center overflow-hidden">
                   <Image
@@ -218,21 +209,21 @@ function HomeSample() {
                   />
                 </div>
 
-                {/* Text overlay at the bottom of the circle with padding from border */}
-                <div className="absolute bottom-0 left-0 right-0 text-center text-white px-4 sm:px-6 md:px-8 pb-6 sm:pb-8 md:pb-10 z-10 bg-gradient-to-t from-blue-900/90 via-blue-800/70 to-transparent pt-12 sm:pt-16 md:pt-20">
+                {/* Text overlay at the bottom of the circle */}
+                <div className="absolute bottom-0 left-0 right-0 text-center text-white px-4 sm:px-6 md:px-8 pb-6 sm:pb-8 md:pb-10 z-10 bg-gradient-to-t from-primary-900/95 via-primary-800/80 to-transparent pt-12 sm:pt-16 md:pt-20">
                   <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-black mb-1 sm:mb-2 drop-shadow-2xl">
                     {lang === "en"
                       ? "Learn Quran is Knowledge"
                       : "ቁርአንን መማር እውቀት ነው"}
                   </h3>
-                  <p className="text-xs sm:text-sm md:text-base font-bold opacity-90 drop-shadow-2xl">
+                  <p className="text-xs sm:text-sm md:text-base font-bold opacity-95 drop-shadow-2xl">
                     {lang === "en" ? "Knowledge is Power" : "እውቀት ኃይል ነው"}
                   </p>
                 </div>
               </div>
 
               {/* Decorative star badge */}
-              <div className="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 md:-top-4 md:-left-4 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg z-20">
+              <div className="absolute -top-2 -left-2 sm:-top-3 sm:-left-3 md:-top-4 md:-left-4 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br from-warning-400 to-warning-500 dark:from-warning-500 dark:to-warning-600 rounded-full flex items-center justify-center shadow-xl dark:shadow-warning-900/50 z-20 animate-pulse">
                 <svg
                   className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white"
                   fill="currentColor"
@@ -243,15 +234,15 @@ function HomeSample() {
               </div>
 
               {/* Expert badge */}
-              <div className="absolute top-1/2 -right-3 sm:-right-4 md:-right-6 bg-green-500 text-white px-3 sm:px-4 md:px-5 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-bold shadow-xl z-20 transform -rotate-12">
+              <div className="absolute top-1/2 -right-3 sm:-right-4 md:-right-6 bg-gradient-to-r from-success-500 to-success-600 dark:from-success-600 dark:to-success-700 text-white px-3 sm:px-4 md:px-5 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-bold shadow-xl dark:shadow-success-900/50 z-20 transform -rotate-12">
                 {lang === "en" ? "Expert" : "ባለሙያ"}
               </div>
             </div>
 
             {/* Background decorative elements - hidden on mobile */}
-            <div className="absolute top-10 left-10 w-24 h-24 bg-blue-200/50 rounded-full blur-xl hidden md:block"></div>
-            <div className="absolute bottom-20 left-20 w-20 h-20 bg-green-200/50 rounded-full blur-xl hidden md:block"></div>
-            <div className="absolute top-1/2 -right-10 w-16 h-16 bg-purple-200/50 rounded-full blur-xl hidden md:block"></div>
+            <div className="absolute top-10 left-10 w-24 h-24 bg-primary-200/50 dark:bg-primary-800/30 rounded-full blur-2xl hidden md:block"></div>
+            <div className="absolute bottom-20 left-20 w-20 h-20 bg-success-200/50 dark:bg-success-800/30 rounded-full blur-2xl hidden md:block"></div>
+            <div className="absolute top-1/2 -right-10 w-16 h-16 bg-secondary-200/50 dark:bg-secondary-800/30 rounded-full blur-2xl hidden md:block"></div>
           </motion.div>
         </div>
       </div>
@@ -277,7 +268,7 @@ function HomeSample() {
             ease: "easeInOut",
           },
         }}
-        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 md:p-5 shadow-2xl cursor-pointer group"
+        className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 bg-gradient-to-br from-success-500 to-success-600 dark:from-success-600 dark:to-success-700 hover:from-success-600 hover:to-success-700 dark:hover:from-success-700 dark:hover:to-success-800 text-white rounded-full p-4 md:p-5 shadow-2xl dark:shadow-success-900/50 hover:shadow-success-500/50 dark:hover:shadow-success-800/50 cursor-pointer group transition-all duration-300 hover:scale-110"
       >
         {/* WhatsApp Icon */}
         <svg
@@ -289,12 +280,12 @@ function HomeSample() {
         </svg>
 
         {/* Tooltip */}
-        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-foreground dark:bg-background text-background dark:text-foreground px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-xl border border-divider dark:border-white/10">
           {lang === "en" ? "Chat with us on WhatsApp!" : "በWhatsApp ያነጋግሩን!"}
         </span>
 
         {/* Notification Badge */}
-        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold animate-pulse">
+        <span className="absolute -top-1 -right-1 bg-gradient-to-br from-danger-500 to-danger-600 dark:from-danger-600 dark:to-danger-700 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold animate-pulse shadow-lg dark:shadow-danger-900/50">
           1
         </span>
       </motion.a>
@@ -307,14 +298,14 @@ function Footer() {
   const lang = params?.lang || "en";
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 to-blue-900 text-white">
+    <footer className="bg-gradient-to-br from-foreground via-foreground to-primary-950 dark:from-background dark:via-background dark:to-primary-950/50 text-background dark:text-foreground border-t border-divider dark:border-white/10">
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-success-500 dark:from-primary-600 dark:to-success-600 rounded-full flex items-center justify-center shadow-lg dark:shadow-primary-900/50">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="currentColor"
@@ -323,11 +314,11 @@ function Footer() {
                   <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold">
+              <h3 className="text-xl font-bold text-white">
                 {lang === "en" ? "Darul Kubra" : "ዳሩል ኩብራ"}
               </h3>
             </div>
-            <p className="text-gray-300 text-sm">
+            <p className="text-background/70 dark:text-foreground/70 text-sm">
               {lang === "en"
                 ? "Leading Islamic education platform in Ethiopia."
                 : "በኢትዮጵያ ውስጥ ዋናው የኢስላማዊ ትምህርት መድረክ።"}
@@ -337,7 +328,7 @@ function Footer() {
             <div className="flex gap-3">
               <a
                 href="#"
-                className="w-8 h-8 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center transition-colors"
+                className="w-9 h-9 bg-primary-600/20 dark:bg-primary-900/30 hover:bg-primary-600 dark:hover:bg-primary-700 text-primary-300 dark:text-primary-400 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 border border-primary-600/30 dark:border-primary-800/30"
               >
                 <svg
                   className="w-4 h-4"
@@ -349,7 +340,7 @@ function Footer() {
               </a>
               <a
                 href="#"
-                className="w-8 h-8 bg-blue-700 hover:bg-blue-800 rounded-full flex items-center justify-center transition-colors"
+                className="w-9 h-9 bg-primary-700/20 dark:bg-primary-900/30 hover:bg-primary-700 dark:hover:bg-primary-800 text-primary-300 dark:text-primary-400 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 border border-primary-700/30 dark:border-primary-800/30"
               >
                 <svg
                   className="w-4 h-4"
@@ -361,7 +352,7 @@ function Footer() {
               </a>
               <a
                 href="#"
-                className="w-8 h-8 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-colors"
+                className="w-9 h-9 bg-danger-600/20 dark:bg-danger-900/30 hover:bg-danger-600 dark:hover:bg-danger-700 text-danger-300 dark:text-danger-400 hover:text-white rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 border border-danger-600/30 dark:border-danger-800/30"
               >
                 <svg
                   className="w-4 h-4"
@@ -376,31 +367,34 @@ function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="text-lg font-bold">
+            <h4 className="text-lg font-bold text-white">
               {lang === "en" ? "Quick Links" : "የፈጣን አገናኞች"}
             </h4>
             <ul className="space-y-2">
               <li>
                 <a
                   href={`/${lang}/course`}
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-background/70 dark:text-foreground/70 hover:text-white dark:hover:text-primary-400 transition-colors text-sm flex items-center gap-2 group"
                 >
+                  <span className="w-1 h-1 bg-primary-400 rounded-full group-hover:w-2 transition-all"></span>
                   {lang === "en" ? "Our Courses" : "ኮርሶቻችን"}
                 </a>
               </li>
               <li>
                 <a
                   href={`/${lang}/#about`}
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-background/70 dark:text-foreground/70 hover:text-white dark:hover:text-primary-400 transition-colors text-sm flex items-center gap-2 group"
                 >
+                  <span className="w-1 h-1 bg-primary-400 rounded-full group-hover:w-2 transition-all"></span>
                   {lang === "en" ? "About Us" : "ስለ እኛ"}
                 </a>
               </li>
               <li>
                 <a
                   href={`/${lang}/contact`}
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-background/70 dark:text-foreground/70 hover:text-white dark:hover:text-primary-400 transition-colors text-sm flex items-center gap-2 group"
                 >
+                  <span className="w-1 h-1 bg-primary-400 rounded-full group-hover:w-2 transition-all"></span>
                   {lang === "en" ? "Contact" : "አግኙን"}
                 </a>
               </li>
@@ -409,14 +403,14 @@ function Footer() {
 
           {/* Contact Info */}
           <div className="space-y-4">
-            <h4 className="text-lg font-bold">
+            <h4 className="text-lg font-bold text-white">
               {lang === "en" ? "Contact" : "አግኙን"}
             </h4>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-primary-600/20 dark:bg-primary-900/30 rounded-full flex items-center justify-center border border-primary-600/30 dark:border-primary-800/30">
                   <svg
-                    className="w-3 h-3"
+                    className="w-4 h-4 text-primary-300 dark:text-primary-400"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -424,39 +418,39 @@ function Footer() {
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                   </svg>
                 </div>
-                <span className="text-gray-300 text-sm">
+                <span className="text-background/70 dark:text-foreground/70 text-sm">
                   info@darulkubra.com
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-success-600/20 dark:bg-success-900/30 rounded-full flex items-center justify-center border border-success-600/30 dark:border-success-800/30">
                   <svg
-                    className="w-3 h-3"
+                    className="w-4 h-4 text-success-300 dark:text-success-400"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
                 </div>
-                <span className="text-gray-300 text-sm">+251 945 467 896</span>
+                <span className="text-background/70 dark:text-foreground/70 text-sm">+251 945 467 896</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Email Subscription Section */}
-        <div className="border-t border-gray-700 pt-8">
+        <div className="border-t border-background/20 dark:border-white/10 pt-8">
           <div className="max-w-md mx-auto text-center">
-            <h3 className="text-xl font-bold mb-3">
+            <h3 className="text-xl font-bold mb-3 text-white">
               {lang === "en" ? "Stay Updated" : "ዝመናዎት ያላችሁ"}
             </h3>
             <div className="flex gap-3">
               <input
                 type="email"
                 placeholder={lang === "en" ? "Enter email" : "ኢሜይል ያስገቡ"}
-                className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="flex-1 px-4 py-3 rounded-xl bg-background/10 dark:bg-white/5 border border-background/20 dark:border-white/10 text-white placeholder-background/50 dark:placeholder-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 focus:border-transparent text-sm transition-all"
               />
-              <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 rounded-lg font-semibold transition-all duration-300 text-sm">
+              <button className="px-5 py-3 bg-gradient-to-r from-primary-500 via-primary-600 to-success-500 dark:from-primary-600 dark:via-primary-700 dark:to-success-600 hover:from-primary-600 hover:via-primary-700 hover:to-success-600 dark:hover:from-primary-700 dark:hover:via-primary-800 dark:hover:to-success-700 rounded-xl font-bold transition-all duration-300 text-sm text-white shadow-lg dark:shadow-primary-900/50 hover:scale-105">
                 {lang === "en" ? "Subscribe" : "ይመዝገቡ"}
               </button>
             </div>
@@ -464,17 +458,17 @@ function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-8 pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-            <div>
+        <div className="border-t border-background/20 dark:border-white/10 mt-8 pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-background/60 dark:text-foreground/60">
+            <div className="text-center md:text-left">
               © 2024 Darul Kubra.{" "}
               {lang === "en" ? "All rights reserved." : "ሁሉም መብቶች የተጠበቁ ናቸው።"}
             </div>
             <div className="flex gap-4">
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-white dark:hover:text-primary-400 transition-colors">
                 {lang === "en" ? "Privacy" : "ግላዊነት"}
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="#" className="hover:text-white dark:hover:text-primary-400 transition-colors">
                 {lang === "en" ? "Terms" : "ውሎች"}
               </a>
             </div>
