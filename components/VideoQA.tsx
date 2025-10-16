@@ -274,10 +274,10 @@ export default function VideoQA({ courseId, subActivityId, lang, currentTime }: 
                   </div>
                 </div>
                 <div className="ml-11">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 break-words overflow-wrap-anywhere">
                     {lang === "en" ? "Your question:" : "ጥያቄዎ:"} {newQuestion}
                   </p>
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-gray-700 dark:text-gray-300 break-words overflow-wrap-anywhere">
                     {aiResponse}
                   </p>
                 </div>
@@ -371,7 +371,7 @@ export default function VideoQA({ courseId, subActivityId, lang, currentTime }: 
                 </div>
 
                 {/* Question Text */}
-                <p className="text-gray-700 dark:text-gray-300 ml-11">
+                <p className="text-gray-700 dark:text-gray-300 ml-11 break-words overflow-wrap-anywhere">
                   {question.question}
                 </p>
 
@@ -398,7 +398,7 @@ export default function VideoQA({ courseId, subActivityId, lang, currentTime }: 
                             </p>
                           </div>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300 text-sm ml-11">
+                        <p className="text-gray-700 dark:text-gray-300 text-sm ml-11 break-words overflow-wrap-anywhere">
                           {response.response}
                         </p>
                       </div>
@@ -464,6 +464,9 @@ export default function VideoQA({ courseId, subActivityId, lang, currentTime }: 
                   }
                   minRows={3}
                   maxRows={6}
+                  classNames={{
+                    input: "break-words overflow-wrap-anywhere",
+                  }}
                 />
                 {aiLoading && (
                   <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">

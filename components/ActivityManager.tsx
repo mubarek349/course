@@ -155,7 +155,7 @@ export default function ActivityManager({
                 >
                   <GripVertical className="size-4 inline mr-2" />
                 </span>
-                <span>
+                <span className="break-words overflow-wrap-anywhere">
                   {lang === "en" ? activity.titleEn : activity.titleAm}
                 </span>
               </div>
@@ -276,7 +276,7 @@ export default function ActivityManager({
                         >
                           <GripVertical className="size-3" />
                         </Button>
-                        <span className="font-medium">
+                        <span className="font-medium break-words overflow-wrap-anywhere flex-1">
                           {lang === "en" ? sub.titleEn : sub.titleAm}
                         </span>
                       </div>
@@ -494,7 +494,7 @@ export default function ActivityManager({
                           />
                         ) : (
                           <>
-                            <p className="font-medium mb-3">
+                            <p className="font-medium mb-3 break-words overflow-wrap-anywhere">
                               {question.question}
                             </p>
                             <div className="space-y-2">
@@ -511,16 +511,16 @@ export default function ActivityManager({
                                         : "bg-gray-300"
                                     )}
                                   />
-                                  <span className="text-sm">{option}</span>
+                                  <span className="text-sm break-words flex-1">{option}</span>
                                 </div>
                               ))}
                             </div>
                             {question.explanation && (
-                              <div className="mt-3 p-3 bg-blue-50 rounded text-sm">
+                              <div className="mt-3 p-3 bg-blue-50 rounded text-sm break-words overflow-wrap-anywhere">
                                 <span className="font-medium">
                                   {lang === "en" ? "Explanation: " : "ማብራሪያ: "}
                                 </span>
-                                {question.explanation}
+                                <span className="break-words">{question.explanation}</span>
                               </div>
                             )}
                           </>
@@ -555,20 +555,36 @@ function Add({
     <div className="space-y-2">
       <p className="font-medium">{label}</p>
       <div className="grid md:grid-cols-[1fr_1fr_auto] gap-2">
-        <CInput
-          placeholder={placeHolderAm}
-          value={input.am}
-          onChange={({ target }) =>
-            setInput((prev) => ({ ...prev, am: target.value }))
-          }
-        />
-        <CInput
-          placeholder={placeHolderEn}
-          value={input.en}
-          onChange={({ target }) =>
-            setInput((prev) => ({ ...prev, en: target.value }))
-          }
-        />
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 block">
+            English
+          </label>
+          <CInput
+            placeholder={placeHolderEn}
+            value={input.en}
+            onChange={({ target }) =>
+              setInput((prev) => ({ ...prev, en: target.value }))
+            }
+            classNames={{
+              input: "break-words overflow-wrap-anywhere",
+            }}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-600 block">
+            Amharic (አማርኛ)
+          </label>
+          <CInput
+            placeholder={placeHolderAm}
+            value={input.am}
+            onChange={({ target }) =>
+              setInput((prev) => ({ ...prev, am: target.value }))
+            }
+            classNames={{
+              input: "break-words overflow-wrap-anywhere",
+            }}
+          />
+        </div>
         <Button
           type="button"
           onPress={() => {
@@ -579,6 +595,7 @@ function Add({
           }}
           color="success"
           isDisabled={!input.am || !input.en}
+          className="self-end"
         >
           <Plus className="size-4" />
         </Button>
@@ -737,6 +754,9 @@ function QuestionForm({
                 ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል' or 'መልስ:'. Add explanation with 'ማብራሪያ:'"
                 : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ወይም 'መልስ:' ያመልክቱ። ማብራሪያ ለመጨመር 'ማብራሪያ:' ይጠቀሙ"
             }
+            classNames={{
+              input: "break-words overflow-wrap-anywhere",
+            }}
           />
 
           <div className="space-y-2">
@@ -801,6 +821,9 @@ function QuestionForm({
                 ? "Optional explanation for the answer"
                 : "ለመልሱ አማራጭ ማብራሪያ"
             }
+            classNames={{
+              input: "break-words overflow-wrap-anywhere",
+            }}
           />
 
           <div className="flex gap-2">
@@ -844,20 +867,36 @@ function EditForm({
     <div className="border border-blue-300 rounded-lg p-4 space-y-3 bg-blue-50">
       <h5 className="font-medium">{label}</h5>
       <div className="grid md:grid-cols-2 gap-2">
-        <CInput
-          placeholder={placeHolderAm}
-          value={values.am}
-          onChange={({ target }) =>
-            setValues((prev) => ({ ...prev, am: target.value }))
-          }
-        />
-        <CInput
-          placeholder={placeHolderEn}
-          value={values.en}
-          onChange={({ target }) =>
-            setValues((prev) => ({ ...prev, en: target.value }))
-          }
-        />
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-700 block">
+            English
+          </label>
+          <CInput
+            placeholder={placeHolderEn}
+            value={values.en}
+            onChange={({ target }) =>
+              setValues((prev) => ({ ...prev, en: target.value }))
+            }
+            classNames={{
+              input: "break-words overflow-wrap-anywhere",
+            }}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-700 block">
+            Amharic (አማርኛ)
+          </label>
+          <CInput
+            placeholder={placeHolderAm}
+            value={values.am}
+            onChange={({ target }) =>
+              setValues((prev) => ({ ...prev, am: target.value }))
+            }
+            classNames={{
+              input: "break-words overflow-wrap-anywhere",
+            }}
+          />
+        </div>
       </div>
       <div className="flex gap-2">
         <Button type="button" variant="light" onPress={onCancel}>
@@ -1024,6 +1063,9 @@ function QuestionEditForm({
             ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል' or 'መልስ:'. Add explanation with 'ማብራሪያ:'"
             : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ወይም 'መልስ:' ያመልክቱ። ማብራሪያ ለመጨመር 'ማብራሪያ:' ይጠቀሙ"
         }
+        classNames={{
+          input: "break-words overflow-wrap-anywhere",
+        }}
       />
 
       <div className="space-y-2">
@@ -1079,6 +1121,9 @@ function QuestionEditForm({
             ? "Optional explanation for the answer"
             : "ለመልሱ አማራጭ ማብራሪያ"
         }
+        classNames={{
+          input: "break-words overflow-wrap-anywhere",
+        }}
       />
 
       <div className="flex gap-2">

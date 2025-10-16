@@ -113,11 +113,13 @@ export default function Page() {
                 <Button
                   size="sm"
                   variant="light"
-                  className="max-w-80 justify-start"
+                  className="max-w-80 justify-start break-words text-left"
                   as={Link}
                   href={`${pathname}/${rowData.id}`}
                 >
-                  {lang == "en" ? rowData.titleEn : rowData.titleAm}
+                  <span className="break-words overflow-wrap-anywhere">
+                    {lang == "en" ? rowData.titleEn : rowData.titleAm}
+                  </span>
                 </Button>
               );
             case "status": {

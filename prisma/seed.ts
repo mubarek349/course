@@ -276,6 +276,7 @@ import prisma from "@/lib/db";
           price: courseData.price,
           birrPrice: courseData.birrPrice,
           dolarPrice: courseData.dolarPrice,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           level: courseData.level as any,
           language: courseData.language,
           duration: courseData.duration,

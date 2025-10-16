@@ -41,25 +41,6 @@ export default function CourseFor({
           <div className="flex-1 space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3">
             <div className="relative">
               <label className="text-xs font-medium text-gray-600 mb-1.5 block">
-                Amharic (አማርኛ)
-              </label>
-              <CInput
-                color="primary"
-                placeholder={placeHolderAm}
-                value={input.am}
-                onChange={({ target }) =>
-                  setInput((prev) => ({
-                    ...prev,
-                    am: target.value,
-                  }))
-                }
-                classNames={{
-                  inputWrapper: "bg-white border-primary-200 hover:border-primary-400"
-                }}
-              />
-            </div>
-            <div className="relative">
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">
                 English
               </label>
               <CInput
@@ -73,7 +54,28 @@ export default function CourseFor({
                   }))
                 }
                 classNames={{
-                  inputWrapper: "bg-white border-primary-200 hover:border-primary-400"
+                  inputWrapper: "bg-white border-primary-200 hover:border-primary-400",
+                  input: "break-words overflow-wrap-anywhere",
+                }}
+              />
+            </div>
+            <div className="relative">
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                Amharic (አማርኛ)
+              </label>
+              <CInput
+                color="primary"
+                placeholder={placeHolderAm}
+                value={input.am}
+                onChange={({ target }) =>
+                  setInput((prev) => ({
+                    ...prev,
+                    am: target.value,
+                  }))
+                }
+                classNames={{
+                  inputWrapper: "bg-white border-primary-200 hover:border-primary-400",
+                  input: "break-words overflow-wrap-anywhere",
                 }}
               />
             </div>
@@ -117,10 +119,10 @@ export default function CourseFor({
               <div className="flex flex-col md:flex-row">
                 {/* Text Content - Takes available space */}
                 <div className="flex-1 min-w-0 p-4 space-y-2">
-                  {Object.values(value).map((v, i) => (
+                  {Object.values(value).reverse().map((v, i) => (
                     <div key={i + ""} className="flex items-start gap-2">
                       <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-500/20 text-primary-700 text-xs flex items-center justify-center font-semibold mt-0.5">
-                        {i === 0 ? "አ" : "E"}
+                        {i === 0 ? "E" : "አ"}
                       </span>
                       <p className="text-sm text-gray-800 leading-relaxed break-words flex-1">
                         {v}
@@ -183,21 +185,6 @@ function EditForm({
       <div className="space-y-3">
         <div className="relative">
           <label className="text-xs font-medium text-gray-700 mb-1 block">
-            Amharic (አማርኛ)
-          </label>
-          <CInput
-            placeholder={placeHolderAm}
-            value={values.am}
-            onChange={({ target }) =>
-              setValues((prev) => ({ ...prev, am: target.value }))
-            }
-            classNames={{
-              inputWrapper: "border-primary-200 hover:border-primary-400"
-            }}
-          />
-        </div>
-        <div className="relative">
-          <label className="text-xs font-medium text-gray-700 mb-1 block">
             English
           </label>
           <CInput
@@ -207,7 +194,24 @@ function EditForm({
               setValues((prev) => ({ ...prev, en: target.value }))
             }
             classNames={{
-              inputWrapper: "border-primary-200 hover:border-primary-400"
+              inputWrapper: "border-primary-200 hover:border-primary-400",
+              input: "break-words overflow-wrap-anywhere",
+            }}
+          />
+        </div>
+        <div className="relative">
+          <label className="text-xs font-medium text-gray-700 mb-1 block">
+            Amharic (አማርኛ)
+          </label>
+          <CInput
+            placeholder={placeHolderAm}
+            value={values.am}
+            onChange={({ target }) =>
+              setValues((prev) => ({ ...prev, am: target.value }))
+            }
+            classNames={{
+              inputWrapper: "border-primary-200 hover:border-primary-400",
+              input: "break-words overflow-wrap-anywhere",
             }}
           />
         </div>

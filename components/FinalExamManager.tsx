@@ -109,7 +109,7 @@ export default function FinalExamManager({
                 />
               ) : (
                 <>
-                  <p className="font-medium mb-3">{question.question}</p>
+                  <p className="font-medium mb-3 break-words overflow-wrap-anywhere">{question.question}</p>
                   <div className="space-y-2">
                     {question.options.map((option, optionIndex) => (
                       <div
@@ -124,16 +124,16 @@ export default function FinalExamManager({
                               : "bg-gray-300"
                           )}
                         />
-                        <span className="text-sm">{option}</span>
+                        <span className="text-sm break-words flex-1">{option}</span>
                       </div>
                     ))}
                   </div>
                   {question.explanation && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded text-sm">
+                    <div className="mt-3 p-3 bg-blue-50 rounded text-sm break-words overflow-wrap-anywhere">
                       <span className="font-medium">
                         {lang === "en" ? "Explanation: " : "ማብራሪያ: "}
                       </span>
-                      {question.explanation}
+                      <span className="break-words">{question.explanation}</span>
                     </div>
                   )}
                 </>
@@ -296,6 +296,9 @@ function QuestionForm({
             ? "Paste multi-line text to auto-fill question and options. Mark correct answers with * or 'correct' or 'ትክክል'"
             : "ጥያቄና አማራጮችን በራስ-ሰር ለመሙላት ብዙ-መስመር ጽሁፍ ይለጥፉ። ትክክለኛ መልሶችን በ * ወይም 'correct' ወይም 'ትክክል' ያመልክቱ"
         }
+        classNames={{
+          input: "break-words overflow-wrap-anywhere",
+        }}
       />
 
       <div className="space-y-2">
@@ -351,6 +354,9 @@ function QuestionForm({
             ? "Optional explanation for the answer"
             : "ለመልሱ አማራጭ ማብራሪያ"
         }
+        classNames={{
+          input: "break-words overflow-wrap-anywhere",
+        }}
       />
 
       <div className="flex gap-2">

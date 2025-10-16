@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, memo } from "react";
 import { Play, Pause } from "lucide-react";
 import Playlist from "./Playlist";
 import ProgressBar from "./ProgressBar";
@@ -18,7 +18,7 @@ interface PlayerProps {
   onVideoPause?: () => void;
 }
 
-export default function Player({
+function Player({
   src,
   type = "local",
   playlist = [],
@@ -675,3 +675,7 @@ PlayerProps) {
     </div>
   );
 }
+
+// Memoize the Player component to prevent unnecessary re-renders
+// This is crucial for preventing video refresh when parent form re-renders
+export default memo(Player);

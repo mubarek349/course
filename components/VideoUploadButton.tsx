@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import { CButton } from "./heroui";
 import { Upload, Video, X } from "lucide-react";
 
@@ -18,7 +18,7 @@ interface VideoUploadButtonProps {
   showExternalProgress?: boolean;
 }
 
-export default function VideoUploadButton({
+function VideoUploadButton({
   onVideoSelect,
   onVideoRemove,
   selectedVideo,
@@ -266,3 +266,6 @@ export default function VideoUploadButton({
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when parent form updates
+export default memo(VideoUploadButton);

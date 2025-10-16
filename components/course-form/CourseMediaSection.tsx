@@ -1,5 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { memo, useMemo } from "react";
 import Player from "../stream/Player";
 import ThumbnailUpload from "../ThumbnailUpload";
 import VideoUploadButton from "../VideoUploadButton";
@@ -18,7 +19,7 @@ interface CourseMediaSectionProps {
   hasVideoError: boolean;
 }
 
-export default function CourseMediaSection({
+function CourseMediaSection({
   lang,
   thumbnail,
   video,
@@ -32,13 +33,18 @@ export default function CourseMediaSection({
   hasVideoError,
 }: CourseMediaSectionProps) {
   // Priority: selectedVideoFile (uploaded) > video (database)
-  const videoSrc = selectedVideoFile 
-    ? URL.createObjectURL(selectedVideoFile)
-    : video
-    ? video.startsWith('/api/videos/') 
-      ? video.replace('/api/videos/', '') 
-      : video
-    : null;
+  // Memoize videoSrc to prevent unnecessary recalculations
+  const videoSrc = useMemo(() => {
+    if (selectedVideoFile) {
+      return URL.createObjectURL(selectedVideoFile);
+    }
+    if (video) {
+      return video.startsWith('/api/videos/') 
+        ? video.replace('/api/videos/', '') 
+        : video;
+    }
+    return null;
+  }, [selectedVideoFile, video]);
 
   return (
     <div className="grid gap-2">
@@ -79,3 +85,6 @@ export default function CourseMediaSection({
     </div>
   );
 }
+
+// Memoize the component to prevent re-renders when parent re-renders
+export default memo(CourseMediaSection);

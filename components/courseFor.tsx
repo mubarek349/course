@@ -14,7 +14,7 @@ export default function CourseFor({
       </p>
       <ul className="list-['a']- list-disc list-inside ">
         {data.map(({ courseForEn, courseForAm }, i) => (
-          <li key={i + ""} className="">
+          <li key={i + ""} className="break-words overflow-wrap-anywhere">
             {lang == "en" ? courseForEn : courseForAm}
           </li>
         ))}

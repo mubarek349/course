@@ -64,9 +64,13 @@ export default function Content({
           <AccordionItem
             key={index}
             aria-label={`Section ${index + 1}`}
-            title={`${lang === "en" ? "Section" : "ክፍል"} ${index + 1}: ${
-              lang === "en" ? activity.titleEn : activity.titleAm
-            }`}
+            title={
+              <span className="break-words overflow-wrap-anywhere">
+                {`${lang === "en" ? "Section" : "ክፍል"} ${index + 1}: ${
+                  lang === "en" ? activity.titleEn : activity.titleAm
+                }`}
+              </span>
+            }
           >
             <ul className="space-y-1 p-2">
               {activity.subActivity.map((sub) => {
@@ -91,7 +95,7 @@ export default function Content({
                     ) : (
                       <CheckCircle2 className="text-gray-400" />
                     )}
-                    <span>{lang === "en" ? sub.titleEn : sub.titleAm}</span>
+                    <span className="break-words overflow-wrap-anywhere flex-1">{lang === "en" ? sub.titleEn : sub.titleAm}</span>
                   </li>
                 );
               })}

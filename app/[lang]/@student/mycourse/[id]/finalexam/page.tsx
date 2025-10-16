@@ -227,7 +227,7 @@ export default function Page() {
           </div>
         </div>
         
-        <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 leading-relaxed">
+        <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 leading-relaxed break-words overflow-wrap-anywhere">
           {qi.text}
         </p>
         
@@ -262,7 +262,7 @@ export default function Page() {
                     <Circle className="w-4 h-4 text-slate-500" />
                   )}
                 </div>
-                <span className={`font-medium ${
+                <span className={`font-medium break-words flex-1 ${
                   isCorrectOption
                     ? "text-green-800 dark:text-green-200"
                     : isSelectedOption && !isCorrectOption
@@ -286,7 +286,7 @@ export default function Page() {
                 <p className="font-medium text-blue-800 dark:text-blue-200 mb-1 text-sm">
                   {lang === "en" ? "Explanation" : "ማብራሪያ"}
                 </p>
-                <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
+                <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed break-words overflow-wrap-anywhere">
                   {qi.explanation}
                 </p>
               </div>
@@ -457,7 +457,7 @@ export default function Page() {
                 
                 {/* Question Content */}
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg lg:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed mb-4">
+                  <p className="text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed mb-4 break-words overflow-wrap-anywhere">
                     {q.text}
                   </p>
                   
@@ -469,7 +469,7 @@ export default function Page() {
                           <p className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
                             {lang === "en" ? "Hint" : "ማሳታ"}
                           </p>
-                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                          <p className="text-sm text-blue-700 dark:text-blue-300 break-words overflow-wrap-anywhere">
                             {q.explanation}
                           </p>
                         </div>
@@ -503,7 +503,7 @@ export default function Page() {
                                 <CheckCircle2 className="w-4 h-4 text-white" />
                               )}
                             </div>
-                            <span className={`text-base font-medium transition-colors ${
+                            <span className={`text-base font-medium transition-colors break-words flex-1 ${
                               active
                                 ? "text-blue-900 dark:text-blue-100"
                                 : "text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100"

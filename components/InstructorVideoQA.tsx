@@ -333,15 +333,12 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
               <CardBody className="space-y-4">
                 {/* Course and Video Info */}
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <BookOpen className="w-4 h-4" />
-                  <span>
+                  <BookOpen className="w-4 h-4 flex-shrink-0" />
+                  <span className="break-words overflow-wrap-anywhere flex-1">
                     {lang === "en" 
                       ? question.course.titleEn
                       : question.course.titleAm
                     } • {question.type === "course" ? (lang === "en" ? "Introduction" : "መግቢያ") : (lang === "en" ? "Activity" : "እንቅስቃሴ")}
-                      ? question.subActivity.titleEn
-                      : question.subActivity.titleAm
-                    
                   </span>
                 </div>
 
@@ -376,7 +373,7 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
                           </>
                         )}
                       </div>
-                      <p className="text-gray-700 dark:text-gray-300">
+                      <p className="text-gray-700 dark:text-gray-300 break-words overflow-wrap-anywhere">
                         {question.question}
                       </p>
                     </div>
@@ -458,10 +455,13 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
                               }}
                               autoFocus
                               minRows={2}
+                              classNames={{
+                                input: "break-words overflow-wrap-anywhere",
+                              }}
                             />
                           </div>
                         ) : (
-                          <p className="text-gray-700 dark:text-gray-300 text-sm ml-8">
+                          <p className="text-gray-700 dark:text-gray-300 text-sm ml-8 break-words overflow-wrap-anywhere">
                             {response.response}
                           </p>
                         )}
@@ -504,7 +504,7 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
                   <div className="space-y-4">
                     <Card className="bg-gray-50 dark:bg-gray-800">
                       <CardBody>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 break-words overflow-wrap-anywhere">
                           <strong>{lang === "en" ? "Question:" : "ጥያቄ:"}</strong> {selectedQuestion.question}
                         </p>
                       </CardBody>
@@ -520,6 +520,9 @@ export default function InstructorVideoQA({ lang, courseId }: InstructorVideoQAP
                       }
                       minRows={4}
                       maxRows={8}
+                      classNames={{
+                        input: "break-words overflow-wrap-anywhere",
+                      }}
                     />
                   </div>
                 )}

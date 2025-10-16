@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import { CButton } from "./heroui";
 import { Upload, Image, X } from "lucide-react";
 
@@ -11,7 +11,7 @@ interface ThumbnailUploadProps {
   disabled?: boolean;
 }
 
-export default function ThumbnailUpload({
+function ThumbnailUpload({
   onImageSelect,
   onImageRemove,
   currentThumbnail,
@@ -115,3 +115,6 @@ export default function ThumbnailUpload({
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when parent form updates
+export default memo(ThumbnailUpload);

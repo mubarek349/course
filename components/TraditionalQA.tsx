@@ -248,7 +248,7 @@ export default function TraditionalQA({ courseId, lang }: TraditionalQAProps) {
                   )}
                 </div>
 
-                <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base ml-8 sm:ml-11 leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base ml-8 sm:ml-11 leading-relaxed break-words overflow-wrap-anywhere">
                   {question.question}
                 </p>
 
@@ -274,7 +274,7 @@ export default function TraditionalQA({ courseId, lang }: TraditionalQAProps) {
                             </p>
                           </div>
                         </div>
-                        <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm ml-8 sm:ml-11 leading-relaxed">
+                        <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm ml-8 sm:ml-11 leading-relaxed break-words overflow-wrap-anywhere">
                           {response.response}
                         </p>
                       </div>
@@ -318,6 +318,9 @@ export default function TraditionalQA({ courseId, lang }: TraditionalQAProps) {
                   }
                   minRows={3}
                   maxRows={6}
+                  classNames={{
+                    input: "break-words overflow-wrap-anywhere",
+                  }}
                 />
               </ModalBody>
               <ModalFooter>

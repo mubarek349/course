@@ -74,6 +74,9 @@ export default function CourseBasicInfo({
           value={watch ? watch("aboutEn") : ""}
           minRows={3}
           className="w-full"
+          classNames={{
+            input: "break-words overflow-wrap-anywhere",
+          }}
         />
         <CTextarea
           {...register("aboutAm")}
@@ -82,6 +85,9 @@ export default function CourseBasicInfo({
           value={watch ? watch("aboutAm") : ""}
           minRows={3}
           className="w-full"
+          classNames={{
+            input: "break-words overflow-wrap-anywhere",
+          }}
         />
       </div>
 

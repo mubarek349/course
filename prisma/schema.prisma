@@ -145,16 +145,16 @@ model Course {
 
 model Requirement {
   id            String @id @default(uuid())
-  requirementEn String
-  requirementAm String
+  requirementEn String @db.Text
+  requirementAm String @db.Text
   course        Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId      String
 }
 
 model CourseFor {
   id          String @id @default(uuid())
-  courseForEn String
-  courseForAm String
+  courseForEn String @db.Text
+  courseForAm String @db.Text
   course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId    String
 }
@@ -187,8 +187,8 @@ model question {
   activityId        String?
   course            Course?          @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId          String?
-  question          String
-  answerExplanation String?
+  question          String @db.Text
+  answerExplanation String? @db.Text
   questionOptions   questionOption[]
   questionAnswer    questionAnswer[]
   studentQuiz       studentQuiz[]
@@ -200,14 +200,14 @@ model questionOption {
   id                 String              @id @default(cuid())
   question           question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
   questionId         String
-  option             String
+  option             String @db.Text
   questionAnswer     questionAnswer[]
   studentQuizAnswers studentQuizAnswer[]
 
   @@index([questionId])
 }
 
-model questionAnswer {
+model questionAnswer {  
   id         String         @id @default(cuid())
   question   question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
   questionId String

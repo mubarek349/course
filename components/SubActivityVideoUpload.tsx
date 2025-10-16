@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Button } from "@heroui/react";
 import { Upload, Video, Trash } from "lucide-react";
 
@@ -10,7 +10,7 @@ interface SubActivityVideoUploadProps {
   hasVideo: boolean;
 }
 
-export default function SubActivityVideoUpload({
+function SubActivityVideoUpload({
   lang,
   onVideoSelect,
   onVideoRemove,
@@ -145,3 +145,6 @@ export default function SubActivityVideoUpload({
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when parent form updates
+export default memo(SubActivityVideoUpload);

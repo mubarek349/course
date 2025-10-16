@@ -549,7 +549,7 @@ export default function Page() {
                 </div>
 
                 {/* Question Text */}
-                <p className="text-slate-800 dark:text-slate-100 leading-relaxed">
+                <p className="text-slate-800 dark:text-slate-100 leading-relaxed break-words overflow-wrap-anywhere">
                   {q.text}
                 </p>
 
@@ -602,7 +602,7 @@ export default function Page() {
                           }`}
                         >
                           {icon}
-                          <span className="text-sm text-slate-800 dark:text-slate-200">
+                          <span className="text-sm text-slate-800 dark:text-slate-200 break-words flex-1">
                             {opt.label}
                           </span>
                         </button>
@@ -623,9 +623,9 @@ export default function Page() {
                     >
                       {isCorrectSelection ? "Correct!" : "Incorrect"}
                     </div>
-                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-sm text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-transparent">
+                    <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 text-sm text-slate-700 dark:text-slate-300 bg-white/60 dark:bg-transparent break-words overflow-wrap-anywhere">
                       <p className="font-medium mb-1">Explanation</p>
-                      <p className="leading-relaxed">{q.explanation}</p>
+                      <p className="leading-relaxed break-words">{q.explanation}</p>
                     </div>
                   </div>
                 )}
