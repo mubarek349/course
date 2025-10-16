@@ -31,7 +31,7 @@ export default function Page() {
       ) : !data || data.length <= 0 ? (
         <NoData />
       ) : (
-        <div className="z-30 px-4 py-20 md:px-10 md:py-24 h-full grid gap-5 grid-cols-1 md:grid-cols-3 2xl:grid-cols-4">
+        <div className="z-30 px-4 py-20 md:px-10 md:py-24 h-full grid gap-5 grid-cols-1 md:grid-cols-3 2xl:grid-cols-4 auto-rows-fr">
           {data.map(({ id, ...value }, i) => (
             <CourseCard
               key={i + ""}
