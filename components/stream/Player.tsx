@@ -285,6 +285,8 @@ PlayerProps) {
         style={{
           height: isFullscreen && isMobile && isLandscape ? "100vh" : "auto",
           width: isFullscreen && isMobile && isLandscape ? "100vw" : "100%",
+          position: "relative", // Critical for iOS
+          overflow: "hidden",
         }}
       >
         <video
@@ -292,6 +294,7 @@ PlayerProps) {
           src={currentSrc}
           width="100%"
           height="auto"
+          playsInline
           style={{
             borderRadius: isFullscreen && isMobile && isLandscape ? 0 : 8,
             width: "100%",
@@ -299,13 +302,10 @@ PlayerProps) {
             objectFit:
               isFullscreen && isMobile && isLandscape ? "cover" : "contain",
             display: "block",
-            position:
-              isFullscreen && isMobile && isLandscape ? "absolute" : "relative",
-            top: isFullscreen && isMobile && isLandscape ? 0 : "auto",
-            left: isFullscreen && isMobile && isLandscape ? 0 : "auto",
-            zIndex: isFullscreen && isMobile && isLandscape ? 1 : "auto",
-            WebkitTapHighlightColor: "transparent", // Fix iPhone touch
-            touchAction: "manipulation", // Fix iPhone touch
+            position: "relative",
+            zIndex: 1,
+            WebkitTapHighlightColor: "transparent",
+            touchAction: "manipulation",
           }}
           onPlay={(e) => {
             e.stopPropagation();
@@ -331,8 +331,9 @@ PlayerProps) {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              zIndex: 10,
+              zIndex: 100,
               pointerEvents: "none",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             <button
@@ -384,7 +385,7 @@ PlayerProps) {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              zIndex: 10,
+              zIndex: 100,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -430,7 +431,8 @@ PlayerProps) {
               flexDirection: "row",
               alignItems: "center",
               gap: 12,
-              zIndex: 2,
+              zIndex: 50,
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             {/* Play/Pause Button */}
@@ -514,6 +516,7 @@ PlayerProps) {
               flexDirection: "row",
               alignItems: "center",
               gap: 12,
+              zIndex: 50,
             }}
           >
             {/* Play/Pause Button */}
