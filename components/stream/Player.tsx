@@ -47,10 +47,10 @@ PlayerProps) {
   let videoSrc = src;
   if (type === "local") {
     videoSrc = `/api/stream?file=${encodeURIComponent(src)}`;
-  }else if (type === "url" && !src.startsWith("blob:")) {
+  } else if (type === "url" && !src.startsWith("blob:")) {
     videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
   }
-  
+
   // For blob URLs (uploaded files), use src directly
 
   const currentSrc =
@@ -58,23 +58,25 @@ PlayerProps) {
 
   // Detect mobile and iOS specifically
   const isMobile =
-    typeof window !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
+    typeof window !== "undefined" &&
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   const isIOS =
-    typeof window !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    typeof window !== "undefined" &&
+    /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   // Hide controls after a few seconds on mobile
   useEffect(() => {
     if (!isMobile || !showControls || !playing) return;
-    
+
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
     }
-    
+
     controlsTimeoutRef.current = setTimeout(() => {
       setShowControls(false);
     }, 3000);
-    
+
     return () => {
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
@@ -264,12 +266,21 @@ PlayerProps) {
         console.log("iOS exited fullscreen");
       };
 
-      video.addEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+      video.addEventListener(
+        "webkitbeginfullscreen",
+        handleWebkitBeginFullscreen
+      );
       video.addEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
 
       return () => {
-        video.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
-        video.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
+        video.removeEventListener(
+          "webkitbeginfullscreen",
+          handleWebkitBeginFullscreen
+        );
+        video.removeEventListener(
+          "webkitendfullscreen",
+          handleWebkitEndFullscreen
+        );
       };
     }
 
@@ -349,7 +360,6 @@ PlayerProps) {
           x-webkit-airplay="allow"
           width="100%"
           height="auto"
-          playsInline
           style={{
             borderRadius: isFullscreen && isMobile && isLandscape ? 0 : 8,
             width: "100%",
