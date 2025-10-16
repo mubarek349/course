@@ -54,7 +54,11 @@ export default function Page() {
     );
 
   return (
-    <div className="h-dvh px-2 pt-20 pb-20 md:pb-4 grid md:items-center md:justify-center overflow-auto ">
+    <div className="min-h-screen px-2 pt-20 pb-20 md:pb-4 grid md:items-center md:justify-center overflow-auto bg-gradient-to-br from-background via-background to-primary-50/30 dark:from-background dark:via-background dark:to-primary-950/20">
+      {/* Background decorative elements */}
+      <div className="fixed top-20 right-20 w-32 h-32 bg-primary-100/30 dark:bg-primary-900/20 rounded-full blur-3xl hidden md:block"></div>
+      <div className="fixed bottom-20 left-20 w-40 h-40 bg-success-100/30 dark:bg-success-900/20 rounded-full blur-3xl hidden md:block"></div>
+      
       <Form
         onSubmit={handleSubmit(action)}
         validationErrors={Object.entries(formState.errors).reduce(
@@ -63,11 +67,16 @@ export default function Page() {
           },
           {}
         )}
-        className="p-5 bg-background rounded-md shadow-md "
+        className="relative z-10 p-6 md:p-8 bg-background/80 dark:bg-background/95 backdrop-blur-xl rounded-2xl shadow-2xl dark:shadow-primary-900/20 border border-divider dark:border-white/10"
       >
-        <p className="w-full pb-5 text-xl text-center font-semibold ">
-          {lang == "en" ? "Affiliate Registration" : "የተባባሪ ምዝገባ"}
-        </p>
+        <div className="w-full pb-6 text-center space-y-2">
+          <h1 className="text-2xl md:text-3xl font-black text-foreground dark:text-white bg-gradient-to-r from-primary-600 via-primary-700 to-success-600 dark:from-primary-400 dark:via-primary-300 dark:to-success-400 bg-clip-text text-transparent">
+            {lang == "en" ? "Affiliate Registration" : "የተባባሪ ምዝገባ"}
+          </h1>
+          <p className="text-sm text-foreground/70 dark:text-foreground/60">
+            {lang == "en" ? "Join our affiliate program and start earning" : "የተባባሪ ፕሮግራማችን ይቀላቀሉ እና ገቢ ያግኙ"}
+          </p>
+        </div>
         <div className="w-full grid gap-2 md:grid-cols-[1fr_3fr] ">
           <Controller
             control={control}
@@ -107,21 +116,29 @@ export default function Page() {
                     height={1000}
                     width={1000}
                     className={cn(
-                      "size-full overflow-hidden object-contain rounded-xl bg-primary-50 border-2 border-primary-200 "
+                      "size-full overflow-hidden object-contain rounded-xl bg-primary-50 dark:bg-primary-950/30 border-2 border-primary-200 dark:border-primary-800/50 shadow-lg dark:shadow-primary-900/30 hover:shadow-xl transition-all duration-300 cursor-pointer"
                     )}
                   />
                 ) : (
                   <div
                     className={cn(
-                      "rounded-xl border-2 grid place-content-center ",
+                      "rounded-xl border-2 border-dashed grid place-content-center transition-all duration-300 hover:shadow-lg cursor-pointer",
                       fieldState.invalid || fieldState.error
-                        ? "bg-danger-50 border-danger-200 "
-                        : "bg-primary-50 border-primary-200 "
+                        ? "bg-danger-50 dark:bg-danger-950/30 border-danger-300 dark:border-danger-800/50 hover:bg-danger-100 dark:hover:bg-danger-950/50"
+                        : "bg-primary-50 dark:bg-primary-950/30 border-primary-300 dark:border-primary-800/50 hover:bg-primary-100 dark:hover:bg-primary-950/50"
                     )}
                   >
-                    <p className="">
-                      {lang == "en" ? "Upload ID card" : "መታወቂያ ካርድ ይጫኑ"}
-                    </p>
+                    <div className="text-center space-y-2 p-4">
+                      <svg className="w-12 h-12 mx-auto text-primary-400 dark:text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <p className="text-sm font-semibold text-foreground dark:text-foreground/80">
+                        {lang == "en" ? "Upload ID card" : "መታወቂያ ካርድ ይጫኑ"}
+                      </p>
+                      <p className="text-xs text-foreground/60 dark:text-foreground/50">
+                        {lang == "en" ? "Click to browse" : "ለመምረጥ ይጫኑ"}
+                      </p>
+                    </div>
                   </div>
                 )}
                 {(fieldState.invalid || fieldState.error) && (
@@ -188,7 +205,7 @@ export default function Page() {
                     trigger("phoneNumber");
                   })(watch("phoneNumber"))
                 }
-                className="h-full rounded-l-none"
+                className="h-full rounded-l-none bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-700 hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-primary-800 shadow-lg dark:shadow-primary-900/50 font-bold"
               >
                 {lang == "en" ? "code" : "ኮድ"}
               </Button>
@@ -196,12 +213,18 @@ export default function Page() {
             <CInput
               {...register("password")}
               label={lang == "en" ? "Password" : "የይለፍ ቃል"}
+              type="password"
             />
             <CInput
               {...register("code")}
               label={lang == "en" ? "Code" : "ኮድ"}
             />
-            <Button type="submit" color="primary" isLoading={isPending}>
+            <Button 
+              type="submit" 
+              color="primary" 
+              isLoading={isPending}
+              className="md:col-span-2 xl:col-span-3 h-12 bg-gradient-to-r from-primary-500 via-primary-600 to-success-500 dark:from-primary-600 dark:via-primary-700 dark:to-success-600 hover:from-primary-600 hover:via-primary-700 hover:to-success-600 dark:hover:from-primary-700 dark:hover:via-primary-800 dark:hover:to-success-700 text-white font-bold shadow-xl hover:shadow-2xl dark:shadow-primary-900/50 transition-all duration-300 hover:scale-[1.02]"
+            >
               {lang == "en" ? "Register" : "ተመዝገብ"}
             </Button>
           </div>
