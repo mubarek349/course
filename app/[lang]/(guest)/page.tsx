@@ -14,13 +14,11 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="min-h-screen">
-      <main>
-        <HeroSection />
-        <CoursePage />
-        <FeaturesSection />
-        <TestimonialsSection />
-      </main>
+    <div className="h-full">
+      <HeroSection />
+      <CoursePage />
+      <FeaturesSection />
+      <TestimonialsSection />
       <Footer />
     </div>
   );
