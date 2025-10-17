@@ -47,10 +47,10 @@ PlayerProps) {
   let videoSrc = src;
   if (type === "local") {
     videoSrc = `/api/stream?file=${encodeURIComponent(src)}`;
-  }else if (type === "url" && !src.startsWith("blob:")) {
+  } else if (type === "url" && !src.startsWith("blob:")) {
     videoSrc = `/api/remote-stream?url=${encodeURIComponent(src)}`;
   }
-  
+
   // For blob URLs (uploaded files), use src directly
 
   const currentSrc =
@@ -58,23 +58,25 @@ PlayerProps) {
 
   // Detect mobile and iOS specifically
   const isMobile =
-    typeof window !== "undefined" && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  
+    typeof window !== "undefined" &&
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   const isIOS =
-    typeof window !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    typeof window !== "undefined" &&
+    /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   // Hide controls after a few seconds on mobile
   useEffect(() => {
     if (!isMobile || !showControls || !playing) return;
-    
+
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
     }
-    
+
     controlsTimeoutRef.current = setTimeout(() => {
       setShowControls(false);
     }, 3000);
-    
+
     return () => {
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
@@ -264,12 +266,21 @@ PlayerProps) {
         console.log("iOS exited fullscreen");
       };
 
-      video.addEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+      video.addEventListener(
+        "webkitbeginfullscreen",
+        handleWebkitBeginFullscreen
+      );
       video.addEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
 
       return () => {
-        video.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
-        video.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
+        video.removeEventListener(
+          "webkitbeginfullscreen",
+          handleWebkitBeginFullscreen
+        );
+        video.removeEventListener(
+          "webkitendfullscreen",
+          handleWebkitEndFullscreen
+        );
       };
     }
 
@@ -336,6 +347,8 @@ PlayerProps) {
         style={{
           height: isFullscreen && isMobile && isLandscape ? "100vh" : "auto",
           width: isFullscreen && isMobile && isLandscape ? "100vw" : "100%",
+          position: "relative", // Critical for iOS
+          overflow: "hidden",
         }}
       >
         <video
@@ -354,13 +367,10 @@ PlayerProps) {
             objectFit:
               isFullscreen && isMobile && isLandscape ? "cover" : "contain",
             display: "block",
-            position:
-              isFullscreen && isMobile && isLandscape ? "absolute" : "relative",
-            top: isFullscreen && isMobile && isLandscape ? 0 : "auto",
-            left: isFullscreen && isMobile && isLandscape ? 0 : "auto",
-            zIndex: isFullscreen && isMobile && isLandscape ? 1 : "auto",
-            WebkitTapHighlightColor: "transparent", // Fix iPhone touch
-            touchAction: "manipulation", // Fix iPhone touch
+            position: "relative",
+            zIndex: 1,
+            WebkitTapHighlightColor: "transparent",
+            touchAction: "manipulation",
           }}
           onPlay={(e) => {
             e.stopPropagation();
@@ -397,8 +407,9 @@ PlayerProps) {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              zIndex: 10,
+              zIndex: 100,
               pointerEvents: "none",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             <button
@@ -450,7 +461,7 @@ PlayerProps) {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              zIndex: 10,
+              zIndex: 100,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -496,7 +507,8 @@ PlayerProps) {
               flexDirection: "row",
               alignItems: "center",
               gap: 12,
-              zIndex: 2,
+              zIndex: 50,
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             {/* Play/Pause Button */}
@@ -580,6 +592,7 @@ PlayerProps) {
               flexDirection: "row",
               alignItems: "center",
               gap: 12,
+              zIndex: 50,
             }}
           >
             {/* Play/Pause Button */}

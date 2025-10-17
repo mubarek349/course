@@ -1,275 +1,229 @@
 "use client";
 
-import { AlignLeft, Globe2, LogIn, Moon, Sun, UserPlus, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Moon, Sun, Menu, X, Home, Users } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import {
   useParams,
   usePathname,
   useSelectedLayoutSegment,
 } from "next/navigation";
 import { useTheme } from "next-themes";
-import { CButton } from "./heroui";
+import { Button } from "@heroui/react";
 import Logo from "./Logo";
 
 export default function GuestHeader() {
-  const { lang = "en" } = useParams<{ lang: string }>() ?? {},
-    [side, setSide] = useState(false),
-    selectedSegment = useSelectedLayoutSegment(),
-    { theme, setTheme } = useTheme(),
-    pathname = usePathname(),
-    links = useMemo(
-      () => [
-        { label: lang == "en" ? "Home" : "መነሻ", url: "" },
-        // { label: lang == "en" ? "Online Education" : "ኦንላይን ትምህርት", url: "online" },
-        // {
-        //   label: lang == "en" ? "Education" : "ትምህርት",
-        //   url: "course",
-        // },
-        // { label: lang == "en" ? "About" : "ስለ እኛ", url: "about" },
-        {
-          label: lang == "en" ? "Affiliate Registration" : "ተባባሪ",
-          url: "affiliate",
-        },
-      ],
-      [lang]
-    );
+  const { lang = "en" } = useParams<{ lang: string }>() ?? {};
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const selectedSegment = useSelectedLayoutSegment();
+  const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
+
+  // Close menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMenuOpen]);
+
+  const links = useMemo(
+    () => [
+      {
+        label: lang == "en" ? "Home" : "መነሻ",
+        url: "",
+        icon: Home,
+      },
+      {
+        label: lang == "en" ? "Affiliate Registration" : "ተባባሪ",
+        url: "affiliate",
+        icon: Users,
+      },
+    ],
+    [lang]
+  );
 
   return (
-    <header className="h-16 sm:h-20 z-50 fixed top-0 inset-x-0 bg-background/80 dark:bg-background/90 backdrop-blur-xl border-b border-divider dark:border-white/10 shadow-lg dark:shadow-2xl dark:shadow-black/20">
-      {/* Desktop & Mobile Container */}
-      <div className="h-full mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        
-        {/* Logo */}
-        <div className="flex-shrink-0 z-50">
-          <Logo />
-        </div>
+    <>
+      {/* Header/Navbar */}
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
+          {/* Left: Menu Toggle (Mobile) + Logo */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 hover:bg-default-100 rounded-lg transition-colors"
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+            <Logo />
+          </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex flex-1 items-center justify-center gap-2">
-          {links.map(({ label, url }, i) => {
-            const isActive = (selectedSegment || "") === url;
-            return (
-              <Link
-                key={i}
-                href={`/${lang}/` + url}
-                className={cn(
-                  "relative px-4 py-2 rounded-lg font-medium text-sm transition-all duration-300",
-                  isActive
-                    ? "text-primary-600 dark:text-primary-400 bg-primary-100/80 dark:bg-primary-900/30"
-                    : "text-foreground/70 dark:text-foreground/60 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-default-100 dark:hover:bg-white/5"
-                )}
+          {/* Center: Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            {links.map((item) => {
+              const isActive = (selectedSegment || "") === item.url;
+              return (
+                <Link
+                  key={item.url}
+                  href={`/${lang}/${item.url}`}
+                  className={`text-sm font-medium transition-colors hover:text-primary relative py-2 ${
+                    isActive ? "text-primary" : "text-foreground/60"
+                  }`}
+                >
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right: Actions */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <Button
+              isIconOnly
+              variant="light"
+              size="sm"
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              className="hover:bg-default-100"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+
+            {/* Language Switcher */}
+            <Link
+              href={`/${lang == "en" ? "am" : "en"}/${(pathname ?? "")
+                .split("/")
+                .slice(2)
+                .join("/")}`}
+            >
+              <Button
+                isIconOnly
+                color="primary"
+                variant="flat"
+                size="sm"
+                className="font-semibold"
               >
-                {/* Active Indicator */}
-                {isActive && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-gradient-to-r from-primary-400 via-primary-600 to-primary-400 rounded-full" />
-                )}
-                {label}
+                {lang == "en" ? "አማ" : "En"}
+              </Button>
+            </Link>
+
+            {/* Login/Signup - Desktop */}
+            <div className="hidden md:flex items-center gap-2 ml-2">
+              <Link href={`/${lang}/login`}>
+                <Button variant="light" color="primary" size="sm">
+                  {lang == "en" ? "Login" : "መግቢያ"}
+                </Button>
               </Link>
-            );
-          })}
-        </nav>
-
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-2">
-          {/* Theme Toggle */}
-          <CButton
-            isIconOnly
-            variant="light"
-            size="md"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="hover:bg-warning-100 dark:hover:bg-warning-900/20 transition-all duration-300 group"
-          >
-            {theme === "dark" ? (
-              <Sun className="size-5 text-warning-500 group-hover:rotate-180 transition-transform duration-500" />
-            ) : (
-              <Moon className="size-5 text-warning-600 group-hover:-rotate-12 transition-transform duration-300" />
-            )}
-          </CButton>
-
-          {/* Language Toggle */}
-          <CButton
-            isIconOnly
-            variant="light"
-            size="md"
-            as={Link}
-            href={`/${lang === "en" ? "am" : "en"}/${(pathname ?? "").split("/").slice(2).join("/")}`}
-            className="hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all duration-300 group"
-          >
-            <div className="flex items-center gap-1">
-              <Globe2 className="size-4 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold text-primary-600 dark:text-primary-400">
-                {lang === "en" ? "አማ" : "En"}
-              </span>
+              <Link href={`/${lang}/signup`}>
+                <Button color="primary" size="sm">
+                  {lang == "en" ? "Sign Up" : "መዝግብ"}
+                </Button>
+              </Link>
             </div>
-          </CButton>
-
-          {/* Divider */}
-          <div className="w-px h-8 bg-divider dark:bg-white/10" />
-
-          {/* Login */}
-          <CButton
-            variant="light"
-            size="md"
-            as={Link}
-            href={`/${lang}/login`}
-            startContent={<LogIn className="size-4" />}
-            className="hover:bg-primary-100 dark:hover:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-semibold transition-all duration-300"
-          >
-            {lang === "en" ? "Login" : "መግቢያ"}
-          </CButton>
-
-          {/* Sign Up */}
-          <CButton
-            variant="flat"
-            size="md"
-            as={Link}
-            href={`/${lang}/signup`}
-            startContent={<UserPlus className="size-4" />}
-            className="bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-indigo-600 hover:from-primary-600 hover:to-primary-700 dark:hover:from-primary-700 dark:hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl dark:shadow-primary-900/50 transition-all duration-300 hover:scale-105"
-          >
-            {lang === "en" ? "Sign Up" : "መዝግብ"}
-          </CButton>
+          </div>
         </div>
+      </header>
 
-        {/* Mobile Menu Button */}
-        <CButton
-          isIconOnly
-          variant="light"
-          size="lg"
-          onClick={() => setSide((prev) => !prev)}
-          className="md:hidden hover:bg-primary-100 dark:hover:bg-primary-900/20 transition-all duration-300"
-        >
-          {side ? (
-            <X className="size-6 text-primary-600 dark:text-primary-400" />
-          ) : (
-            <AlignLeft className="size-6 text-primary-600 dark:text-primary-400" />
-          )}
-        </CButton>
-      </div>
+      {/* Mobile Sidebar Overlay */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
 
       {/* Mobile Sidebar */}
-      <div
-        className={cn(
-          "md:hidden fixed inset-y-0 left-0 z-40 w-full transition-transform duration-300 ease-in-out",
-          side ? "translate-x-0" : "-translate-x-full"
-        )}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-72 bg-background border-r shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        <div className="flex h-full">
-          {/* Menu Content */}
-          <div className="w-[85%] max-w-sm h-full bg-background dark:bg-background/95 backdrop-blur-2xl border-r border-divider dark:border-white/10 shadow-2xl overflow-y-auto">
-            {/* Mobile Logo */}
-            <div className="p-6 border-b border-divider dark:border-white/10">
-              <Logo />
-            </div>
+        <div className="flex flex-col h-full">
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <Logo />
+            <button
+              onClick={() => setIsMenuOpen(false)}
+              className="p-2 hover:bg-default-100 rounded-lg transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-            {/* Mobile Navigation Links */}
-            <nav className="p-4 space-y-2">
-              {links.map(({ label, url }, i) => {
-                const isActive = (selectedSegment || "") === url;
+          {/* Navigation Links */}
+          <nav className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-1">
+              {links.map((item) => {
+                const isActive = (selectedSegment || "") === item.url;
+                const Icon = item.icon;
                 return (
                   <Link
-                    key={i}
-                    href={`/${lang}/` + url}
-                    onClick={() => setTimeout(() => setSide(false), 300)}
-                    className={cn(
-                      "block w-full px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300",
+                    key={item.url}
+                    href={`/${lang}/${item.url}`}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-indigo-600 text-white shadow-lg dark:shadow-primary-900/50"
-                        : "bg-default-100 dark:bg-white/5 text-foreground/70 dark:text-foreground/60 hover:bg-primary-100 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400"
-                    )}
+                        ? "bg-primary/10 text-primary"
+                        : "text-foreground/60 hover:bg-default-100 hover:text-foreground"
+                    }`}
                   >
-                    {label}
+                    <Icon className="h-5 w-5" />
+                    {item.label}
                   </Link>
                 );
               })}
-            </nav>
-
-            {/* Mobile Actions */}
-            <div className="p-4 space-y-3 border-t border-divider dark:border-white/10 mt-4">
-              {/* Theme Toggle */}
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-warning-100/50 dark:bg-warning-900/20">
-                <div className="flex-1 flex items-center gap-3">
-                  {theme === "dark" ? (
-                    <Sun className="size-5 text-warning-500" />
-                  ) : (
-                    <Moon className="size-5 text-warning-600" />
-                  )}
-                  <span className="text-sm font-medium text-foreground/80 dark:text-foreground/70">
-                    {lang === "en" ? "Theme" : "ገጽታ"}
-                  </span>
-                </div>
-                <CButton
-                  size="sm"
-                  variant="flat"
-                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                  className="bg-warning-200 dark:bg-warning-800/50 font-semibold"
-                >
-                  {theme === "dark"
-                    ? lang === "en"
-                      ? "Light"
-                      : "ብሩህ"
-                    : lang === "en"
-                    ? "Dark"
-                    : "ጨለማ"}
-                </CButton>
-              </div>
-
-              {/* Language Toggle */}
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-100/50 dark:bg-primary-900/20">
-                <div className="flex-1 flex items-center gap-3">
-                  <Globe2 className="size-5 text-primary-600 dark:text-primary-400" />
-                  <span className="text-sm font-medium text-foreground/80 dark:text-foreground/70">
-                    {lang === "en" ? "Language" : "ቋንቋ"}
-                  </span>
-                </div>
-                <CButton
-                  size="sm"
-                  variant="flat"
-                  as={Link}
-                  href={`/${lang === "en" ? "am" : "en"}/${(pathname ?? "").split("/").slice(2).join("/")}`}
-                  className="bg-primary-200 dark:bg-primary-800/50 font-bold"
-                >
-                  {lang === "en" ? "አማርኛ" : "English"}
-                </CButton>
-              </div>
             </div>
+          </nav>
 
-            {/* Mobile Auth Buttons */}
-            <div className="p-4 space-y-3 border-t border-divider dark:border-white/10 mt-4">
-              <CButton
-                variant="flat"
+          {/* Sidebar Footer - Auth Buttons */}
+          <div className="p-4 border-t space-y-2">
+            <Link href={`/${lang}/login`} className="block">
+              <Button
+                variant="light"
+                color="primary"
+                fullWidth
                 size="lg"
-                as={Link}
-                href={`/${lang}/login`}
-                startContent={<LogIn className="size-5" />}
-                onClick={() => setTimeout(() => setSide(false), 300)}
-                className="w-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 font-bold"
+                onClick={() => setIsMenuOpen(false)}
               >
-                {lang === "en" ? "Login" : "መግቢያ"}
-              </CButton>
-              <CButton
-                variant="flat"
+                {lang == "en" ? "Login" : "መግቢያ"}
+              </Button>
+            </Link>
+            <Link href={`/${lang}/signup`} className="block">
+              <Button
+                color="primary"
+                fullWidth
                 size="lg"
-                as={Link}
-                href={`/${lang}/signup`}
-                startContent={<UserPlus className="size-5" />}
-                onClick={() => setTimeout(() => setSide(false), 300)}
-                className="w-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-600 dark:to-indigo-600 text-white font-bold shadow-lg dark:shadow-primary-900/50"
+                onClick={() => setIsMenuOpen(false)}
               >
-                {lang === "en" ? "Sign Up" : "መዝግብ"}
-              </CButton>
-            </div>
+                {lang == "en" ? "Sign Up" : "መዝግብ"}
+              </Button>
+            </Link>
           </div>
-
-          {/* Overlay */}
-          <div
-            onClick={() => setSide(false)}
-            className="flex-1 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
-          />
         </div>
-      </div>
-    </header>
+      </aside>
+    </>
   );
 }
