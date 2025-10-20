@@ -62,10 +62,11 @@ export default function CustomTable<
             size="sm"
             className="w-full sm:max-w-[44%]"
             classNames={{
-              inputWrapper: "border-primary/10",
+              inputWrapper: "border-primary/10 dark:border-gray-600/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:border-primary-300 dark:hover:border-gray-500 focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-colors",
+              input: "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400",
             }}
             placeholder="Search here ..."
-            startContent={<Search className="size-4" />}
+            startContent={<Search className="size-4 text-gray-500 dark:text-gray-400" />}
             isClearable
             value={tableData.search}
             onValueChange={(search) => {
@@ -82,7 +83,12 @@ export default function CustomTable<
           <div className="flex gap-2 max-md:flex-col md:items-center ">
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button size="sm" color="primary" variant="flat">
+                <Button 
+                  size="sm" 
+                  color="primary" 
+                  variant="flat"
+                  className="bg-primary-50/80 dark:bg-gray-800/80 backdrop-blur-sm border border-primary-200/50 dark:border-gray-700/50 text-primary-700 dark:text-gray-200 hover:bg-primary-100/80 dark:hover:bg-gray-700/80 transition-colors"
+                >
                   Columns
                 </Button>
               </DropdownTrigger>
@@ -99,7 +105,10 @@ export default function CustomTable<
                 }
               >
                 {columns.map((column) => (
-                  <DropdownItem key={column.key} className="capitalize">
+                  <DropdownItem 
+                    key={column.key} 
+                    className="capitalize text-gray-900 dark:text-gray-100 hover:bg-primary-50/50 dark:hover:bg-gray-800/50"
+                  >
                     {column.label}
                   </DropdownItem>
                 ))}
@@ -109,14 +118,19 @@ export default function CustomTable<
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">
+          <span className="text-gray-600 dark:text-gray-400 text-small font-medium">
             Total {data.totalData}
           </span>
-          <label className="flex gap-1 items-center text-default-400 text-small  ">
-            <p className="whitespace-nowrap">Rows </p>
+          <label className="flex gap-1 items-center text-gray-600 dark:text-gray-400 text-small">
+            <p className="whitespace-nowrap font-medium">Rows </p>
             <Dropdown>
               <DropdownTrigger>
-                <Button size="sm" color="primary" variant="flat">
+                <Button 
+                  size="sm" 
+                  color="primary" 
+                  variant="flat"
+                  className="bg-primary-50/80 dark:bg-gray-800/80 backdrop-blur-sm border border-primary-200/50 dark:border-gray-700/50 text-primary-700 dark:text-gray-200 hover:bg-primary-100/80 dark:hover:bg-gray-700/80 transition-colors"
+                >
                   {tableData.rowsPerPage}
                 </Button>
               </DropdownTrigger>
@@ -135,7 +149,12 @@ export default function CustomTable<
                 }}
               >
                 {["50", "100", "150", "200"].map((v) => (
-                  <DropdownItem key={v}>{v}</DropdownItem>
+                  <DropdownItem 
+                    key={v}
+                    className="text-gray-900 dark:text-gray-100 hover:bg-primary-50/50 dark:hover:bg-gray-800/50"
+                  >
+                    {v}
+                  </DropdownItem>
                 ))}
               </DropdownMenu>
             </Dropdown>
@@ -143,12 +162,12 @@ export default function CustomTable<
         </div>
       </div>
     );
-  }, [tableData, data.totalData]);
+  }, [tableData, data.totalData, btns, columns, setTableData]);
 
   const bottomContent = React.useMemo(() => {
     return (
-      <div className="py-2 px-2 flex justify-between items-center">
-        <span className="w-[30%] text-small text-default-400">
+      <div className="py-2 px-2 flex justify-between items-center bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm border-t border-gray-200/50 dark:border-gray-700/50">
+        <span className="w-[30%] text-small text-gray-600 dark:text-gray-400 font-medium">
           {tableData.selectedKeys === "all"
             ? "All items selected"
             : `${tableData.selectedKeys.size} of ${data.list.length} selected`}
@@ -165,12 +184,20 @@ export default function CustomTable<
           onChange={(currentPage) =>
             setTableData((prev) => ({ ...prev, currentPage }))
           }
+          classNames={{
+            wrapper: "gap-0 overflow-visible h-8 rounded border border-divider",
+            item: "w-8 h-8 text-small rounded-none bg-transparent",
+            cursor: "bg-primary-600 dark:bg-primary-500 text-white font-bold",
+            prev: "bg-transparent text-primary-600 dark:text-primary-400",
+            next: "bg-transparent text-primary-600 dark:text-primary-400",
+          }}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button
             size="sm"
             variant="flat"
             isDisabled={data.totalPage === 1}
+            className="bg-primary-50/80 dark:bg-gray-800/80 backdrop-blur-sm border border-primary-200/50 dark:border-gray-700/50 text-primary-700 dark:text-gray-200 hover:bg-primary-100/80 dark:hover:bg-gray-700/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             onPress={() => {
               if (tableData.currentPage > 1) {
                 setTableData((prev) => ({
@@ -186,6 +213,7 @@ export default function CustomTable<
             size="sm"
             variant="flat"
             isDisabled={data.totalPage === 1}
+            className="bg-primary-50/80 dark:bg-gray-800/80 backdrop-blur-sm border border-primary-200/50 dark:border-gray-700/50 text-primary-700 dark:text-gray-200 hover:bg-primary-100/80 dark:hover:bg-gray-700/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             onPress={() => {
               if (tableData.currentPage < data.totalPage) {
                 setTableData((prev) => ({
@@ -200,7 +228,7 @@ export default function CustomTable<
         </div>
       </div>
     );
-  }, [tableData, data.list.length, data.totalPage]);
+  }, [tableData, data.list.length, data.totalPage, setTableData]);
 
   return (
     <Table
@@ -209,9 +237,11 @@ export default function CustomTable<
       aria-label="Example table with custom cells, pagination and sorting"
       classNames={{
         wrapper:
-          "flex-1 px-2 py-0 bg-transparent rounded-none shadow-none overflow-auto ",
+          "flex-1 px-2 py-0 bg-transparent rounded-none shadow-none overflow-auto",
         base: "h-full overflow-hidden",
-        th: "bg-primary-100",
+        th: "bg-primary-50/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-primary-200/50 dark:border-gray-700/50 text-primary-900 dark:text-gray-100 font-semibold",
+        td: "border-b border-gray-200/50 dark:border-gray-700/30 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm",
+        tr: "hover:bg-primary-50/30 dark:hover:bg-gray-800/30 transition-colors duration-200",
       }}
       className="h-full overflow-hidden"
       topContent={topContent}
@@ -249,8 +279,12 @@ export default function CustomTable<
         items={data.list ?? []}
         loadingContent={<Spinner />}
         loadingState={loadingState}
-        emptyContent={"No data found"}
-        className="divide-y divide-primary-600/20"
+        emptyContent={
+          <div className="text-center py-8">
+            <p className="text-gray-500 dark:text-gray-400 text-sm">No data found</p>
+          </div>
+        }
+        className="divide-y divide-gray-200/30 dark:divide-gray-700/30"
       >
         {(rowData) => (
           <TableRow key={rowData.id}>
