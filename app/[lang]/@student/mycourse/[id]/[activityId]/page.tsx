@@ -159,6 +159,7 @@ export default function Page() {
     setSelected(null);
     setShowResult(false);
     setShowFeedback(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questions.length]);
 
   // Lock flags

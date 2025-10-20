@@ -72,7 +72,7 @@ export default function ChatComponent({ courseId }: ChatComponentProps) {
       <CardHeader className="flex gap-3">
         <div className="flex items-center gap-2">
           <Send className="h-5 w-5 text-purple-500" />
-          <h3 className="text-lg font-semibold">Ask the PDF</h3>
+          <h3 className="text-lg font-semibold">Ask the DarulkubraAI</h3>
         </div>
       </CardHeader>
       <CardBody className="space-y-4">
