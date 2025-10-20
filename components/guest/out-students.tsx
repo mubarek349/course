@@ -83,7 +83,7 @@ export function OurStudentsSection() {
                 </p>
                 <div className="border-t border-divider pt-4">
                   <p className="font-semibold text-foreground">
-                    {student.name} <span className="text-sm text-default-600">from {student.role}</span>
+                    {student.name} <span className="text-sm text-default-600">{student.role}</span>
                   </p>
                 </div>
               </CardBody>
