@@ -10,16 +10,25 @@ const openai = new OpenAI({
 export type AIProvider = 'gemini' | 'openai'
 
 export async function askLLM(question: string, context: string[], aiProvider: AIProvider = 'gemini') {
-  const prompt = `Answer the question based only on the following course content:\n\n${context.join('\n\n')}\n\nQuestion: ${question}`
+  // If no context is provided, use general AI response
+  const hasContext = context && context.length > 0
+  
+  const prompt = hasContext
+    ? `Answer the question based only on the following course content:\n\n${context.join('\n\n')}\n\nQuestion: ${question}`
+    : question
 
   try {
     if (aiProvider === 'openai') {
+      const systemContent = hasContext
+        ? 'You are a helpful AI assistant that answers questions based on the provided course content. Only use information from the provided content to answer questions.'
+        : 'You are a helpful AI assistant. Answer questions clearly and concisely.'
+      
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant that answers questions based on the provided course content. Only use information from the provided content to answer questions.'
+            content: systemContent
           },
           {
             role: 'user',
@@ -93,8 +102,9 @@ IMPORTANT INSTRUCTIONS:
 2. Answer the question ONLY using information visible in these PDF images
 3. Provide specific details, examples, and explanations from the document
 4. Quote relevant sections when appropriate
-5. If you cannot find the answer in the visible PDF content, say "I cannot find this specific information in the course materials"
-6. Be detailed and comprehensive in your response
+5. If you cannot find the answer in the visible PDF content, you MUST respond with EXACTLY: "I cannot find this information in the course materials"
+6. Be detailed and comprehensive in your response when information is found
+7. Do not make up or assume information that is not explicitly shown in the PDF
 
 Student's Question: ${question}
 
@@ -105,7 +115,7 @@ Please provide a detailed answer based on what you can see in the PDF images:`
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
           role: 'system',
-          content: 'You are a helpful course assistant. You must answer questions based ONLY on the content shown in the PDF images provided. Extract and use specific information from the images. Never make up information that is not visible in the images.'
+          content: 'You are a helpful course assistant. You must answer questions based ONLY on the content shown in the PDF images provided. Extract and use specific information from the images. If information is not found in the images, respond with EXACTLY: "I cannot find this information in the course materials". Never make up information that is not visible in the images.'
         },
         {
           role: 'user',
@@ -125,6 +135,15 @@ Please provide a detailed answer based on what you can see in the PDF images:`
       const response = completion.choices[0]?.message?.content || 'No response generated'
       console.log('📥 OpenAI response received:', response.substring(0, 100))
 
+      // Check if the AI couldn't find information in the course materials
+      if (response.toLowerCase().includes('cannot find') || 
+          response.toLowerCase().includes('not in the pdf') ||
+          response.toLowerCase().includes('not in the course materials') ||
+          response.toLowerCase().includes('not found in') ||
+          response.toLowerCase().includes('no information')) {
+        return 'Please ask only about the course.'
+      }
+
       return response
     } else {
       // Gemini PDF processing
@@ -138,7 +157,7 @@ Please provide a detailed answer based on what you can see in the PDF images:`
           topK: 40,
           maxOutputTokens: 2048,
         },
-        systemInstruction: 'You are a helpful course assistant. You must answer questions based ONLY on the content provided in the PDF document. Extract specific information, provide detailed explanations, and quote relevant sections. If information is not in the PDF, clearly state that you cannot find it in the course materials.'
+        systemInstruction: 'You are a helpful course assistant. You must answer questions based ONLY on the content provided in the PDF document. Extract specific information, provide detailed explanations, and quote relevant sections. If information is not in the PDF, respond with EXACTLY: "I cannot find this information in the course materials". Never make up information that is not in the PDF.'
       })
 
       // Prepare the parts array with PDF data first, then the prompt
@@ -161,9 +180,10 @@ IMPORTANT INSTRUCTIONS:
 1. Answer the question ONLY using information from the PDF document provided above
 2. Provide specific details, examples, and explanations from the document
 3. Quote relevant sections when appropriate
-4. If the answer is not in the PDF, say "I cannot find this information in the course materials"
-5. Be detailed and comprehensive in your response
+4. If the answer is not in the PDF, you MUST respond with EXACTLY: "I cannot find this information in the course materials"
+5. Be detailed and comprehensive in your response when information is found
 6. Use clear formatting and structure your answer well
+7. Do not make up or assume information that is not explicitly in the PDF
 
 Student's Question: ${question}
 
@@ -188,6 +208,15 @@ Please provide a detailed answer based on the PDF content:`
 
       const response = result.response.text()
       console.log('📥 Gemini response received:', response.substring(0, 100))
+      
+      // Check if the AI couldn't find information in the course materials
+      if (response.toLowerCase().includes('cannot find') || 
+          response.toLowerCase().includes('not in the pdf') ||
+          response.toLowerCase().includes('not in the course materials') ||
+          response.toLowerCase().includes('not found in') ||
+          response.toLowerCase().includes('no information')) {
+        return 'Please ask only about the course.'
+      }
       
       return response
     }

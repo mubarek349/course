@@ -40,12 +40,22 @@ export async function askCourseQuestion(
       select: { pdfData: true, aiProvider: true }
     })
     
+    const aiProvider = (course?.aiProvider as AIProvider) || 'gemini'
+    
+    // If no PDF is provided, use the selected AI to respond directly
     if (!course?.pdfData) {
-      console.error('❌ No AI PDF data found for course:', courseId)
-      return { success: false, error: 'No AI PDF data found for this course. Please upload a PDF first.' }
+      console.log('⚠️ No PDF found, using AI provider directly:', aiProvider)
+      
+      const { askLLM } = await import('@/lib/ask')
+      const directAnswer = await askLLM(question, [], aiProvider)
+      
+      return {
+        success: true,
+        answer: directAnswer,
+        aiProvider
+      }
     }
     
-    const aiProvider = (course.aiProvider as AIProvider) || 'gemini'
     const filename = course.pdfData
     
     console.log('📄 Reading PDF file:', filename, 'with provider:', aiProvider)
