@@ -4,7 +4,7 @@ import useData from "@/hooks/useData";
 import { getCoursesForLoginCustomer } from "@/lib/data/course";
 import React from "react";
 import CourseCard from "@/components/courseCard";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Button } from "@heroui/react";
 import Link from "next/link";
 import ScrollablePageWrapper from "@/components/layout/ScrollablePageWrapper";
@@ -15,6 +15,7 @@ import { BookOpen } from "lucide-react";
 export default function Page() {
   const params = useParams<{ lang: string }>();
   const lang = params?.lang ?? "en";
+  const searchParams = useSearchParams();
   const { data, loading } = useData({
     func: getCoursesForLoginCustomer,
     args: [],
@@ -84,14 +85,16 @@ export default function Page() {
             key={i + ""}
             {...{ ...value, id }}
             btn={
-              <Button
-                color="primary"
-                as={Link}
-                href={`/${lang}/course/${id}`}
-                className=""
+              <Link
+                href={`/${lang}/course/${id}?code=${
+                  searchParams?.get("code") || ""
+                }`}
+                className="w-full"
               >
-                {lang == "en" ? "Enroll" : "ይመዝገቡ"}
-              </Button>
+                <Button color="primary" className="w-full">
+                  {lang == "en" ? "Enroll Now" : "መዝግብ"}
+                </Button>
+              </Link>
             }
           />
         ))}
