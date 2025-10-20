@@ -5,9 +5,10 @@ import { toast } from "sonner";
 import { HeroSection } from "@/components/guest/hero-section";
 import CoursePage from "./course/page";
 import { FeaturesSection } from "@/components/guest/features-section";
-import { TestimonialsSection } from "@/components/guest/testimonial";
+// import { TestimonialsSection } from "@/components/guest/testimonial";
 import { Footer } from "@/components/guest/footer";
-
+import { OurStudentsSection } from "@/components/guest/out-students";
+  
 export default function Page() {
   useEffect(() => {
     toast.dismiss();
@@ -18,7 +19,8 @@ export default function Page() {
       <HeroSection />
       <CoursePage />
       <FeaturesSection />
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
+      <OurStudentsSection />
       <Footer />
     </div>
   );
