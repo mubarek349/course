@@ -92,7 +92,7 @@ export default function Page() {
                 className="w-full"
               >
                 <Button color="primary" className="w-full">
-                  {lang == "en" ? "Enroll Now" : "መዝግብ"}
+                  {lang == "en" ? "Enroll" : "መዝግብ"}
                 </Button>
               </Link>
             }
