@@ -46,7 +46,7 @@ export default function Page() {
         action({ userName, password });
       }
     }
-  }, [searchParams]);
+  }, [searchParams, action]);
 
   const handleForgotPassword = () => {
     router.push(`/${lang}/forgetPassword`);
@@ -57,76 +57,157 @@ export default function Page() {
   };
 
   return (
-    <div className="h-dvh p-4 grid content-center md:justify-center">
-      <Form
-        onSubmit={handleSubmit(action)}
-        validationErrors={Object.entries(formState.errors).reduce(
-          (a, [key, { message }]) => {
-            return { ...a, [key]: message };
-          },
-          {}
-        )}
-        className="w-full md:w-96 py-10 px-5 md:px-10 bg-background shadow shadow-primary-200 rounded-xl grid gap-5"
-      >
-        <div className="grid place-content-center">
-          <Logo />
+    <div className="min-h-dvh relative overflow-hidden">
+      {/* Enhanced Background with Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-400/20 dark:bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-400/10 dark:bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
-        <div className=" grid gap-4 auto-rows-min">
-          <Input
-            color="primary"
-            {...register("userName")}
-            placeholder={lang == "en" ? "username" : "የተጠቃሚ ስም"}
-          />
-          <Input
-            color="primary"
-            {...register("password")}
-            type="password"
-            placeholder={lang == "en" ? "password" : "የይለፍ ቃል"}
-          />
-          <CButton type="submit" color="primary" isLoading={isPending}>
-            {lang == "en" ? "Login" : "ይግቡ"}
-          </CButton>
-          <p className="text-sm text-center text-gray-600 mt-2">
-            {lang == "en" ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-primary hover:underline mr-2"
+        
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:50px_50px] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)]"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-dvh p-4 grid content-center md:justify-center">
+        <div className="w-full max-w-md">
+          {/* Enhanced Form Card */}
+          <div className="relative">
+            {/* Glass morphism effect */}
+            <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-2xl"></div>
+            
+            {/* Inner glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 dark:from-blue-400/10 dark:via-transparent dark:to-indigo-400/10 rounded-2xl"></div>
+            
+            <Form
+              onSubmit={handleSubmit(action)}
+              validationErrors={Object.entries(formState.errors).reduce(
+                (a, [key, { message }]) => {
+                  return { ...a, [key]: message };
+                },
+                {}
+              )}
+              className="relative z-10 w-full py-12 px-8 grid gap-6"
+            >
+              {/* Logo Section */}
+              <div className="grid place-content-center mb-2">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur-lg opacity-20 dark:opacity-30"></div>
+                  <div className="relative">
+                    <Logo />
+                  </div>
+                </div>
+              </div>
+
+              {/* Welcome Text */}
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {lang === "en" ? "Welcome Back" : "እንኳን ደህና መጡ"}
+                </h1>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {lang === "en" ? "Sign in to your account" : "ወደ መለያዎ ይግቡ"}
+                </p>
+              </div>
+
+              {/* Form Fields */}
+              <div className="grid gap-5">
+                <div className="space-y-1">
+                  <Input
+                    color="primary"
+                    variant="bordered"
+                    size="lg"
+                    classNames={{
+                      input: "text-gray-900 dark:text-white",
+                      inputWrapper: "bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-colors",
+                    }}
+                    {...register("userName")}
+                    placeholder={lang == "en" ? "Enter your username" : "የተጠቃሚ ስምዎን ያስገቡ"}
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <Input
+                    color="primary"
+                    variant="bordered"
+                    size="lg"
+                    type="password"
+                    classNames={{
+                      input: "text-gray-900 dark:text-white",
+                      inputWrapper: "bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-colors",
+                    }}
+                    {...register("password")}
+                    placeholder={lang == "en" ? "Enter your password" : "የይለፍ ቃልዎን ያስገቡ"}
+                  />
+                </div>
+
+                {/* Enhanced Login Button */}
+                <CButton 
+                  type="submit" 
+                  color="primary" 
+                  size="lg"
+                  isLoading={isPending}
+                  className="w-full font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  Forgot Password?
-                </button>
-                If you don&apos;t have an account, please{" "}
-                <button
-                  type="button"
-                  onClick={handleSignUp}
-                  className="text-primary hover:underline"
-                >
-                  register
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-primary hover:underline mr-2"
-                >
-                  የይለፍ ቃል ረሳሁ?
-                </button>
-                ምልክት ካላደረጉ{" "}
-                <button
-                  type="button"
-                  onClick={handleSignUp}
-                  className="text-primary hover:underline"
-                >
-                  ይመዝገቡ
-                </button>
-              </>
-            )}
-          </p>
+                  {isPending 
+                    ? (lang === "en" ? "Signing in..." : "በመግባት ላይ...") 
+                    : (lang === "en" ? "Sign In" : "ይግቡ")
+                  }
+                </CButton>
+              </div>
+
+              {/* Enhanced Footer Links */}
+              <div className="pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                <p className="text-sm text-center text-gray-600 dark:text-gray-400 leading-relaxed">
+                  {lang == "en" ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline font-medium transition-colors"
+                      >
+                        Forgot Password?
+                      </button>
+                      <br className="sm:hidden" />
+                      <span className="hidden sm:inline"> • </span>
+                      Don&apos;t have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={handleSignUp}
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline font-medium transition-colors"
+                      >
+                        Sign up
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline font-medium transition-colors"
+                      >
+                        የይለፍ ቃል ረሳሁ?
+                      </button>
+                      <br className="sm:hidden" />
+                      <span className="hidden sm:inline"> • </span>
+                      ምልክት ካላደረጉ{" "}
+                      <button
+                        type="button"
+                        onClick={handleSignUp}
+                        className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 hover:underline font-medium transition-colors"
+                      >
+                        ይመዝገቡ
+                      </button>
+                    </>
+                  )}
+                </p>
+              </div>
+            </Form>
+          </div>
         </div>
-      </Form>
+      </div>
     </div>
   );
 }
