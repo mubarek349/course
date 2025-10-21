@@ -1,7 +1,27 @@
+"use client";
+
 import { Button, Chip } from "@heroui/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 
 export function HeroSection() {
+  const params = useParams();
+  const router = useRouter();
+  const lang = (params?.lang as string) || "en";
+
+  const handleStartJourney = () => {
+    router.push(`/${lang}/signup`);
+  };
+
+  const handleExploreCourses = () => {
+    const coursesSection = document.getElementById("courses");
+    if (coursesSection) {
+      coursesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      router.push(`/${lang}/course`);
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 to-background dark:from-sky-900/20 dark:to-background py-20 md:py-32">
       <div className="container mx-auto px-4">
@@ -26,8 +46,9 @@ export function HeroSection() {
             <Button
               size="lg"
               color="primary"
-              className="text-lg px-8"
+              className="text-lg px-8 font-semibold shadow-lg hover:shadow-xl transition-shadow"
               endContent={<ArrowRight className="h-5 w-5" />}
+              onPress={handleStartJourney}
             >
               Start Your Journey
             </Button>
@@ -35,7 +56,9 @@ export function HeroSection() {
               size="lg"
               variant="bordered"
               color="primary"
-              className="text-lg px-8"
+              className="text-lg px-8 font-semibold border-2 hover:bg-primary-50 dark:hover:bg-primary-950 transition-colors"
+              startContent={<BookOpen className="h-5 w-5" />}
+              onPress={handleExploreCourses}
             >
               Explore Courses
             </Button>
