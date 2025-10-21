@@ -687,12 +687,12 @@ export default function Page() {
               </div>
 
             {/* COURSE CONTENT & TABS */}
-            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-20 overflow-auto ">
+            <div className="relative bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-20 overflow-auto ">
               <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 sm:py-6 lg:py-8">
                 {/* Mobile Tab Navigation with Horizontal Scroll */}
                   <Tabs defaultValue="content" className="h-full bg-white dark:bg-gray-900 overflow-hidden sm:hidden  flex flex-col">
                     {/* Content Tabs Below Player */}
-                    <div className="bg-white dark:bg-gray-900 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
+                    <div className="sticky top-0 bg-white dark:bg-gray-900 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
                       <div className="overflow-x-auto scrollbar-hide scroll-smooth px-4 py-0">
                         <TabsList className="flex space-x-4 bg-transparent p-0 min-w-max h-12">
                           <TabsTrigger
