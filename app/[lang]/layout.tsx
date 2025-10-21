@@ -2,16 +2,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/db";
 import React from "react";
 
-export default async function Layout({
-  pending,
-  inactive,
-  manager,
-  seller,
-  affiliate,
-  instructor,
-  student,
-  children,
-}: {
+type LayoutProps = {
   pending: React.ReactNode;
   inactive: React.ReactNode;
   manager: React.ReactNode;
@@ -20,30 +11,34 @@ export default async function Layout({
   instructor: React.ReactNode;
   student: React.ReactNode;
   children: React.ReactNode;
-}) {
+  params: Promise<{ lang: string }>;
+};
+
+export default async function Layout(props: LayoutProps) {
+  await props.params; // Required by Next.js 15
   const session = await auth();
-  if (!session) return children;
+  if (!session) return props.children;
 
   const user = await prisma.user.findFirst({
     where: { id: session.user?.id || "unknown" },
     select: { status: true, role: true },
   });
 
-  if (!user) return children;
+  if (!user) return props.children;
 
   return user.status == "pending"
-    ? pending
+    ? props.pending
     : user.status == "inactive"
-    ? inactive
+    ? props.inactive
     : session.user?.role === "manager"
-    ? manager
+    ? props.manager
     : session.user?.role === "seller"
-    ? seller
+    ? props.seller
     : session.user?.role === "affiliate"
-    ? affiliate
+    ? props.affiliate
     : session.user?.role === "instructor"
-    ? instructor
+    ? props.instructor
     : session.user?.role === "student"
-    ? student
-    : children;
+    ? props.student
+    : props.children;
 }
