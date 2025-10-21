@@ -8,22 +8,20 @@ export default async function Layout({
   manager,
   seller,
   affiliate,
-  instructor,
+  Instructor,
   student,
   children,
-  params,
 }: {
   pending: React.ReactNode;
   inactive: React.ReactNode;
   manager: React.ReactNode;
   seller: React.ReactNode;
   affiliate: React.ReactNode;
-  instructor: React.ReactNode;
+  Instructor: React.ReactNode;
   student: React.ReactNode;
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
 }) {
-  await params; // Required by Next.js 15
   const session = await auth();
   if (!session) return children;
 
@@ -45,7 +43,7 @@ export default async function Layout({
     : session.user?.role === "affiliate"
     ? affiliate
     : session.user?.role === "instructor"
-    ? instructor
+    ? Instructor
     : session.user?.role === "student"
     ? student
     : children;
