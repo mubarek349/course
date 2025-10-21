@@ -27,11 +27,23 @@ export async function authenticate(
       message: "Authentication failed",
     };
   }
-  // return { status: true };
+  
+  // Get the session to check user role
+  const session = await auth();
+  const lang = (await headers()).get("darulkubra-url")?.split("/")?.[3] ?? "en";
+  
+  // Redirect based on user role
   revalidatePath("");
-  redirect(
-    `/${(await headers()).get("darulkubra-url")?.split("/")?.[3] ?? "en"}`
-  );
+  
+  if (session?.user?.role === "instructor") {
+    redirect(`/${lang}/dashboard`);
+  } else if (session?.user?.role === "manager") {
+    redirect(`/${lang}/dashboard`);
+  } else if (session?.user?.role === "student") {
+    redirect(`/${lang}/course`);
+  } else {
+    redirect(`/${lang}`);
+  }
 }
 
 export async function signup(
@@ -164,7 +176,19 @@ export async function signupWithOTP(
       where: { id: otpRecord.id },
     });
 
-    return { status: true, message: "User created successfully" };
+    // Auto login after signup
+    await signIn("credentials", {
+      userName: fullPhoneNumber,
+      password,
+      redirect: false,
+    });
+
+    // Get language from headers
+    const lang = (await headers()).get("darulkubra-url")?.split("/")?.[3] ?? "en";
+    
+    // Redirect to student courses page
+    revalidatePath("");
+    redirect(`/${lang}/course`);
   } catch (error) {
     console.log("Signup error:", error);
     return {

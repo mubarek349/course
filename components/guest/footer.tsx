@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Facebook, Mail, Phone, Send } from "lucide-react";
+import { Facebook, Phone, Send } from "lucide-react";
 
 export function Footer() {
   return (
@@ -64,7 +64,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="https://www.tiktok.com/@darulkubraofficial?_t=ZM-90jD1IIkdoZ&_r=1" className="hover:text-sky-400 transition-colors flex items-center gap-2">
-                  <img src="/" alt="TikTok" className="w-4 h-4" />
+                  <img src="/tiktok.png" alt="TikTok" className="w-4 h-4" />
                   <span className="text-sm">TikTok</span>
                 </Link>
               </li>
@@ -82,15 +82,6 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-4">Contact</h4>
             <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-sky-400" />
-                <a
-                  href="mailto:info@darulkubra.com"
-                  className="hover:text-sky-400 transition-colors"
-                >
-                  info@darulkubra.com
-                </a>
-              </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-sky-400" />
                 <a

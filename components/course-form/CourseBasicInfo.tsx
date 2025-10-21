@@ -33,7 +33,7 @@ export default function CourseBasicInfo({
           className="w-full"
         />
         <CInput
-          label={lang === "en" ? "Price" : "ዋጋ"}
+          label={lang === "en" ? "Affiliate Price" : "የተባባሪ ዋጋ"}
           type="number"
           color="primary"
           value={watch ? watch("price")?.toString() : ""}

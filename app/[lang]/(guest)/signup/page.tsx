@@ -54,12 +54,11 @@ export default function Page() {
         confirmPassword: "",
       },
     }),
-    // router = useRouter(),
     { action, isPending } = useAction(signupWithOTP, undefined, {
       onSuccess(state) {
+        // Server action handles redirect and auto-login
         if (state.status) {
-          // router.replace(`/${lang}/`);
-        } else {
+          // Redirect is handled server-side
         }
       },
       success: lang == "en" ? "Successfully registered" : "በተሳካ ሁኔታ ተመዝግበዋል",
@@ -89,12 +88,37 @@ export default function Page() {
   const handleCountryChange = (countryCode: string) => {
     setSelectedCountry(countryCode);
     setValue("countryCode", countryCode);
+    
+    // Reset phone number when country changes to avoid formatting issues
+    const currentPhone = watch("phoneNumber");
+    if (currentPhone) {
+      // If switching to Ethiopia, ensure number doesn't have leading 0
+      if (countryCode === "+251" && currentPhone.startsWith("0")) {
+        setValue("phoneNumber", currentPhone.substring(1));
+      }
+    }
   };
 
   // Handle OTP change
   const handleOtpChange = (otpValue: string) => {
     setOtp(otpValue);
     setValue("otp", otpValue);
+  };
+
+  // Handle phone number change with Ethiopian formatting
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    
+    // Only allow numbers
+    value = value.replace(/\D/g, '');
+    
+    // If country code is Ethiopia (+251) and number starts with 0
+    if (selectedCountry === "+251" && value.startsWith("0")) {
+      // Remove the leading 0 for proper formatting
+      value = value.substring(1);
+    }
+    
+    setValue("phoneNumber", value);
   };
 
   // Step navigation functions
@@ -247,9 +271,21 @@ export default function Page() {
                   <Input
                     color="primary"
                     {...register("phoneNumber")}
-                    placeholder={lang == "en" ? "Phone number" : "የስልክ ቁጥር"}
+                    onChange={handlePhoneNumberChange}
+                    placeholder={
+                      selectedCountry === "+251"
+                        ? (lang == "en" ? "9XXXXXXXX" : "9XXXXXXXX")
+                        : (lang == "en" ? "Phone number" : "የስልክ ቁጥር")
+                    }
                     className="flex-1"
                     variant="bordered"
+                    description={
+                      selectedCountry === "+251"
+                        ? (lang == "en" 
+                            ? "Enter without 0 (e.g., 912345678)" 
+                            : "ያለ 0 ያስገቡ (ለምሳሌ፣ 912345678)")
+                        : undefined
+                    }
                   />
                 </div>
               </div>
@@ -275,9 +311,8 @@ export default function Page() {
                     ? "We sent a 6-digit code to your phone"
                     : "6-ዲጂት ኮድ ወደ ስልክዎ ላክን"}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {selectedCountry}
-                  {watch("phoneNumber")}
+                <p className="text-xs text-gray-500 font-semibold">
+                  {selectedCountry}{watch("phoneNumber")}
                 </p>
               </div>
 

@@ -6,15 +6,14 @@ import {
   Clock,
   Award,
   Video,
-  Headphones,
 } from "lucide-react";
 
 const features = [
   {
     icon: BookOpen,
-    title: "Structured Curriculum",
+    title: "Comprehensive Curriculum",
     description:
-      "Follow a comprehensive program from basics to advanced Tajweed and memorization",
+      "A wide range of courses covering Quran recitation, Tajweed, Islamic studies, and more",
   },
   {
     icon: GraduationCap,
@@ -24,9 +23,9 @@ const features = [
   },
   {
     icon: Clock,
-    title: "Flexible Schedule",
+    title: "Flexible Learning",
     description:
-      "Choose your preferred time slots and learn at your own comfortable pace",
+      "Learn at your own comfortable pace and on your own schedule",
   },
   {
     icon: Award,
@@ -36,15 +35,11 @@ const features = [
   },
   {
     icon: Video,
-    title: "Live Classes",
+    title: "Live Support",
     description:
-      "Interactive one-on-one or group sessions with HD video quality",
+      "Get live support from our instructors to help you with your questions and doubts",
   },
-  {
-    icon: Headphones,
-    title: "24/7 Support",
-    description: "Get help anytime with our dedicated student support team",
-  },
+  
 ];
 
 export function FeaturesSection() {
@@ -70,7 +65,7 @@ export function FeaturesSection() {
             Excellence in Islamic Education
           </p>
           <p className="text-default-600 max-w-2xl mx-auto text-lg">
-            Traditional Islamic scholarship combined with cutting-edge learning
+            Professional Islamic scholarship combined with cutting-edge learning
             technology
           </p>
         </div>
