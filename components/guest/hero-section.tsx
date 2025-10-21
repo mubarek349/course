@@ -74,7 +74,7 @@ export function HeroSection() {
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
-                50+
+                100+
               </div>
               <div className="text-sm text-default-600">Expert Scholars</div>
             </div>
