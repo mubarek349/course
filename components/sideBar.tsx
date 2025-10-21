@@ -90,7 +90,7 @@ export default function SideBar({
             >
               <div className="relative group">
                 <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 rounded-full opacity-0 group-hover:opacity-100 blur-sm transition-all duration-300" />
-                <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-2 shadow-lg">
+                <div className="relative bg-gradient-to-br from-blue-500 to-blue-500 rounded-xl p-2 shadow-lg">
                   <Image
                     src="/darulkubra.svg"
                     alt="Darul Kubra Logo"

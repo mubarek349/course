@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Header from "./header";
 import SideBar from "./sideBar";
 import { cn } from "@/lib/utils";
+import { SidebarProvider, useSidebar } from "./context/sidebar";
 
-export default function UserLayout({
+function UserLayoutContent({
   children,
   list,
 }: {
   children: React.ReactNode;
   list: { label: string; url: string; icon: React.ReactNode }[];
 }) {
-  const [isSide, setIsSide] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isSide, setIsSide, isCollapsed, setIsCollapsed } = useSidebar();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-950 dark:via-blue-950/20 dark:to-purple-950/10 relative">
@@ -35,5 +35,21 @@ export default function UserLayout({
         </div>
       </main>
     </div>
+  );
+}
+
+export default function UserLayout({
+  children,
+  list,
+}: {
+  children: React.ReactNode;
+  list: { label: string; url: string; icon: React.ReactNode }[];
+}) {
+  return (
+    <SidebarProvider>
+      <UserLayoutContent list={list}>
+        {children}
+      </UserLayoutContent>
+    </SidebarProvider>
   );
 }

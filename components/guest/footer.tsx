@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Facebook, Mail, Phone, Send } from "lucide-react";
 
 export function Footer() {
   return (
@@ -54,33 +54,26 @@ export function Footer() {
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold text-white mb-4">Resources</h4>
+            <h4 className="font-semibold text-white mb-4">Social Media</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="#" className="hover:text-sky-400 transition-colors">
-                  Contact Us
+                <Link href="https://www.facebook.com/share/1ErhYdzUn3/?mibextid=wwXIfr" className="hover:text-sky-400 transition-colors flex items-center gap-2">
+                  <Facebook className="w-4 h-4" />
+                  <span className="text-sm">Facebook</span>
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-sky-400 transition-colors">
-                  About Us
+                <Link href="https://www.tiktok.com/@darulkubraofficial?_t=ZM-90jD1IIkdoZ&_r=1" className="hover:text-sky-400 transition-colors flex items-center gap-2">
+                  <span className="text-sm">TikTok</span>
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-sky-400 transition-colors">
-                  Our Teachers
+                <Link href="t.me/darulkubraa" className="hover:text-sky-400 transition-colors flex items-center gap-2">
+                  <Send className="w-4 h-4" />
+                  <span className="text-sm">Telegram</span>
                 </Link>
               </li>
-              <li>
-                <Link href="#" className="hover:text-sky-400 transition-colors">
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:text-sky-400 transition-colors">
-                  Blog
-                </Link>
-              </li>
+              
             </ul>
           </div>
 
@@ -103,7 +96,7 @@ export function Footer() {
                   href="tel:+251933807447"
                   className="hover:text-sky-400 transition-colors"
                 >
-                  +251 933 807 447
+                  +251 982 570 254
                 </a>
               </li>
             </ul>
