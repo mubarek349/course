@@ -20,7 +20,6 @@ export default async function Layout({
   instructor: React.ReactNode;
   student: React.ReactNode;
   children: React.ReactNode;
-  params: Promise<{ lang: string }>;
 }) {
   const session = await auth();
   if (!session) return children;
