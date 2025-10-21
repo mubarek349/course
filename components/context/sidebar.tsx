@@ -1,12 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from "react";
 
 interface SidebarContextType {
   isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
+  setIsCollapsed: Dispatch<SetStateAction<boolean>>;
   isSide: boolean;
-  setIsSide: (value: boolean) => void;
+  setIsSide: Dispatch<SetStateAction<boolean>>;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
