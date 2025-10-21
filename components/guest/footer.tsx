@@ -64,6 +64,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="https://www.tiktok.com/@darulkubraofficial?_t=ZM-90jD1IIkdoZ&_r=1" className="hover:text-sky-400 transition-colors flex items-center gap-2">
+                  <img src="/" alt="TikTok" className="w-4 h-4" />
                   <span className="text-sm">TikTok</span>
                 </Link>
               </li>
