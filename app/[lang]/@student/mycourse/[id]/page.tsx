@@ -526,7 +526,7 @@ export default function Page() {
             </div>
 
             {/* COURSE CONTENT & TABS */}
-            <div className="relative bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-20 flex-1 flex flex-col overflow-hidden sm:overflow-visible">
+            <div className="relative bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-2 flex-1 flex flex-col overflow-hidden sm:overflow-visible">
               <div className="w-full mx-auto sm:px-6 lg:px-8 sm:py-6 lg:py-8 h-full flex flex-col overflow-hidden sm:overflow-visible">
                 {/* Mobile Tab Navigation with Horizontal Scroll */}
                 <Tabs
