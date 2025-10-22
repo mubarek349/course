@@ -11,11 +11,13 @@ import Overview01 from "../../@manager/_components/overview01";
 import Overview02 from "../../@manager/_components/overview02";
 import Overview03 from "../../@manager/_components/overview03";
 import useData from "@/hooks/useData";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { getOverview } from "@/actions/instructor/overview";
 
 export default function Page() {
   const { data: session, status } = useSession();
+  const params = useParams<{ lang: string }>();
+  const lang = params?.lang ?? "en";
   const searchParams = useSearchParams();
   const [filterData, setFilterData] = useState<{
     start: Date | undefined;
@@ -53,6 +55,9 @@ export default function Page() {
 
   // Unauthenticated state
   if (status === "unauthenticated") {
+    if (typeof window !== "undefined") {
+      window.location.replace(`/${lang}/dashboard`);
+    }
     return (
       <EmptyState
         icon={<Shield className="size-16" />}
@@ -60,7 +65,7 @@ export default function Page() {
         description="Please log in to access the instructor dashboard."
         action={{
           label: "Go to Login",
-          onClick: () => window.location.href = '/login'
+          onClick: () => window.location.href = `/${lang}/login`
         }}
       />
     );
@@ -68,6 +73,7 @@ export default function Page() {
 
   // Access denied state
   if (session?.user?.role !== 'instructor') {
+    
     return (
       <EmptyState
         icon={<AlertTriangle className="size-16" />}
