@@ -687,7 +687,7 @@ export default function Page() {
         <div className="h-full overflow-hidden grid bg-gradient-to-br from-gray-50 via-gray-50/50 to-white dark:from-gray-950 dark:via-gray-900/50 dark:to-gray-900">
           {/* MAIN CONTENT AREA - Scrollable and responsive to both sidebars */}
           <div
-            className={` overflow-hidden lg:pr-[340px] transition-all duration-300 grid grid-rows-[auto_1fr] ${
+            className={`overflow-hidden sm:overflow-auto lg:pr-[340px] transition-all duration-300 ${
               isCollapsed ? "md:ml-20" : "md:ml-72"
             }`}
           >
@@ -699,7 +699,7 @@ export default function Page() {
             </div>
 
             {/* COURSE CONTENT & TABS */}
-            <div className="relative bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-20 overflow-auto ">
+            <div className="relative bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-20">
               <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 sm:py-6 lg:py-8">
                 {/* Mobile Tab Navigation with Horizontal Scroll */}
                 <Tabs
@@ -751,8 +751,7 @@ export default function Page() {
                   </div>
 
                   {/* Content Area */}
-                  <div className="flex-1 overflow-y-auto">
-                    <div className="px-2 py-2">
+                    <div className="flex-1 overflow-y-auto px-2 py-2">
                       <TabsContent value="content" className="mt-0">
                         <CourseContent
                           contentData={contentData ?? null}
@@ -860,7 +859,6 @@ export default function Page() {
                         </div>
                       </TabsContent>
                     </div>
-                  </div>
                 </Tabs>
 
                 {/* Desktop Tab Navigation */}
