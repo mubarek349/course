@@ -54,12 +54,11 @@ export default function Page() {
         confirmPassword: "",
       },
     }),
-    // router = useRouter(),
     { action, isPending } = useAction(signupWithOTP, undefined, {
       onSuccess(state) {
+        // Server action handles redirect and auto-login
         if (state.status) {
-          // router.replace(`/${lang}/`);
-        } else {
+          // Redirect is handled server-side
         }
       },
       success: lang == "en" ? "Successfully registered" : "በተሳካ ሁኔታ ተመዝግበዋል",
@@ -89,12 +88,40 @@ export default function Page() {
   const handleCountryChange = (countryCode: string) => {
     setSelectedCountry(countryCode);
     setValue("countryCode", countryCode);
+    
+    // Reset phone number when country changes to avoid formatting issues
+    let currentPhone = watch("phoneNumber");
+    if (currentPhone) {
+      // Remove all leading zeros for international format
+      while (currentPhone.startsWith("0")) {
+        currentPhone = currentPhone.substring(1);
+      }
+      setValue("phoneNumber", currentPhone);
+    }
   };
 
   // Handle OTP change
   const handleOtpChange = (otpValue: string) => {
     setOtp(otpValue);
     setValue("otp", otpValue);
+  };
+
+  // Handle phone number change with universal formatting
+  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    
+    // Only allow numbers
+    value = value.replace(/\D/g, '');
+    
+    // Remove all leading zeros (handles multiple 0s like 00, 000, etc.)
+    // This is standard practice for international format
+    // 0912345678 → 912345678 → +251912345678
+    // 00912345678 → 912345678 → +251912345678
+    while (value.startsWith("0")) {
+      value = value.substring(1);
+    }
+    
+    setValue("phoneNumber", value);
   };
 
   // Step navigation functions
@@ -112,7 +139,7 @@ export default function Page() {
 
   // Handle Get OTP
   const handleGetOtp = () => {
-    const phoneNumber = watch("phoneNumber");
+    let phoneNumber = watch("phoneNumber");
     const countryCode = watch("countryCode");
 
     if (!phoneNumber) {
@@ -121,6 +148,14 @@ export default function Page() {
       );
       return;
     }
+
+    // Remove all leading zeros (universal international format)
+    while (phoneNumber.startsWith("0")) {
+      phoneNumber = phoneNumber.substring(1);
+    }
+    
+    // Update the form value to reflect the cleaned number
+    setValue("phoneNumber", phoneNumber);
 
     // Combine country code with phone number
     const fullPhoneNumber = `${countryCode}${phoneNumber}`;
@@ -247,9 +282,17 @@ export default function Page() {
                   <Input
                     color="primary"
                     {...register("phoneNumber")}
-                    placeholder={lang == "en" ? "Phone number" : "የስልክ ቁጥር"}
+                    onChange={handlePhoneNumberChange}
+                    placeholder={
+                      lang == "en" ? "9XXXXXXXX" : "9XXXXXXXX"
+                    }
                     className="flex-1"
                     variant="bordered"
+                    description={
+                      lang == "en" 
+                        ? "Leading 0 will be auto-removed (0912345678 → 912345678)" 
+                        : "መነሻ 0 በራስ-ሰር ይወገዳል (0912345678 → 912345678)"
+                    }
                   />
                 </div>
               </div>
@@ -275,9 +318,8 @@ export default function Page() {
                     ? "We sent a 6-digit code to your phone"
                     : "6-ዲጂት ኮድ ወደ ስልክዎ ላክን"}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {selectedCountry}
-                  {watch("phoneNumber")}
+                <p className="text-xs text-gray-500 font-semibold">
+                  {selectedCountry}{watch("phoneNumber")}
                 </p>
               </div>
 

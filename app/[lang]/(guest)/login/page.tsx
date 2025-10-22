@@ -29,14 +29,46 @@ export default function Page() {
     router = useRouter(),
     { action, isPending } = useAction(authenticate, undefined, {
       onSuccess(state) {
+        // Server action handles redirect based on user role
         if (state.status) {
-          // router.replace(`/${lang}/`);
-        } else {
+          // Redirect is handled server-side
         }
       },
       success: lang == "en" ? "Successfully logged in" : "በተሳካ ሁኔታ ገብተዋል",
       error: lang == "en" ? "Logged in failed" : "መግባት አልተሳካም",
     });
+
+  // Process phone numbers: handle leading 0 and add default country code
+  const processPhoneNumber = (userName: string): string => {
+    // Remove all whitespace
+    const cleaned = userName.trim();
+    
+    // Check if it's a phone number starting with 0 (national format)
+    if (/^0\d{9,}$/.test(cleaned)) {
+      // Remove leading 0 and add default country code (+251 Ethiopia)
+      return `+251${cleaned.substring(1)}`;
+    }
+    
+    // If it's a 9-digit number starting with 9 or 7 (Ethiopian format without 0)
+    if (/^[97]\d{8}$/.test(cleaned)) {
+      // Add +251 prefix (default country)
+      return `+251${cleaned}`;
+    }
+    
+    // If already has + (international format), return as is
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    
+    // Return as is for other formats (usernames, emails, etc.)
+    return cleaned;
+  };
+
+  // Custom login handler to process phone numbers
+  const handleLogin = (data: z.infer<typeof formSchema>) => {
+    const processedUserName = processPhoneNumber(data.userName);
+    action({ userName: processedUserName, password: data.password });
+  };
 
   useEffect(() => {
     if (searchParams !== null) {
@@ -83,7 +115,7 @@ export default function Page() {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 dark:from-blue-400/10 dark:via-transparent dark:to-indigo-400/10 rounded-2xl"></div>
             
             <Form
-              onSubmit={handleSubmit(action)}
+              onSubmit={handleSubmit(handleLogin)}
               validationErrors={Object.entries(formState.errors).reduce(
                 (a, [key, { message }]) => {
                   return { ...a, [key]: message };
@@ -124,7 +156,8 @@ export default function Page() {
                       inputWrapper: "bg-white/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-400 transition-colors",
                     }}
                     {...register("userName")}
-                    placeholder={lang == "en" ? "Enter your username" : "የተጠቃሚ ስምዎን ያስገቡ"}
+                    placeholder={lang == "en" ? "Phone number or username" : "የስልክ ቁጥር ወይም የተጠቃሚ ስም"}
+                    
                   />
                 </div>
                 

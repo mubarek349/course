@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Select, SelectItem } from "@heroui/react";
+import { Autocomplete, AutocompleteItem } from "@heroui/react";
 
 interface CountrySelectorProps {
   value?: string;
@@ -238,16 +238,23 @@ const countries = [
 export default function CountrySelector({
   value,
   onChange,
-  placeholder = "Select Country",
+  placeholder = "Select or search country",
   label = "Country",
   className = "",
 }: CountrySelectorProps) {
+  const [selectedKey, setSelectedKey] = React.useState(value);
+
+  React.useEffect(() => {
+    setSelectedKey(value);
+  }, [value]);
+
   return (
-    <Select
-      value={value}
-      onSelectionChange={(keys) => {
-        const selectedKey = Array.from(keys)[0] as string;
-        onChange?.(selectedKey);
+    <Autocomplete
+      selectedKey={selectedKey}
+      onSelectionChange={(key) => {
+        const selectedValue = key as string;
+        setSelectedKey(selectedValue);
+        onChange?.(selectedValue);
       }}
       placeholder={placeholder}
       label={label}
@@ -255,23 +262,21 @@ export default function CountrySelector({
       color="primary"
       variant="bordered"
       size="md"
-      classNames={{
-        trigger: "min-h-12",
-        value: "text-left",
-      }}
+      allowsCustomValue={false}
+      defaultItems={countries}
     >
-      {countries.map((country) => (
-        <SelectItem
+      {(country) => (
+        <AutocompleteItem
           key={country.code}
-          textValue={`${country.flag} ${country.name} (${country.code})`}
+          textValue={`${country.name} ${country.code}`}
         >
           <div className="flex items-center gap-2">
             <span className="text-lg">{country.flag}</span>
             <span className="font-medium">{country.name}</span>
             <span className="text-sm text-gray-500">({country.code})</span>
           </div>
-        </SelectItem>
-      ))}
-    </Select>
+        </AutocompleteItem>
+      )}
+    </Autocomplete>
   );
 }

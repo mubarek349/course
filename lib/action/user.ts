@@ -111,7 +111,8 @@ export async function signupWithOTP(
         message: "No data provided",
       };
 
-    const { countryCode, phoneNumber, otp, password, confirmPassword } = data;
+    const { countryCode, otp, password, confirmPassword } = data;
+    let { phoneNumber } = data;
 
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -120,6 +121,13 @@ export async function signupWithOTP(
         cause: "Password doesn't match",
         message: "Password doesn't match",
       };
+    }
+
+    // Remove all leading zeros (universal international format)
+    // Standard practice: 0912345678 → 912345678, then +251912345678
+    // Handles edge cases: 00912345678 → 912345678
+    while (phoneNumber.startsWith("0")) {
+      phoneNumber = phoneNumber.substring(1);
     }
 
     // Combine country code with phone number
