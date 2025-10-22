@@ -106,7 +106,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   // For allowable routes, show a certificate banner (except on the certificate page itself)
   return (
-    <div className="grid grid-rows-[auto_1fr] overflow-hidden relative ">
+    <div className="grid overflow-hidden">
       {/* {!isCertificate && cert?.status && (
         <div className="sticky top-0 z-10 bg-emerald-600 text-white">
           <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
