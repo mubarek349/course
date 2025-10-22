@@ -14,11 +14,7 @@ import {
   Circle,
   MessageCircle,
 } from "lucide-react";
-import {
-  Accordion,
-  AccordionItem,
-  Skeleton,
-} from "@heroui/react";
+import { Accordion, AccordionItem, Skeleton } from "@heroui/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import useData from "@/hooks/useData";
@@ -527,7 +523,7 @@ export default function Page() {
               {currentVideo.url && (
                 <Player src={currentVideo.url} type="local" />
               )}
-              </div>
+            </div>
 
             {/* COURSE CONTENT & TABS */}
             <div className="relative bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm pb-20 flex-1 flex flex-col overflow-hidden sm:overflow-visible">
@@ -537,54 +533,54 @@ export default function Page() {
                   defaultValue="qa"
                   className="h-full flex flex-col sm:h-auto"
                 >
-                    {/* Content Tabs Below Player */}
+                  {/* Content Tabs Below Player */}
                   <div className="bg-white dark:bg-gray-900 flex-shrink-0 border-b border-gray-200 dark:border-gray-700">
-                      <div className="overflow-x-auto scrollbar-hide scroll-smooth">
-                        <TabsList className="flex space-x-4 bg-transparent p-0 min-w-max h-12 px-4">
-                          <TabsTrigger
-                            value="content"
-                            className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full lg:hidden flex items-center"
-                          >
-                            {lang === "en" ? "Course Content" : "የትምህርት ይዘት"}
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="qa"
-                            className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
-                          >
-                            {lang === "en" ? "Q&A" : "ጥያቄ እና መልስ"}
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="ai"
-                            className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
-                          >
-                            {lang === "en" ? "AI Assistant" : "AI ረዳት"}
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="announcements"
-                            className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
-                          >
-                            {lang === "en" ? "Announcements" : "ማሳወቂያዎች"}
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="feedback"
-                            className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-red-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
-                          >
-                            {lang === "en" ? "Feedback" : "ግብረመልስ"}
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="materials"
-                            className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
-                          >
-                            {lang === "en" ? "Materials" : "ቅረጾች"}
-                          </TabsTrigger>
-                        </TabsList>
-                      </div>
+                    <div className="overflow-x-auto scrollbar-hide scroll-smooth">
+                      <TabsList className="flex space-x-4 bg-transparent p-0 min-w-max h-12 px-4">
+                        <TabsTrigger
+                          value="content"
+                          className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full lg:hidden flex items-center"
+                        >
+                          {lang === "en" ? "Course Content" : "የትምህርት ይዘት"}
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="qa"
+                          className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
+                        >
+                          {lang === "en" ? "Q&A" : "ጥያቄ እና መልስ"}
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="ai"
+                          className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
+                        >
+                          {lang === "en" ? "AI Assistant" : "AI ረዳት"}
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="announcements"
+                          className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
+                        >
+                          {lang === "en" ? "Announcements" : "ማሳወቂያዎች"}
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="feedback"
+                          className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-red-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
+                        >
+                          {lang === "en" ? "Feedback" : "ግብረመልስ"}
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="materials"
+                          className="text-sm font-medium px-4 py-3 bg-transparent border-none rounded-none data-[state=active]:text-gray-900 dark:data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:font-semibold data-[state=inactive]:text-gray-500 transition-all duration-200 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap h-full flex items-center"
+                        >
+                          {lang === "en" ? "Materials" : "ቅረጾች"}
+                        </TabsTrigger>
+                      </TabsList>
                     </div>
+                  </div>
 
-                    {/* Content Area */}
+                  {/* Content Area */}
                   <div className="flex-1 overflow-y-auto sm:overflow-visible">
-                      <div className="sm:px-4 sm:py-2">
-                        <TabsContent value="content" className="mt-0 lg:hidden">
+                    <div className="sm:px-4 sm:py-2">
+                      <TabsContent value="content" className="mt-0 lg:hidden">
                         <CourseContent
                           contentData={contentData ?? null}
                           contentLoading={contentLoading}
@@ -605,9 +601,9 @@ export default function Page() {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                {lang === "en"
-                                  ? "Questions & Answers"
-                                  : "ጥያቄዎች እና መልሶች"}
+                                  {lang === "en"
+                                    ? "Questions & Answers"
+                                    : "ጥያቄዎች እና መልሶች"}
                                 </h2>
                               </div>
                             </div>
@@ -633,18 +629,18 @@ export default function Page() {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <h2 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                {lang === "en"
-                                  ? "Course Announcements"
-                                  : "የኮርስ ማሳወቂያዎች"}
+                                  {lang === "en"
+                                    ? "Course Announcements"
+                                    : "የኮርስ ማሳወቂያዎች"}
                                 </h2>
                               </div>
                             </div>
                           </div>
                           <div className="p-4">
-                          <CourseAnnouncements
-                            courseId={courseId}
-                            lang={lang}
-                          />
+                            <CourseAnnouncements
+                              courseId={courseId}
+                              lang={lang}
+                            />
                           </div>
                         </div>
                       </TabsContent>
@@ -657,9 +653,9 @@ export default function Page() {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <h2 className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                                {lang === "en"
-                                  ? "Course Feedback"
-                                  : "የኮርስ ግብረመልስ"}
+                                  {lang === "en"
+                                    ? "Course Feedback"
+                                    : "የኮርስ ግብረመልስ"}
                                 </h2>
                               </div>
                             </div>
@@ -678,9 +674,9 @@ export default function Page() {
                               </div>
                               <div className="min-w-0 flex-1">
                                 <h2 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                {lang === "en"
-                                  ? "Course Materials"
-                                  : "የኮርስ ቅረጾች"}
+                                  {lang === "en"
+                                    ? "Course Materials"
+                                    : "የኮርስ ቅረጾች"}
                                 </h2>
                               </div>
                             </div>
@@ -690,9 +686,9 @@ export default function Page() {
                           </div>
                         </div>
                       </TabsContent>
-                      </div>
                     </div>
-                  </Tabs>
+                  </div>
+                </Tabs>
               </div>
             </div>
           </div>
@@ -716,8 +712,8 @@ export default function Page() {
                         : "ትምህርት ለመቀጠል ይምረጡ"}
                     </p>
                   </div>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 dark:hover:scrollbar-thumb-gray-500 scrollbar-track-gray-100 dark:scrollbar-track-gray-800">
@@ -734,7 +730,7 @@ export default function Page() {
                   />
                 </div>
               </div>
-              
+
               {/* Fixed Progress Footer */}
               <div className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-700/50 px-5 py-3 shadow-sm">
                 <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
@@ -758,7 +754,7 @@ export default function Page() {
                 className="fixed inset-0 bg-black/70 backdrop-blur-md transition-all duration-300"
                 onClick={() => setIsSidebarOpen(false)}
               />
-              
+
               {/* Enhanced Sidebar Container with Slide Animation */}
               <div className="fixed inset-y-0 right-0 w-full max-w-sm sm:max-w-md bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-out">
                 {/* Professional Header */}
@@ -777,29 +773,29 @@ export default function Page() {
                         </p>
                       </div>
                     </div>
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
+                    <button
+                      onClick={() => setIsSidebarOpen(false)}
                       className="p-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-all duration-200 group"
-                  aria-label="Close course content"
-                >
+                      aria-label="Close course content"
+                    >
                       <X className="w-5 h-5 text-white group-hover:rotate-90 transition-transform duration-200" />
-                </button>
+                    </button>
                   </div>
                 </div>
-                
+
                 {/* Enhanced Content with Custom Scrollbar */}
                 <div className="h-[calc(100vh-72px)] overflow-y-auto bg-gray-50 dark:bg-gray-950 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
                   <div className="p-3">
-                <CourseContent
-                  contentData={contentData ?? null}
-                  contentLoading={contentLoading}
-                  onSelectVideo={handleSelectVideo}
-                  lang={lang}
-                  currentVideoUrl={currentVideo.url}
-                  courseId={courseId}
-                  finalExamLocked={finalExamLocked}
-                  examStatus={examStatus || "not-done"}
-                />
+                    <CourseContent
+                      contentData={contentData ?? null}
+                      contentLoading={contentLoading}
+                      onSelectVideo={handleSelectVideo}
+                      lang={lang}
+                      currentVideoUrl={currentVideo.url}
+                      courseId={courseId}
+                      finalExamLocked={finalExamLocked}
+                      examStatus={examStatus || "not-done"}
+                    />
                   </div>
                 </div>
               </div>
@@ -807,9 +803,8 @@ export default function Page() {
           )}
 
           {/* PROFESSIONAL FLOATING ACTION BUTTON - MOBILE/TABLET */}
-         
         </div>
-        )}
+      )}
     </div>
   );
 }
