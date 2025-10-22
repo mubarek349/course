@@ -807,26 +807,9 @@ export default function Page() {
           )}
 
           {/* PROFESSIONAL FLOATING ACTION BUTTON - MOBILE/TABLET */}
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="fixed bottom-6 right-6 z-40 lg:hidden group"
-            aria-label="Open course content"
-          >
-            <div className="relative">
-              {/* Pulsing Background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-500 dark:from-primary-500 dark:to-primary-400 rounded-full animate-pulse opacity-75"></div>
-              
-              {/* Main Button */}
-              <div className="relative flex items-center gap-3 px-5 py-4 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 dark:from-primary-500 dark:via-primary-400 dark:to-primary-500 rounded-full shadow-xl group-hover:shadow-2xl transform group-hover:scale-105 transition-all duration-200">
-                <PlayCircle className="w-6 h-6 text-white" />
-                <span className="text-sm font-bold text-white whitespace-nowrap">
-                  {lang === "en" ? "Course Content" : "የኮርስ ይዘት"}
-                </span>
-              </div>
-            </div>
-          </button>
+         
         </div>
-      )}
+        )}
     </div>
   );
 }
