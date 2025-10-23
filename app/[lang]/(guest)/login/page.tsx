@@ -29,9 +29,9 @@ export default function Page() {
     router = useRouter(),
     { action, isPending } = useAction(authenticate, undefined, {
       onSuccess(state) {
-        // Server action handles redirect based on user role
-        if (state.status) {
-          // Redirect is handled server-side
+        // Handle client-side redirect after successful login
+        if (state.status && state.redirect) {
+          window.location.href = state.redirect;
         }
       },
       success: lang == "en" ? "Successfully logged in" : "በተሳካ ሁኔታ ገብተዋል",

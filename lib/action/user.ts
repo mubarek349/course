@@ -32,18 +32,28 @@ export async function authenticate(
   const session = await auth();
   const lang = (await headers()).get("darulkubra-url")?.split("/")?.[3] ?? "en";
   
-  // Redirect based on user role
-  revalidatePath("");
+  // Revalidate paths to ensure fresh data
+  revalidatePath("/", "layout");
   
+  // Determine redirect path based on user role
+  let redirectPath = `/${lang}`;
   if (session?.user?.role === "instructor") {
-    redirect(`/${lang}/dashboard`);
+    redirectPath = `/${lang}/dashboard`;
+    revalidatePath(`/${lang}/dashboard`);
   } else if (session?.user?.role === "manager") {
-    redirect(`/${lang}/dashboard`);
+    redirectPath = `/${lang}/dashboard`;
+    revalidatePath(`/${lang}/dashboard`);
   } else if (session?.user?.role === "student") {
-    redirect(`/${lang}/course`);
-  } else {
-    redirect(`/${lang}`);
+    redirectPath = `/${lang}/course`;
+    revalidatePath(`/${lang}/course`);
   }
+  
+  // Return success with redirect info instead of calling redirect()
+  return { 
+    status: true, 
+    message: "Authentication successful", 
+    redirect: redirectPath 
+  } as StateType;
 }
 
 export async function signup(
@@ -194,9 +204,16 @@ export async function signupWithOTP(
     // Get language from headers
     const lang = (await headers()).get("darulkubra-url")?.split("/")?.[3] ?? "en";
     
-    // Redirect to student courses page
-    revalidatePath("");
-    redirect(`/${lang}/course`);
+    // Revalidate paths to ensure fresh data
+    revalidatePath("/", "layout");
+    revalidatePath(`/${lang}/course`);
+    
+    // Return success with redirect info instead of calling redirect()
+    return { 
+      status: true, 
+      message: "Registration successful", 
+      redirect: `/${lang}/course` 
+    } as StateType;
   } catch (error) {
     console.log("Signup error:", error);
     return {

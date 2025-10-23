@@ -17,7 +17,7 @@ export type TStudent = z.infer<typeof studentSchema>;
 export type TCourse = z.infer<typeof courseSchema>;
 
 export type StateType =
-  | { status: true; cause?: undefined; message?: string }
+  | { status: true; cause?: undefined; message?: string; redirect?: string }
   | { status: false; cause: string; message: string }
   | undefined;
 

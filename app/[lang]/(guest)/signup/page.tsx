@@ -56,9 +56,9 @@ export default function Page() {
     }),
     { action, isPending } = useAction(signupWithOTP, undefined, {
       onSuccess(state) {
-        // Server action handles redirect and auto-login
-        if (state.status) {
-          // Redirect is handled server-side
+        // Handle client-side redirect after successful signup
+        if (state.status && state.redirect) {
+          window.location.href = state.redirect;
         }
       },
       success: lang == "en" ? "Successfully registered" : "በተሳካ ሁኔታ ተመዝግበዋል",
