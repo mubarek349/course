@@ -73,7 +73,9 @@ export default function Page() {
 
   // Access denied state
   if (session?.user?.role !== 'instructor') {
-    
+    if (typeof window !== "undefined") {
+      window.location.replace(`/${lang}/dashboard`);
+    }
     return (
       <EmptyState
         icon={<AlertTriangle className="size-16" />}
