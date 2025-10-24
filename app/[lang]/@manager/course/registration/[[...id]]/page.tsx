@@ -47,16 +47,15 @@ export default function Page() {
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
-
+  
   const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>("");
-
+ 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [finalExamQuestions, setFinalExamQuestions] = useState<TQuestion[]>([]);
 
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id ?? "";
   const router = useRouter();
-  const { handleSubmit, register, setValue, formState, watch } =
-    useForm<TCourse>({
+  const { handleSubmit, register, setValue, formState, watch } = useForm<TCourse>({
       resolver: zodResolver(courseSchema),
       defaultValues: {
         titleEn: "",
@@ -89,7 +88,7 @@ export default function Page() {
 
   const isEditing = id && id !== "unknown";
 
-  const { data: channels, loading: channelsLoading } = useData({
+  const { data: channels, loading: channelsLoading, } = useData({
     func: getChannels,
     args: [],
   });
@@ -124,50 +123,39 @@ export default function Page() {
         });
 
         // Handle courseMaterials - convert string to array if needed
-        if (
-          data.courseMaterials !== null &&
-          data.courseMaterials !== undefined
-        ) {
-          if (typeof data.courseMaterials === "string") {
+        if (data.courseMaterials !== null && data.courseMaterials !== undefined) {
+          if (typeof data.courseMaterials === 'string') {
             // It's a comma-separated string, parse it to array of objects
             const urls = data.courseMaterials
-              .split(",")
-              .map((url) => url.trim())
-              .filter((url) => url.length > 0);
-
-            const materialsArray = urls.map((url) => {
+              .split(',')
+              .map(url => url.trim())
+              .filter(url => url.length > 0);
+            
+            const materialsArray = urls.map(url => {
               // Extract filename from URL
-              const filename = url.split("/").pop() || "file";
+              const filename = url.split('/').pop() || 'file';
               // Determine type from extension
-              const extension = filename.split(".").pop()?.toLowerCase() || "";
-              let type = "file";
-              if (["pdf"].includes(extension)) type = "pdf";
-              else if (["doc", "docx"].includes(extension)) type = "document";
-              else if (["ppt", "pptx"].includes(extension))
-                type = "presentation";
-              else if (["xls", "xlsx"].includes(extension))
-                type = "spreadsheet";
-              else if (["mp4", "avi", "mov"].includes(extension))
-                type = "video";
-              else if (["jpg", "jpeg", "png", "gif"].includes(extension))
-                type = "image";
-              else if (["zip", "rar"].includes(extension)) type = "archive";
-
+              const extension = filename.split('.').pop()?.toLowerCase() || '';
+              let type = 'file';
+              if (['pdf'].includes(extension)) type = 'pdf';
+              else if (['doc', 'docx'].includes(extension)) type = 'document';
+              else if (['ppt', 'pptx'].includes(extension)) type = 'presentation';
+              else if (['xls', 'xlsx'].includes(extension)) type = 'spreadsheet';
+              else if (['mp4', 'avi', 'mov'].includes(extension)) type = 'video';
+              else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) type = 'image';
+              else if (['zip', 'rar'].includes(extension)) type = 'archive';
+              
               return {
                 name: filename,
                 url: url,
-                type: type,
+                type: type
               };
             });
-
-            setValue("courseMaterials", materialsArray, {
-              shouldValidate: false,
-            });
+            
+            setValue("courseMaterials", materialsArray, { shouldValidate: false });
           } else if (Array.isArray(data.courseMaterials)) {
             // It's already an array
-            setValue("courseMaterials", data.courseMaterials, {
-              shouldValidate: false,
-            });
+            setValue("courseMaterials", data.courseMaterials, { shouldValidate: false });
           } else {
             // Unknown type, set to empty array
             setValue("courseMaterials", [], { shouldValidate: false });
@@ -198,6 +186,8 @@ export default function Page() {
           setVideoPreviewUrl(data.video);
         }
 
+     
+
         if (data && "finalExamQuestions" in data && data.finalExamQuestions) {
           setFinalExamQuestions(data.finalExamQuestions as TQuestion[]);
           setValue(
@@ -222,6 +212,8 @@ export default function Page() {
     }
   };
 
+ 
+
   const handleFormSubmit = async (data: TCourse) => {
     console.log("🚀 Form submission started", {
       isEditing,
@@ -234,7 +226,7 @@ export default function Page() {
         errors: formState.errors,
       },
     });
-
+    
     const loadingToast = toast.loading(
       lang === "en"
         ? isEditing
@@ -244,7 +236,7 @@ export default function Page() {
         ? "ኮርስ በማዘመን ላይ..."
         : "ኮርስ በመፍጠር ላይ..."
     );
-
+    
     setIsUploading(true);
     try {
       if (selectedVideoFile) {
@@ -280,18 +272,18 @@ export default function Page() {
       }
 
       data.finalExamQuestions = finalExamQuestions;
-
+      
       // Convert courseMaterials array back to comma-separated string for database
       if (data.courseMaterials && Array.isArray(data.courseMaterials)) {
         // Extract URLs and join with commas
         const materialsString = data.courseMaterials
-          .map((material) => material.url)
-          .filter((url) => url && url.length > 0)
-          .join(",");
+          .map(material => material.url)
+          .filter(url => url && url.length > 0)
+          .join(',');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (data as any).courseMaterials = materialsString;
       }
-
+      
       // Ensure ID is set for updates
       if (isEditing && id) {
         data.id = id;
@@ -312,10 +304,7 @@ export default function Page() {
       // First, register/update the course
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.log("📤 About to call action with data:", data);
-      const result: any = await courseRegistration(
-        { status: false, cause: "", message: "" },
-        data
-      );
+      const result: any = await courseRegistration({ status: false, cause: "", message: "" }, data);
 
       console.log("📥 Server action result:", result);
 
@@ -332,11 +321,11 @@ export default function Page() {
             ? "ኮርስ በተሳካ ሁኔታ ተዘምኗል!"
             : "ኮርስ በተሳካ ሁኔታ ተፈጠረ!"
         );
-
+        
         // Reset form state
         setSelectedVideoFile(null);
         setVideoPreviewUrl("");
-
+        
         // Navigate to course list
         setTimeout(() => {
           router.push(`/${lang}/course`);
@@ -352,7 +341,7 @@ export default function Page() {
             ? "ኮርስ ማዘመን አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
             : "ኮርስ መፍጠር አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
           {
-            description: result.message || result.cause,
+            description: result.message || result.cause
           }
         );
       }
@@ -362,7 +351,9 @@ export default function Page() {
       console.error("❌ Form submission error:", error);
       toast.dismiss(loadingToast);
       toast.error(
-        lang === "en" ? "An unexpected error occurred" : "ያልተጠበቀ ስህተት ተፈጥሯል"
+        lang === "en"
+          ? "An unexpected error occurred"
+          : "ያልተጠበቀ ስህተት ተፈጥሯል"
       );
       throw error;
     } finally {
@@ -451,39 +442,6 @@ export default function Page() {
     channels && (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
         <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
-          <div className="flex flex-col items-center lg:items-end gap-3">
-            <div className="text-center lg:text-right">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 rounded-full bg-primary-500"></div>
-                <p className="text-sm font-semibold text-gray-700">
-                  {Math.round(progressPercentage)}%{" "}
-                  {lang === "en" ? "Complete" : "ተጠናቅቋል"}
-                </p>
-              </div>
-              <Progress
-                value={progressPercentage}
-                size="md"
-                className="w-32 lg:w-40"
-                classNames={{
-                  track: "bg-gray-200",
-                  indicator: "bg-gradient-to-r from-primary-500 to-primary-600",
-                }}
-              />
-            </div>
-
-            {/* Progress Steps */}
-            <div className="flex gap-2 mt-2">
-              {formProgress.map((step, index) => (
-                <div
-                  key={index}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    step.completed ? "bg-primary-500 shadow-md" : "bg-gray-200"
-                  }`}
-                  title={step.label}
-                />
-              ))}
-            </div>
-          </div>
           {/* Header Section */}
           <div className="relative">
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -508,6 +466,43 @@ export default function Page() {
                           ? "Design and structure your course content with our comprehensive creation tools"
                           : "በእኛ ሁሉን አቀፍ የመፈጠሪያ መሳሪያዎች ኮርስዎን ይንደፉ እና ያዋቅሩ"}
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center lg:items-end gap-3">
+                    <div className="text-center lg:text-right">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-primary-500"></div>
+                        <p className="text-sm font-semibold text-gray-700">
+                          {Math.round(progressPercentage)}%{" "}
+                          {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                        </p>
+                      </div>
+                      <Progress
+                        value={progressPercentage}
+                        size="md"
+                        className="w-32 lg:w-40"
+                        classNames={{
+                          track: "bg-gray-200",
+                          indicator:
+                            "bg-gradient-to-r from-primary-500 to-primary-600",
+                        }}
+                      />
+                    </div>
+
+                    {/* Progress Steps */}
+                    <div className="flex gap-2 mt-2">
+                      {formProgress.map((step, index) => (
+                        <div
+                          key={index}
+                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            step.completed
+                              ? "bg-primary-500 shadow-md"
+                              : "bg-gray-200"
+                          }`}
+                          title={step.label}
+                        />
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -549,6 +544,8 @@ export default function Page() {
                   onVideoRemove={handleVideoRemove}
                   hasVideoError={!!formState.errors.video}
                 />
+
+               
 
                 <CourseBasicInfo
                   lang={lang}
@@ -674,13 +671,13 @@ export default function Page() {
                     }
                     label={lang === "en" ? "Add Requirement" : "መስፈርት ጨምር"}
                     placeHolderAm={
-                      lang === "en"
-                        ? "e.g., Basic computer skills"
+                      lang === "en" 
+                        ? "e.g., Basic computer skills" 
                         : "ለምሳሌ፣ መሰረታዊ የኮምፒተር ክህሎቶች"
                     }
                     placeHolderEn={
-                      lang === "en"
-                        ? "e.g., Basic computer skills"
+                      lang === "en" 
+                        ? "e.g., Basic computer skills" 
                         : "ለምሳሌ፣ መሰረታዊ የኮምፒተር ክህሎቶች"
                     }
                   />
@@ -1085,10 +1082,7 @@ export default function Page() {
                           formValid: formState.isValid,
                           formDirty: formState.isDirty,
                         });
-                        console.log(
-                          "❌ Form Errors (detailed):",
-                          JSON.stringify(formState.errors, null, 2)
-                        );
+                        console.log("❌ Form Errors (detailed):", JSON.stringify(formState.errors, null, 2));
                         console.log("📋 Form Values:", {
                           id: watch("id"),
                           titleEn: watch("titleEn"),
@@ -1119,7 +1113,7 @@ export default function Page() {
                           <div className="absolute inset-0 opacity-10">
                             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(255,255,255,0.3)_0%,_transparent_50%)] animate-pulse"></div>
                           </div>
-
+                          
                           {/* Loading Content */}
                           <div className="relative z-10 flex flex-col items-center gap-6 px-4">
                             {/* Spinner */}
@@ -1131,7 +1125,7 @@ export default function Page() {
                               {/* Inner dot */}
                               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white animate-pulse"></div>
                             </div>
-
+                            
                             {/* Status Text */}
                             <div className="text-center">
                               <h3 className="text-white font-bold text-lg mb-2">
@@ -1160,38 +1154,32 @@ export default function Page() {
                                       : "bg-white/40"
                                   }`}
                                 ></div>
-                                <span
-                                  className={`text-xs font-medium transition-all ${
-                                    formState.isSubmitting
-                                      ? "text-white"
-                                      : "text-white/60"
-                                  }`}
-                                >
+                                <span className={`text-xs font-medium transition-all ${
+                                  formState.isSubmitting ? "text-white" : "text-white/60"
+                                }`}>
                                   {lang === "en" ? "Processing" : "በማስተካከል"}
                                 </span>
                               </div>
-
+                              
                               <div className="w-8 h-px bg-white/30"></div>
-
+                              
                               <div className="flex items-center gap-2">
                                 <div
                                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                                    isUploading
-                                      ? "bg-white shadow-lg shadow-white/50 scale-125"
+                                    isUploading 
+                                      ? "bg-white shadow-lg shadow-white/50 scale-125" 
                                       : "bg-white/40"
                                   }`}
                                 ></div>
-                                <span
-                                  className={`text-xs font-medium transition-all ${
-                                    isUploading ? "text-white" : "text-white/60"
-                                  }`}
-                                >
+                                <span className={`text-xs font-medium transition-all ${
+                                  isUploading ? "text-white" : "text-white/60"
+                                }`}>
                                   {lang === "en" ? "Uploading" : "በመስቀል"}
                                 </span>
                               </div>
-
+                              
                               <div className="w-8 h-px bg-white/30"></div>
-
+                              
                               <div className="flex items-center gap-2">
                                 <div
                                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
@@ -1200,13 +1188,9 @@ export default function Page() {
                                       : "bg-white/40"
                                   }`}
                                 ></div>
-                                <span
-                                  className={`text-xs font-medium transition-all ${
-                                    formState.isSubmitting && !isUploading
-                                      ? "text-white"
-                                      : "text-white/60"
-                                  }`}
-                                >
+                                <span className={`text-xs font-medium transition-all ${
+                                  formState.isSubmitting && !isUploading ? "text-white" : "text-white/60"
+                                }`}>
                                   {lang === "en" ? "Saving" : "በማስቀመጥ"}
                                 </span>
                               </div>
@@ -1241,6 +1225,7 @@ export default function Page() {
             </Card>
           </div>
         </div>
+
       </div>
     )
   );
