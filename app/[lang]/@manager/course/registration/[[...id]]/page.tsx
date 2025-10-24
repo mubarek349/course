@@ -469,41 +469,107 @@ export default function Page() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-center lg:items-end gap-3">
-                    <div className="text-center lg:text-right">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-primary-500"></div>
-                        <p className="text-sm font-semibold text-gray-700">
-                          {Math.round(progressPercentage)}%{" "}
-                          {lang === "en" ? "Complete" : "ተጠናቅቋል"}
-                        </p>
-                      </div>
-                      <Progress
-                        value={progressPercentage}
-                        size="md"
-                        className="w-32 lg:w-40"
-                        classNames={{
-                          track: "bg-gray-200",
-                          indicator:
-                            "bg-gradient-to-r from-primary-500 to-primary-600",
-                        }}
-                      />
-                    </div>
+                  {/* Floating Progress Section */}
+                  <div className="fixed top-6 right-6 z-50 hidden lg:block">
+                    <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-md hover:shadow-3xl transition-all duration-300 hover:scale-105">
+                      <CardBody className="p-4">
+                        <div className="flex flex-col items-center gap-3 min-w-[200px]">
+                          {/* Progress Header */}
+                          <div className="text-center">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
+                              <p className="text-sm font-bold text-gray-800">
+                                {Math.round(progressPercentage)}%{" "}
+                                {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                              </p>
+                            </div>
+                            <Progress
+                              value={progressPercentage}
+                              size="md"
+                              className="w-40"
+                              classNames={{
+                                track: "bg-gray-200 shadow-inner",
+                                indicator: "bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 shadow-lg",
+                              }}
+                            />
+                          </div>
 
-                    {/* Progress Steps */}
-                    <div className="flex gap-2 mt-2">
-                      {formProgress.map((step, index) => (
-                        <div
-                          key={index}
-                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                            step.completed
-                              ? "bg-primary-500 shadow-md"
-                              : "bg-gray-200"
-                          }`}
-                          title={step.label}
-                        />
-                      ))}
-                    </div>
+                          {/* Progress Steps */}
+                          <div className="flex gap-2 mt-2">
+                            {formProgress.map((step, index) => (
+                              <div
+                                key={index}
+                                className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                                  step.completed
+                                    ? "bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/50 scale-110"
+                                    : "bg-gray-200 hover:bg-gray-300"
+                                }`}
+                                title={step.label}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Progress Labels */}
+                          <div className="text-xs text-gray-600 text-center space-y-1">
+                            {formProgress.map((step, index) => (
+                              <div
+                                key={index}
+                                className={`transition-all duration-300 ${
+                                  step.completed
+                                    ? "text-primary-600 font-semibold"
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                {step.label}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  </div>
+
+                  {/* Mobile Progress Section */}
+                  <div className="lg:hidden">
+                    <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
+                      <CardBody className="p-4">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="text-center">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                              <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
+                              <p className="text-sm font-semibold text-gray-700">
+                                {Math.round(progressPercentage)}%{" "}
+                                {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                              </p>
+                            </div>
+                            <Progress
+                              value={progressPercentage}
+                              size="md"
+                              className="w-32"
+                              classNames={{
+                                track: "bg-gray-200",
+                                indicator: "bg-gradient-to-r from-primary-500 to-primary-600",
+                              }}
+                            />
+                          </div>
+
+                          {/* Progress Steps */}
+                          <div className="flex gap-2 mt-2">
+                            {formProgress.map((step, index) => (
+                              <div
+                                key={index}
+                                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                                  step.completed
+                                    ? "bg-primary-500 shadow-md"
+                                    : "bg-gray-200"
+                                }`}
+                                title={step.label}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
                   </div>
                 </div>
               </CardHeader>
