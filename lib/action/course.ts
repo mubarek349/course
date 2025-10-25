@@ -288,7 +288,7 @@ export async function courseRegistration(
             ...restWithoutRelations,
             // For create, courseMaterials is a scalar field and accepts string[] directly
             instructor: { connect: { id: createInstructorId as string } },
-            ...(createChannelId && { channel: { connect: { id: createChannelId as string } } }),
+            ...(createChannelId ? { channel: { connect: { id: createChannelId as string } } } : {}),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         })
