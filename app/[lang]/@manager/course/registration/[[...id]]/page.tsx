@@ -91,14 +91,8 @@ export default function Page() {
   const { data: channels, loading: channelsLoading, } = useData({
     func: getChannels,
     args: [],
-    onSuccess(data) {
-      // Set default channel to "General" if no channel is selected and we're not editing
-      if (data && !isEditing && !watch("channelId")) {
-        const generalChannel = data.find((channel: any) => channel.title === "General");
-        if (generalChannel) {
-          setValue("channelId", generalChannel.id);
-        }
-      }
+    onSuccess() {
+      // Channel is now optional - no automatic selection needed
     }
   });
 
@@ -422,7 +416,6 @@ export default function Page() {
       { field: "titleEn", selector: 'input[name="titleEn"]' },
       { field: "titleAm", selector: 'input[name="titleAm"]' },
       { field: "instructorId", selector: 'select[name="instructorId"]' },
-      { field: "channelId", selector: 'select[name="channelId"]' },
       { field: "dolarPrice", selector: 'input[name="dolarPrice"]' },
       { field: "birrPrice", selector: 'input[name="birrPrice"]' },
     ];
@@ -440,9 +433,6 @@ export default function Page() {
           break;
         case "instructorId":
           value = watch("instructorId");
-          break;
-        case "channelId":
-          value = watch("channelId");
           break;
         case "dolarPrice":
           value = watch("dolarPrice");
@@ -490,7 +480,7 @@ export default function Page() {
   const formProgress = [
     {
       label: lang === "en" ? "Basic Info" : "መሰረታዊ መረጃ",
-      completed: !!(watch("titleEn") && watch("titleAm") && watch("instructorId") && watch("channelId")),
+      completed: !!(watch("titleEn") && watch("titleAm") && watch("instructorId")),
     },
     {
       label: lang === "en" ? "Pricing" : "ዋጋ",
@@ -1207,7 +1197,6 @@ export default function Page() {
                         !watch("titleEn") ||
                         !watch("titleAm") ||
                         !watch("instructorId") ||
-                        !watch("channelId") ||
                         !watch("dolarPrice") ||
                         !watch("birrPrice")
                       }
@@ -1216,7 +1205,6 @@ export default function Page() {
                         const titleEn = watch("titleEn");
                         const titleAm = watch("titleAm");
                         const instructorId = watch("instructorId");
-                        const channelId = watch("channelId");
                         const dolarPrice = watch("dolarPrice");
                         const birrPrice = watch("birrPrice");
                         
@@ -1224,7 +1212,6 @@ export default function Page() {
                           titleEn: { value: titleEn, type: typeof titleEn, isEmpty: !titleEn || titleEn.trim() === '' },
                           titleAm: { value: titleAm, type: typeof titleAm, isEmpty: !titleAm || titleAm.trim() === '' },
                           instructorId: { value: instructorId, type: typeof instructorId, isEmpty: !instructorId || instructorId.trim() === '' },
-                          channelId: { value: channelId, type: typeof channelId, isEmpty: !channelId || channelId.trim() === '' },
                           dolarPrice: { value: dolarPrice, type: typeof dolarPrice, isEmpty: !dolarPrice || dolarPrice <= 0 },
                           birrPrice: { value: birrPrice, type: typeof birrPrice, isEmpty: !birrPrice || birrPrice <= 0 }
                         });
@@ -1232,7 +1219,6 @@ export default function Page() {
                         const isIncomplete = !titleEn || titleEn.trim() === '' ||
                                            !titleAm || titleAm.trim() === '' ||
                                            !instructorId || instructorId.trim() === '' ||
-                                           !channelId || channelId.trim() === '' ||
                                            !dolarPrice || dolarPrice <= 0 ||
                                            !birrPrice || birrPrice <= 0;
                         
@@ -1386,14 +1372,12 @@ export default function Page() {
                             const titleEn = watch("titleEn");
                             const titleAm = watch("titleAm");
                             const instructorId = watch("instructorId");
-                            const channelId = watch("channelId");
                             const dolarPrice = watch("dolarPrice");
                             const birrPrice = watch("birrPrice");
                             
                             const isIncomplete = !titleEn || titleEn.trim() === '' ||
                                                !titleAm || titleAm.trim() === '' ||
                                                !instructorId || instructorId.trim() === '' ||
-                                               !channelId || channelId.trim() === '' ||
                                                !dolarPrice || dolarPrice <= 0 ||
                                                !birrPrice || birrPrice <= 0;
                             

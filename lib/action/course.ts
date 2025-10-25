@@ -47,11 +47,11 @@ export async function courseRegistration(
       };
     }
 
-    if (!data.instructorId || !data.channelId) {
+    if (!data.instructorId) {
       return {
         status: false,
         cause: "Validation Error",
-        message: "Instructor and channel are required",
+        message: "Instructor is required",
       };
     }
 
@@ -143,7 +143,7 @@ export async function courseRegistration(
         data: {
           ...restWithoutRelations, // Update all scalar fields
           instructor: { connect: { id: instructorId } }, // Fix: Use relation syntax
-          channel: { connect: { id: channelId } }, // Fix: Use relation syntax
+          ...(channelId && { channel: { connect: { id: channelId } } }), // Optional channel connection
           courseFor: { create: courseFor },
           requirement: { create: requirement },
           activity: {
@@ -288,7 +288,7 @@ export async function courseRegistration(
             ...restWithoutRelations,
             // For create, courseMaterials is a scalar field and accepts string[] directly
             instructor: { connect: { id: createInstructorId as string } },
-            channel: { connect: { id: createChannelId as string } },
+            ...(createChannelId && { channel: { connect: { id: createChannelId as string } } }),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         })
