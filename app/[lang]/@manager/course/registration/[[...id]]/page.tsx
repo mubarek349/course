@@ -58,7 +58,7 @@ export default function Page() {
   const { handleSubmit, register, setValue, formState, watch } = useForm<TCourse>({
       resolver: zodResolver(courseSchema),
       defaultValues: {
-        titleEn: "",
+        titleEn: "", 
         titleAm: "",
         aboutEn: "",
         aboutAm: "",
