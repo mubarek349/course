@@ -393,7 +393,7 @@ PlayerProps) {
               setShowControls((v) => !v);
             }
           }}
-          onError={(e) => {
+          onError={(e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
             console.error("Video load error:", e);
             setIsLoading(false);
           }}
