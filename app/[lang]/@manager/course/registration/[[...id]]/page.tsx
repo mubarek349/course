@@ -91,11 +91,26 @@ export default function Page() {
   const { data: channels, loading: channelsLoading, } = useData({
     func: getChannels,
     args: [],
+    onSuccess(data) {
+      // Set default channel to "General" if no channel is selected and we're not editing
+      if (data && !isEditing && !watch("channelId")) {
+        const generalChannel = data.find((channel: any) => channel.title === "General");
+        if (generalChannel) {
+          setValue("channelId", generalChannel.id);
+        }
+      }
+    }
   });
 
   const { data: instructors, loading: instructorsLoading } = useData({
     func: getInstructorsList,
     args: [],
+    onSuccess(data) {
+      // Set default instructor if no instructor is selected and we're not editing
+      if (data && !isEditing && !watch("instructorId") && data.length > 0) {
+        setValue("instructorId", data[0].id);
+      }
+    }
   });
 
   const { loading: courseLoading } = useData({
@@ -400,10 +415,86 @@ export default function Page() {
     setValue("thumbnail", "", { shouldValidate: false, shouldDirty: true });
   };
 
+  const scrollToFirstIncompleteField = () => {
+    console.log("🔍 Starting scroll to incomplete field...");
+    
+    const requiredFields = [
+      { field: "titleEn", selector: 'input[name="titleEn"]' },
+      { field: "titleAm", selector: 'input[name="titleAm"]' },
+      { field: "instructorId", selector: 'select[name="instructorId"]' },
+      { field: "channelId", selector: 'select[name="channelId"]' },
+      { field: "dolarPrice", selector: 'input[name="dolarPrice"]' },
+      { field: "birrPrice", selector: 'input[name="birrPrice"]' },
+    ];
+
+    let foundIncomplete = false;
+
+    for (const { field, selector } of requiredFields) {
+      let value;
+      switch (field) {
+        case "titleEn":
+          value = watch("titleEn");
+          break;
+        case "titleAm":
+          value = watch("titleAm");
+          break;
+        case "instructorId":
+          value = watch("instructorId");
+          break;
+        case "channelId":
+          value = watch("channelId");
+          break;
+        case "dolarPrice":
+          value = watch("dolarPrice");
+          break;
+        case "birrPrice":
+          value = watch("birrPrice");
+          break;
+        default:
+          value = null;
+      }
+      
+      // More precise validation
+      const isEmpty = !value || 
+                     (typeof value === 'string' && value.trim() === '') || 
+                     (typeof value === 'number' && value <= 0) ||
+                     (Array.isArray(value) && value.length === 0);
+      
+      console.log(`🔍 Checking field ${field}:`, { value, type: typeof value, isEmpty });
+      
+      if (isEmpty) {
+        const element = document.querySelector(selector);
+        if (element) {
+          console.log(`📍 Scrolling to incomplete field: ${field}`);
+          foundIncomplete = true;
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          // Focus the element if it's an input
+          if (element instanceof HTMLInputElement || element instanceof HTMLSelectElement) {
+            setTimeout(() => element.focus(), 300);
+          }
+          break;
+        } else {
+          console.log(`❌ Element not found for field: ${field} with selector: ${selector}`);
+        }
+      }
+    }
+    
+    if (!foundIncomplete) {
+      console.log("✅ All fields appear to be complete - no scrolling needed");
+    }
+  };
+
   const formProgress = [
     {
       label: lang === "en" ? "Basic Info" : "መሰረታዊ መረጃ",
-      completed: !!(watch("titleEn") && watch("titleAm")),
+      completed: !!(watch("titleEn") && watch("titleAm") && watch("instructorId") && watch("channelId")),
+    },
+    {
+      label: lang === "en" ? "Pricing" : "ዋጋ",
+      completed: !!(watch("dolarPrice") && watch("birrPrice")),
     },
     {
       label: lang === "en" ? "Media" : "ሚዲያ",
@@ -1118,10 +1209,43 @@ export default function Page() {
                         !watch("instructorId") ||
                         !watch("channelId") ||
                         !watch("dolarPrice") ||
-                        !watch("birrPrice") ||
-                        !watch("duration")
+                        !watch("birrPrice")
                       }
                       onPress={() => {
+                        // Check if form is incomplete and scroll to first missing field
+                        const titleEn = watch("titleEn");
+                        const titleAm = watch("titleAm");
+                        const instructorId = watch("instructorId");
+                        const channelId = watch("channelId");
+                        const dolarPrice = watch("dolarPrice");
+                        const birrPrice = watch("birrPrice");
+                        
+                        console.log("🔍 Form Values Debug:", {
+                          titleEn: { value: titleEn, type: typeof titleEn, isEmpty: !titleEn || titleEn.trim() === '' },
+                          titleAm: { value: titleAm, type: typeof titleAm, isEmpty: !titleAm || titleAm.trim() === '' },
+                          instructorId: { value: instructorId, type: typeof instructorId, isEmpty: !instructorId || instructorId.trim() === '' },
+                          channelId: { value: channelId, type: typeof channelId, isEmpty: !channelId || channelId.trim() === '' },
+                          dolarPrice: { value: dolarPrice, type: typeof dolarPrice, isEmpty: !dolarPrice || dolarPrice <= 0 },
+                          birrPrice: { value: birrPrice, type: typeof birrPrice, isEmpty: !birrPrice || birrPrice <= 0 }
+                        });
+                        
+                        const isIncomplete = !titleEn || titleEn.trim() === '' ||
+                                           !titleAm || titleAm.trim() === '' ||
+                                           !instructorId || instructorId.trim() === '' ||
+                                           !channelId || channelId.trim() === '' ||
+                                           !dolarPrice || dolarPrice <= 0 ||
+                                           !birrPrice || birrPrice <= 0;
+                        
+                        console.log("🔍 Is Form Incomplete:", isIncomplete);
+                        
+                        if (isIncomplete) {
+                          console.log("📍 Scrolling to incomplete field...");
+                          scrollToFirstIncompleteField();
+                          return;
+                        } else {
+                          console.log("✅ Form appears complete - proceeding with submission");
+                        }
+
                         console.log("🔘 =================================");
                         console.log("🔘 BUTTON CLICKED!", { isEditing, id });
                         console.log("🔘 Form State:", {
@@ -1131,7 +1255,7 @@ export default function Page() {
                           formValid: formState.isValid,
                           formDirty: formState.isDirty,
                         });
-                        console.log("❌ Form Errors (detailed):", JSON.stringify(formState.errors, null, 2));
+                        console.log("❌ Form Errors (detailed):", JSON.stringify((formState as any).errors, null, 2));
                         console.log("📋 Form Values:", {
                           id: watch("id"),
                           titleEn: watch("titleEn"),
@@ -1258,13 +1382,33 @@ export default function Page() {
                       >
                         <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                         <span className="font-bold">
-                          {isEditing
-                            ? lang === "en"
-                              ? "Update Course"
-                              : "ኮርስ አዘምን"
-                            : lang === "en"
-                            ? "Create Course"
-                            : "ኮርስ ፍጠር"}
+                          {(() => {
+                            const titleEn = watch("titleEn");
+                            const titleAm = watch("titleAm");
+                            const instructorId = watch("instructorId");
+                            const channelId = watch("channelId");
+                            const dolarPrice = watch("dolarPrice");
+                            const birrPrice = watch("birrPrice");
+                            
+                            const isIncomplete = !titleEn || titleEn.trim() === '' ||
+                                               !titleAm || titleAm.trim() === '' ||
+                                               !instructorId || instructorId.trim() === '' ||
+                                               !channelId || channelId.trim() === '' ||
+                                               !dolarPrice || dolarPrice <= 0 ||
+                                               !birrPrice || birrPrice <= 0;
+                            
+                            if (isIncomplete) {
+                              return lang === "en" ? "Complete Required Fields" : "የሚያስፈልጉ መስኮች ይሙሉ";
+                            }
+                            
+                            return isEditing
+                              ? lang === "en"
+                                ? "Update Course"
+                                : "ኮርስ አዘምን"
+                              : lang === "en"
+                              ? "Create Course"
+                              : "ኮርስ ፍጠር";
+                          })()}
                         </span>
                       </div>
                     </Button>
