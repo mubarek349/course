@@ -1,22 +1,27 @@
 "use client";
-import { UseFormRegister } from "react-hook-form";
+import { UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { TCourse } from "@/lib/definations";
 import { CInput, CSelect, CSelectItem, CTextarea } from "../heroui";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import TimePicker from "./TimePicker";
 
 interface CourseBasicInfoProps {
   lang: string;
   register: UseFormRegister<TCourse>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   watch: (key: string) => any;
+  setValue: UseFormSetValue<TCourse>;
 }
 
 export default function CourseBasicInfo({
   lang,
   register,
   watch,
+  setValue,
 }: CourseBasicInfoProps) {
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 transition-all duration-300 overflow-visible">
       <div className="grid gap-3 sm:gap-4 md:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
         <CInput
           label={lang === "en" ? "Title : English" : "ርዕስ : እንግሊዝኛ"}
@@ -100,19 +105,22 @@ export default function CourseBasicInfo({
           className="w-full"
         >
           {["beginner", "intermediate", "advanced"].map((v) => (
-            <CSelectItem key={v} textValue={v.charAt(0).toUpperCase() + v.slice(1)}>
+            <CSelectItem
+              key={v}
+              textValue={v.charAt(0).toUpperCase() + v.slice(1)}
+            >
               {v.charAt(0).toUpperCase() + v.slice(1)}
             </CSelectItem>
           ))}
         </CSelect>
-        <CInput
-          {...register("duration")}
-          label={lang === "en" ? "Duration" : "ቆይታ"}
-          color="primary"
-          value={watch ? watch("duration") : ""}
-          placeholder={lang === "en" ? "e.g., 01:09:09" : "ለምሳሌ፣ 01:09:09"}
-          className="w-full"
-        />
+        <div className="w-full ">
+          <TimePicker
+            value={watch ? watch("duration") : ""}
+            onChange={(value: string) => setValue("duration", value)}
+            label={lang === "en" ? "Duration" : "ቆይታ"}
+            placeholder={lang === "en" ? "e.g., 01:09:09" : "ለምሳሌ፣ 01:09:09"}
+          />
+        </div>
         <CInput
           {...register("language")}
           label={lang === "en" ? "Language" : "ቋንቋ"}

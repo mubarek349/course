@@ -551,6 +551,7 @@ export default function Page() {
                   lang={lang}
                   register={register}
                   watch={watch}
+                  setValue={setValue}
                 />
               </CardBody>
             </Card>
