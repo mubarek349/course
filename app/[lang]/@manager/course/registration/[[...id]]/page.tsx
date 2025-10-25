@@ -440,7 +440,92 @@ export default function Page() {
   return (
     instructors &&
     channels && (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
+      <>
+        {/* Fixed Progress Section - Sticks to Screen */}
+        <div className="fixed top-6 right-6 z-[9999] hidden lg:block" style={{ position: 'fixed', marginTop: '28px' }}>
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl p-4 min-w-[200px]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="text-center">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-primary-500"></div>
+                  <p className="text-sm font-semibold text-gray-700">
+                    {Math.round(progressPercentage)}%{" "}
+                    {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                  </p>
+                </div>
+                <Progress
+                  value={progressPercentage}
+                  size="md"
+                  className="w-32"
+                  classNames={{
+                    track: "bg-gray-200",
+                    indicator:
+                      "bg-gradient-to-r from-primary-500 to-primary-600",
+                  }}
+                />
+              </div>
+
+              {/* Progress Steps */}
+              <div className="flex gap-2">
+                {formProgress.map((step, index) => (
+                  <div
+                    key={index}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      step.completed
+                        ? "bg-primary-500 shadow-md"
+                        : "bg-gray-200"
+                    }`}
+                    title={step.label}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Fixed Progress */}
+        <div className="fixed top-0 left-0 right-0 z-[9999] lg:hidden" style={{ position: 'fixed', marginTop: '65px' }}>
+          <div className="bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-lg p-2 sm:p-3">
+            <div className="flex items-center justify-between max-w-6xl mx-auto px-2 sm:px-4">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary-500"></div>
+                <p className="text-xs sm:text-sm font-semibold text-gray-700">
+                  {Math.round(progressPercentage)}%{" "}
+                  <span className="hidden sm:inline">
+                    {lang === "en" ? "Complete" : "ተጠናቅቋል"}
+                  </span>
+                </p>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Progress
+                  value={progressPercentage}
+                  size="sm"
+                  className="w-16 sm:w-20 md:w-24"
+                  classNames={{
+                    track: "bg-gray-200",
+                    indicator:
+                      "bg-gradient-to-r from-primary-500 to-primary-600",
+                  }}
+                />
+                <div className="flex gap-0.5 sm:gap-1">
+                  {formProgress.map((step, index) => (
+                    <div
+                      key={index}
+                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-300 ${
+                        step.completed
+                          ? "bg-primary-500"
+                          : "bg-gray-200"
+                      }`}
+                      title={step.label}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-3 sm:px-6 lg:px-8 py-6 pb-24">
         <div className="max-w-6xl mx-auto space-y-6 lg:space-y-8">
           {/* Header Section */}
           <div className="relative">
@@ -466,43 +551,6 @@ export default function Page() {
                           ? "Design and structure your course content with our comprehensive creation tools"
                           : "በእኛ ሁሉን አቀፍ የመፈጠሪያ መሳሪያዎች ኮርስዎን ይንደፉ እና ያዋቅሩ"}
                       </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center lg:items-end gap-3">
-                    <div className="text-center lg:text-right">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-primary-500"></div>
-                        <p className="text-sm font-semibold text-gray-700">
-                          {Math.round(progressPercentage)}%{" "}
-                          {lang === "en" ? "Complete" : "ተጠናቅቋል"}
-                        </p>
-                      </div>
-                      <Progress
-                        value={progressPercentage}
-                        size="md"
-                        className="w-32 lg:w-40"
-                        classNames={{
-                          track: "bg-gray-200",
-                          indicator:
-                            "bg-gradient-to-r from-primary-500 to-primary-600",
-                        }}
-                      />
-                    </div>
-
-                    {/* Progress Steps */}
-                    <div className="flex gap-2 mt-2">
-                      {formProgress.map((step, index) => (
-                        <div
-                          key={index}
-                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                            step.completed
-                              ? "bg-primary-500 shadow-md"
-                              : "bg-gray-200"
-                          }`}
-                          title={step.label}
-                        />
-                      ))}
                     </div>
                   </div>
                 </div>
@@ -1228,6 +1276,7 @@ export default function Page() {
         </div>
 
       </div>
+      </>
     )
   );
 }
